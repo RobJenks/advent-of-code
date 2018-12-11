@@ -6,6 +6,8 @@
 
 void Day1::Run(void) const
 {
+    std::cout << "\nDay 1:\n";
+
     Part1();
     Part2();
 }
