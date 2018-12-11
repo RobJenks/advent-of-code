@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="base">
+      <UniqueIdentifier>{033ee04b-ed8a-415f-ab16-2f493f92d47a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="day1">
+      <UniqueIdentifier>{23011bff-92e0-46a9-848c-1f3eed8a0a94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="day2">
+      <UniqueIdentifier>{f55732d8-b361-4339-83e9-054f2a995f2e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="base\AOCSolution.h">
+      <Filter>base</Filter>
+    </ClInclude>
+    <ClInclude Include="day1\day1.h">
+      <Filter>day1</Filter>
+    </ClInclude>
+    <ClInclude Include="day2\day2.h">
+      <Filter>day2</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="advent-of-code-2018-cpp.cpp" />
+    <ClCompile Include="base\AOCSolution.cpp">
+      <Filter>base</Filter>
+    </ClCompile>
+    <ClCompile Include="day1\day1.cpp">
+      <Filter>day1</Filter>
+    </ClCompile>
+    <ClCompile Include="day2\day2.cpp">
+      <Filter>day2</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="day1\input.txt">
+      <Filter>day1</Filter>
+    </Text>
+  </ItemGroup>
+</Project>
