@@ -26,8 +26,7 @@ void Day1::Part2(void) const
     std::vector<std::string> input = GetLines(ReadInput(fs::path("day1/input.txt")));
 
     std::vector<int> parsed;
-    parsed.reserve(input.size());
-    std::transform(input.begin(), input.end(), parsed.begin(), [](const std::string & el) { return std::atoi(el.c_str()); });
+    std::transform(input.begin(), input.end(), std::back_inserter(parsed), [](const std::string & el) { return std::atoi(el.c_str()); });
 
     int index = 0, acc = 0;
     std::unordered_set<int> history;
