@@ -9,21 +9,7 @@ public:
     // Entry point
     void Run(void) const;
 
-
-private:
-
-    class FreqChange
-    {
-    public:
-
-        FreqChange(const std::string & input)
-            
-        {}
-
-
-    private:
-        
-    };
-
+    void Part1(void) const;
+    void Part2(void) const;
 
 };
