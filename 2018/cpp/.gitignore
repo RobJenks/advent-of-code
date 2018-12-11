@@ -1,0 +1,7 @@
+# IDE config
+/.vs/*
+
+# Exclude intermediate and build output
+/Debug/*
+/Release/*
+/x64/*
