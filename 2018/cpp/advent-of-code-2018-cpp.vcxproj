@@ -22,12 +22,14 @@
     <ClInclude Include="base\AOCSolution.h" />
     <ClInclude Include="day1\day1.h" />
     <ClInclude Include="day2\day2.h" />
+    <ClInclude Include="day3\day3.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="advent-of-code-2018-cpp.cpp" />
     <ClCompile Include="base\AOCSolution.cpp" />
     <ClCompile Include="day1\day1.cpp" />
     <ClCompile Include="day2\day2.cpp" />
+    <ClCompile Include="day3\day3.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="day1\input.txt">
@@ -41,6 +43,7 @@
       </DeploymentContent>
     </Text>
     <Text Include="day2\input.txt" />
+    <Text Include="day3\input.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

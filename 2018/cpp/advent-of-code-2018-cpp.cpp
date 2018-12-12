@@ -3,6 +3,7 @@
 #include "base/AOCSolution.h"
 #include "day1/day1.h"
 #include "day2/day2.h"
+#include "day3/day3.h"
 
 template <typename... TSolutions>
 void Run(const TSolutions&... solutions)
@@ -18,6 +19,6 @@ void RunSolution(const TSolution & solution)
 
 int main(int argc, char *argv[])
 {
-    Run(Day1(), Day2());
+    Run(Day1(), Day2(), Day3());
 }
 
