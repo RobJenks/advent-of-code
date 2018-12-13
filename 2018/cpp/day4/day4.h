@@ -3,6 +3,7 @@
 #include "../base/AOCSolution.h"
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <sstream>
 #include <array>
 
@@ -17,9 +18,11 @@ public:
 private:
 
     void Part1(void) const;
-    
+    void Part2(void) const;
+
 
     static const int UNKNOWN_GUARD = -1;
+    static const int ANY_GUARD = -1;
 
 
     enum class EventType { Unknown = 0, BeginShift, FallAsleep, WakeUp };
@@ -76,5 +79,8 @@ private:
     std::unordered_map<int, int> GetGuardTimeAsleep(const std::vector<Event> & events) const;
 
     // Returns the sleep distribution across each minute of 00:00-00:59 for a particular guard
-    std::array<int, 60U> GetSleepDistribution(int guard, const std::vector<Event> & events) const;
+    std::unordered_map<int, std::array<int, 60U>> GetSleepDistribution(const std::vector<Event> & events, int guard = ANY_GUARD) const;
+
+    // Returns the set of unique guard IDs in the event sequence
+
 };

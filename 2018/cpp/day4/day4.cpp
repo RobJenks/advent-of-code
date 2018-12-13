@@ -9,6 +9,7 @@ void Day4::Run(void) const
     std::cout << "\nDay 4:\n";
 
     Part1();
+    Part2();
 }
 
 void Day4::Part1(void) const
@@ -31,7 +32,9 @@ void Day4::Part1(void) const
     
     // Find hour covered by most sleep periods for this guard
     int minute = -1; int eventcount = 0;
-    std::array<int, 60U> dist = GetSleepDistribution(guard, events);
+    auto dist_map = GetSleepDistribution(events, guard);
+    const auto & dist = dist_map[guard];
+
     for (int i = 0; i < 60; ++i)
     {
         if (dist[i] > eventcount)
@@ -44,6 +47,29 @@ void Day4::Part1(void) const
     std::cout << "Part 1 result = " << (guard * minute) << " (Guard #" << guard << " * Minute " << minute << ")\n";
 }
 
+void Day4::Part2(void) const
+{
+    std::vector<std::string> input = GetLines(ReadInput(fs::path("day4/input.txt")));
+    std::vector<Event> events = ConstructTimeline(input);
+
+    auto dist = GetSleepDistribution(events);
+
+    int guard = UNKNOWN_GUARD; int minute = -1; int maxevents = 0;
+    for (const auto & entry : dist)
+    {
+        for (int i = 0; i < 60; ++i)
+        {
+            if (entry.second[i] > maxevents)
+            {
+                guard = entry.first;
+                minute = i;
+                maxevents = entry.second[i];
+            }
+        }
+    }
+
+    std::cout << "Part 2 result = " << (guard * minute) << " (Guard #" << guard << " * Minute " << minute << ")\n";
+}
 
 std::vector<Day4::Event> Day4::ConstructTimeline(const std::vector<std::string> & event_strings) const
 {
@@ -132,15 +158,19 @@ int Day4::TimeBetweenSleepEvents(const Day4::Event & ev0, const Day4::Event & ev
 }
 
 // Returns the sleep distribution across each minute of 00:00-00:59 for a particular guard
-std::array<int, 60U> Day4::GetSleepDistribution(int guard, const std::vector<Day4::Event> & events) const
+std::unordered_map<int, std::array<int, 60U>> Day4::GetSleepDistribution(const std::vector<Day4::Event> & events, int guard) const
 {
-    std::array<int, 60U> dist = { 0 };
+    std::unordered_map<int, std::array<int, 60U>> dist;
 
     for (const Event & ev : events)
     {
-        if (ev.Data.Guard == guard && ev.Data.Type == EventType::WakeUp)
+        if ((guard = ev.Data.Guard || guard == ANY_GUARD) && ev.Data.Type == EventType::WakeUp)
         {
-            for (int min = (&ev - 1)->Minute; min < ev.Minute; ++min) ++dist[min];
+            if (dist.find(ev.Data.Guard) == dist.end())
+                dist[ev.Data.Guard] = { 0 };
+
+            for (int min = (&ev - 1)->Minute; min < ev.Minute; ++min) 
+                ++dist[ev.Data.Guard][min];
         }
     }
 
