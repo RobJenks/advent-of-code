@@ -13,6 +13,9 @@
     <Filter Include="day3">
       <UniqueIdentifier>{8e87a689-eee7-4718-8dec-b59e5eb58a03}</UniqueIdentifier>
     </Filter>
+    <Filter Include="day4">
+      <UniqueIdentifier>{b17a4e61-8736-4a63-9ac1-5bb094608d03}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\AOCSolution.h">
@@ -26,6 +29,9 @@
     </ClInclude>
     <ClInclude Include="day3\day3.h">
       <Filter>day3</Filter>
+    </ClInclude>
+    <ClInclude Include="day4\day4.h">
+      <Filter>day4</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -42,6 +48,9 @@
     <ClCompile Include="day3\day3.cpp">
       <Filter>day3</Filter>
     </ClCompile>
+    <ClCompile Include="day4\day4.cpp">
+      <Filter>day4</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="day1\input.txt">
@@ -52,6 +61,9 @@
     </Text>
     <Text Include="day3\input.txt">
       <Filter>day3</Filter>
+    </Text>
+    <Text Include="day4\input.txt">
+      <Filter>day4</Filter>
     </Text>
   </ItemGroup>
 </Project>
