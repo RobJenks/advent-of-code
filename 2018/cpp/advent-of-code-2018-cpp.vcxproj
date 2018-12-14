@@ -24,6 +24,7 @@
     <ClInclude Include="day2\day2.h" />
     <ClInclude Include="day3\day3.h" />
     <ClInclude Include="day4\day4.h" />
+    <ClInclude Include="day5\day5.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="advent-of-code-2018-cpp.cpp" />
@@ -32,6 +33,7 @@
     <ClCompile Include="day2\day2.cpp" />
     <ClCompile Include="day3\day3.cpp" />
     <ClCompile Include="day4\day4.cpp" />
+    <ClCompile Include="day5\day5.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="day1\input.txt">
@@ -47,6 +49,7 @@
     <Text Include="day2\input.txt" />
     <Text Include="day3\input.txt" />
     <Text Include="day4\input.txt" />
+    <Text Include="day5\input.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
