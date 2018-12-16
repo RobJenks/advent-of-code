@@ -19,6 +19,9 @@
     <Filter Include="day5">
       <UniqueIdentifier>{af23ea17-f697-406a-b0db-59b304f9cc68}</UniqueIdentifier>
     </Filter>
+    <Filter Include="day6">
+      <UniqueIdentifier>{441bb510-8054-43e2-97e6-1be901ede7f6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\AOCSolution.h">
@@ -38,6 +41,18 @@
     </ClInclude>
     <ClInclude Include="day5\day5.h">
       <Filter>day5</Filter>
+    </ClInclude>
+    <ClInclude Include="day6\day6.h">
+      <Filter>day6</Filter>
+    </ClInclude>
+    <ClInclude Include="day6\Grid.h">
+      <Filter>day6</Filter>
+    </ClInclude>
+    <ClInclude Include="day6\Point.h">
+      <Filter>day6</Filter>
+    </ClInclude>
+    <ClInclude Include="day6\QuadTree.h">
+      <Filter>day6</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +75,12 @@
     <ClCompile Include="day5\day5.cpp">
       <Filter>day5</Filter>
     </ClCompile>
+    <ClCompile Include="day6\day6.cpp">
+      <Filter>day6</Filter>
+    </ClCompile>
+    <ClCompile Include="day6\QuadTree.cpp">
+      <Filter>day6</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="day1\input.txt">
@@ -76,6 +97,9 @@
     </Text>
     <Text Include="day5\input.txt">
       <Filter>day5</Filter>
+    </Text>
+    <Text Include="day6\input.txt">
+      <Filter>day6</Filter>
     </Text>
   </ItemGroup>
 </Project>
