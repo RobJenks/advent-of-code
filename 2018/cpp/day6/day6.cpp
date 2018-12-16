@@ -120,6 +120,7 @@ void Day6::SpreadInfluence(Grid & grid, const GridPoint & point) const
                 {
                     // Contested cell; no overall owner
                     cell.ID = GridPoint::AREA_SHARED;
+                    spread = true;
                 }
                 else
                 {
