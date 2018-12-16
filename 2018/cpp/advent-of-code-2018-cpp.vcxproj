@@ -57,6 +57,7 @@
     <Text Include="day4\input.txt" />
     <Text Include="day5\input.txt" />
     <Text Include="day6\input.txt" />
+    <Text Include="day7\input.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

@@ -24,14 +24,20 @@ private:
     };
 
     typedef size_t NodeIndex;
+    static const NodeIndex NO_NODE = (0U - 1U);
+
     struct Node
     {
         char ID;
-        bool Fired;
+        bool Fired, InProgress;
+        int TimeRemaining;
         std::vector<NodeIndex> Dependencies;
 
         Node(void) : Node(0) { }
-        Node(char id) : ID(id), Fired(false) { }
+        Node(char id) : ID(id), Fired(false), InProgress(false)
+        { 
+            TimeRemaining = 60 + 1 + (ID - 'A');
+        }
     };
 
     struct GraphData
@@ -46,6 +52,7 @@ private:
 private:
 
     void Part1(void) const;
+    void Part2(void) const;
 
 
     std::vector<TextualDependency> ParseDependencies(const std::vector<std::string> & input) const;
@@ -53,5 +60,9 @@ private:
     std::unordered_set<char> IdentifyNodes(const std::vector<TextualDependency> & dependencies) const;
 
     GraphData BuildGraph(const std::unordered_set<char> & nodes, const std::vector<TextualDependency> & dependencies) const;
+
+    std::vector<NodeIndex> GetActiveSet(const GraphData & graph) const;
     std::string EvaluateGraph(GraphData & graph) const;
+
+    std::tuple<std::string, int> EvaluateGraphMultiWorker(GraphData & graph, int worker_count) const;
 };

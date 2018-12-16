@@ -104,5 +104,8 @@
     <Text Include="day6\input.txt">
       <Filter>day6</Filter>
     </Text>
+    <Text Include="day7\input.txt">
+      <Filter>day7</Filter>
+    </Text>
   </ItemGroup>
 </Project>
