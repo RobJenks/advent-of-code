@@ -21,8 +21,17 @@ private:
     static const char PATTERN_TERM = '~';
 
     void Part1(void) const;
-    
+    void Part2(void) const;
+
+
     std::string Reduce(std::string data) const;
 
-    std::string Collapse(const std::string & data) const;
+    template <typename TPred>
+    inline std::string Collapse(const std::string & data, TPred pred) const
+    {
+        std::string collapsed;
+        std::for_each(data.begin(), data.end(), [&collapsed, &pred](const auto & c) { if (pred(c)) collapsed.push_back(c); });
+
+        return collapsed;
+    }
 };

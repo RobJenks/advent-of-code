@@ -1,5 +1,7 @@
 #include "day5.h"
 #include <iostream>
+#include <array>
+#include <numeric>
 
 
 void Day5::Run(void) const
@@ -7,15 +9,43 @@ void Day5::Run(void) const
     std::cout << "\nDay 5:\n";
 
     Part1();
+    Part2();
 }
 
 void Day5::Part1(void) const
 {
     std::string input = ReadInput(fs::path("day5/input.txt"));
 
-    std::string result = Collapse(Reduce(input));
+    std::string reduced = Reduce(input);
+    std::string result = Collapse(reduced, [](char c) { return (c != REMOVED); });
+
     std::cout << "Part 1 result = " << result.size() << " units\n";
 }
+
+void Day5::Part2(void) const
+{
+    std::cout << "Calculating part 2: ";
+    std::string input = ReadInput(fs::path("day5/input.txt"));
+
+    std::array<size_t, 26U> results = { 0 };
+    for (char i = 0; i < 26; ++i)
+    {
+        // Collapse result first to remove target symbols
+        std::cout << ".";
+        std::string collapsed = Collapse(input, [i](char c) { return (c != ('a' + i) && c != ('A' + i)); });
+
+        // Now reduce/collapse as normal and record the length of the final symbol string
+        std::string result = Collapse(Reduce(collapsed), [](char c) { return (c != REMOVED); });
+        results[i] = result.size();
+    }
+
+    size_t result = std::accumulate(results.begin(), results.end(), input.size(), 
+        [](size_t acc, size_t el) { return std::min(acc, el); }
+    );
+
+    std::cout << "\nPart 2 result = " << result << "\n";
+}
+
 
 std::string Day5::Reduce(std::string data) const
 {
@@ -51,11 +81,4 @@ std::string Day5::Reduce(std::string data) const
     return data;
 }
 
-std::string Day5::Collapse(const std::string & data) const
-{
-    std::string collapsed;
-    std::for_each(data.begin(), data.end(), [&collapsed](const auto & c) { if (c != REMOVED) collapsed.push_back(c); });
-
-    return collapsed;
-}
 
