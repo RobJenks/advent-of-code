@@ -17,12 +17,12 @@ private:
     inline bool will_react(char x, char y) const { return (std::abs(x - y) == REACT_DIFF); }
 
     static const char REMOVED = '#';
-    static const char TERMINATOR = '~';
+    static const char PATTERN_START = '@';
+    static const char PATTERN_TERM = '~';
 
     void Part1(void) const;
     
-    bool Reduce(std::string & data) const;
+    std::string Reduce(std::string data) const;
 
     std::string Collapse(const std::string & data) const;
-    static const int COLLAPSE_INTERVAL = 20;
 };
