@@ -12,7 +12,7 @@ public:
     inline Point() : x(0), y(0) { }
     inline Point(int _x, int _y) : x(_x), y(_y) { }
 
-    inline int ManhattanDistance(const Point & other) { return std::abs(x - other.x) + std::abs(y - other.y); }
+    inline int ManhattanDistance(const Point & other) const { return std::abs(x - other.x) + std::abs(y - other.y); }
 
     inline bool operator==(const Point & other) const { return (x == other.x && y == other.y); }
     inline bool operator!=(const Point & other) const { return !(*this == other); }
@@ -47,7 +47,12 @@ class GridPoint
 public:
 
     static const int AREA_NONE = -1;
+
+    // Part 1
     static const int AREA_SHARED = 0;
+    
+    // Part 2
+    static const int AREA_SAFE = 0;
 
     Point Location;
     int ID;

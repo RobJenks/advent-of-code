@@ -10,6 +10,7 @@ void Day6::Run(void) const
     std::cout << "\nDay 6:\n";
 
     Part1();
+    Part2();
 }
 
 void Day6::Part1(void) const
@@ -39,6 +40,23 @@ void Day6::Part1(void) const
 
     std::cout << "Part 1 result = " << max_area << " (Area " << area_id << ")\n";
 }
+
+void Day6::Part2(void) const
+{
+    std::vector<std::string> input = GetLines(ReadInput(fs::path("day6/input.txt")));
+
+    std::vector<Point> points;
+    std::transform(input.begin(), input.end(), std::back_inserter(points), [this](const auto & s) { return ParsePoint(s); });
+
+    Point bounds = DetermineBounds(points) + Point(1, 1);
+    Grid grid = Grid(bounds);
+
+    Point nucleus = DetermineNucleus(points);
+    long result = ExpandSafeRegion(grid, points, nucleus);
+
+    std::cout << "Part 2 result = " << result << "\n";
+}
+
 
 Point Day6::ParsePoint(const std::string & input_string) const
 {
@@ -84,20 +102,8 @@ void Day6::SpreadInfluence(Grid & grid, const GridPoint & point) const
         cells.clear();
         bool spread = false;
 
-        Point pmin = centre - Point(d, d);
-        Point pmax = centre + Point(d, d);
-
-        // Add top/bottom cells, then left/right cells, to collection for testing
-        for (int i = pmin.x; i <= pmax.x; ++i)
-        {
-            if (grid.ValidIndex(i, pmin.y)) cells.push_back(grid.Index(i, pmin.y ));
-            if (grid.ValidIndex(i, pmax.y)) cells.push_back(grid.Index(i, pmax.y ));
-        }
-        for (int i = pmin.y + 1; i <= pmax.y - 1; ++i)
-        {
-            if (grid.ValidIndex(pmin.x, i)) cells.push_back(grid.Index(pmin.x, i ));
-            if (grid.ValidIndex(pmax.x, i)) cells.push_back(grid.Index(pmax.x, i ));
-        }
+        // Determine the set of cells that the expansion (at distance d) will cover this cycle
+        DetermineExpansion(grid, centre, d, cells);
 
         // Test cells and spread influence if applicable
         for (size_t index : cells)
@@ -136,6 +142,24 @@ void Day6::SpreadInfluence(Grid & grid, const GridPoint & point) const
     }
 }
 
+void Day6::DetermineExpansion(const Grid & grid, const Point & centre, int distance, std::vector<size_t> & outIndices) const
+{
+    Point pmin = centre - Point(distance, distance);
+    Point pmax = centre + Point(distance, distance);
+
+    // Add top/bottom cells, then left/right cells, to collection for testing
+    for (int i = pmin.x; i <= pmax.x; ++i)
+    {
+        if (grid.ValidIndex(i, pmin.y)) outIndices.push_back(grid.Index(i, pmin.y));
+        if (grid.ValidIndex(i, pmax.y)) outIndices.push_back(grid.Index(i, pmax.y));
+    }
+    for (int i = pmin.y + 1; i <= pmax.y - 1; ++i)
+    {
+        if (grid.ValidIndex(pmin.x, i)) outIndices.push_back(grid.Index(pmin.x, i));
+        if (grid.ValidIndex(pmax.x, i)) outIndices.push_back(grid.Index(pmax.x, i));
+    }
+}
+
 // Returns a 1-based collection mapping area IDs to the size of their influence area
 std::vector<int> Day6::GetAreaSizes(const Grid & grid, const std::vector<Point> points) const
 {
@@ -164,4 +188,71 @@ std::unordered_set<int> Day6::GetInfiniteAreas(const Grid & grid) const
     }
 
     return inf;
+}
+
+// Determines a starting point for the expansion-search to determine our safe region.  We take the centroid of all 
+// given points as a very likely (guaranteed?) candidate for one point within the region
+Point Day6::DetermineNucleus(const std::vector<Point> & points) const
+{
+    // Determine centroid and assert that it does in fact lie within the region
+    Point nucleus = std::accumulate(points.begin(), points.end(), Point(0, 0),
+        [](Point & acc, const Point & el) { return (acc + el); }
+    )
+        / Point(static_cast<int>(points.size()), static_cast<int>(points.size()));
+
+    assert(IsWithinSafeRegion(nucleus, points));
+    
+    return nucleus;
+}
+
+long Day6::DistanceFromPoints(const Point & point, const std::vector<Point> & points) const
+{
+    return std::accumulate(points.begin(), points.end(), static_cast<long>(0L), 
+        [point](long acc, const Point & el) { return acc + point.ManhattanDistance(el); }
+    );
+}
+
+bool Day6::IsWithinSafeRegion(const Point & point, const std::vector<Point> & points) const
+{
+    long dist = 0L;
+    for (const auto & pt : points)
+    {
+        if ((dist += point.ManhattanDistance(pt)) >= SAFE_THRESHOLD) return false;
+    }
+
+    return true;
+}
+
+// Expand the safe region in all directions from a central nucleus.  Returns the total size of the 
+// safe region after all expansion completes
+long Day6::ExpandSafeRegion(Grid & grid, const std::vector<Point> & points, Point nucleus) const
+{
+    std::vector<size_t> cells;
+    int d = 1;
+    long size = 1L;     // Account for the 'nucleus' cell
+
+    while (true)
+    {
+        cells.clear();
+        bool spread = false;
+
+        // Determine the set of cells that the expansion (at distance d) will cover this cycle
+        DetermineExpansion(grid, nucleus, d, cells);
+
+        // Test cells and spread influence if applicable
+        for (size_t index : cells)
+        {
+            GridPoint & cell = grid.Points[index];
+            if (IsWithinSafeRegion(cell.Location, points))
+            {
+                cell.ID = GridPoint::AREA_SAFE;
+                ++size;
+                spread = true;
+            }
+        }
+
+        // If we could not spread to any adjacent cells then the region cannot expand any further, so terminate and return the total size
+        if (!spread) return size;
+        ++d;
+    }
 }

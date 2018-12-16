@@ -23,6 +23,7 @@ void RunSolution(const TSolution & solution)
 
 int main(int argc, char *argv[])
 {
-    Run(Day1(), Day2(), Day3(), Day4(), Day5(), Day6());
+    Run(Day1(), Day2(), Day3(), Day4(), Day5(), 
+        Day6());
 }
 
