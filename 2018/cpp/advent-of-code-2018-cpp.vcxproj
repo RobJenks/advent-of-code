@@ -28,7 +28,7 @@
     <ClInclude Include="day6\day6.h" />
     <ClInclude Include="day6\Grid.h" />
     <ClInclude Include="day6\Point.h" />
-    <ClInclude Include="day6\QuadTree.h" />
+    <ClInclude Include="day7\day7.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="advent-of-code-2018-cpp.cpp" />
@@ -39,7 +39,7 @@
     <ClCompile Include="day4\day4.cpp" />
     <ClCompile Include="day5\day5.cpp" />
     <ClCompile Include="day6\day6.cpp" />
-    <ClCompile Include="day6\QuadTree.cpp" />
+    <ClCompile Include="day7\day7.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="day1\input.txt">
