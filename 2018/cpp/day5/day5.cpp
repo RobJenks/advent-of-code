@@ -24,7 +24,7 @@ void Day5::Part1(void) const
 
 void Day5::Part2(void) const
 {
-    std::cout << "Calculating part 2: ";
+    std::cout << "Calculating: ";
     std::string input = ReadInput(fs::path("day5/input.txt"));
 
     std::array<size_t, 26U> results = { 0 };
