@@ -10,6 +10,7 @@ void Day8::Run(void) const
     std::cout << "\nDay 8:\n";
 
     Part1();
+    Part2();
 }
 
 void Day8::Part1(void) const
@@ -20,6 +21,16 @@ void Day8::Part1(void) const
     auto result = AggregateMetadata(tree.get());
 
     std::cout << "Part 1 result = " << result << "\n";
+}
+
+void Day8::Part2(void) const
+{
+    std::string input = ReadInput(fs::path("day8/input.txt"));
+
+    auto tree = BuildTree(input);
+    auto result = CalculateTreeValues(tree.get());
+
+    std::cout << "Part 2 result = " << result << "\n";
 }
 
 std::unique_ptr<Tree> Day8::BuildTree(const std::string & input) const
@@ -85,3 +96,34 @@ int Day8::AggregateMetadata(const Tree *tree) const
 
     return total;
 }
+
+int Day8::CalculateTreeValues(Tree *tree) const
+{
+    std::vector<Tree *> nodes;
+    nodes.push_back(tree);
+
+    // Avoid recursion again; build a vector of all nodes in safe-traversal order, i.e. for all nodes I, J, if I < J in
+    // the vector ordering then J is not dependent on I 
+    while (!nodes.empty())
+    {
+        Tree *node = nodes.back();
+
+        if (node->IsBranch() && !node->Children[0]->IsEvaluated())
+        {
+            // Push all this node's children onto the stack and skip processing it for now - until all its children 
+            // have been evaluated.  We leave the node in the vector ready to be processed later after all dependencies
+            std::for_each(node->Children.begin(), node->Children.end(), [&nodes](const auto & el) { nodes.push_back(el.get()); });
+            continue;
+        }
+
+        // All dependencies of this node have been evaluated, so evaluate it now and remove it from the vector
+        node->CalculateValue();
+        nodes.pop_back();
+    }
+
+    return tree->Value;
+}
+
+
+
+

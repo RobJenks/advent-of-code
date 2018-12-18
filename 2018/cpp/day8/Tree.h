@@ -16,10 +16,20 @@ public:
     std::vector<int>                            Metadata;
     size_t                                      MetadataCount;
 
+    int                                         Value;
+    bool                                        Evaluated;
 
     Tree(Tree *parent);
 
     bool                                        HasAllChildren(void) const;
     bool                                        HasAllMetadata(void) const;
 
+    inline bool                                 IsLeaf(void) const { return (Children.size() == 0); }
+    inline bool                                 IsBranch(void) const { return !IsLeaf(); }
+
+    inline bool                                 IsEvaluated(void) const { return Evaluated; }
+
+    void                                        CalculateValue(void);
+
+    void                                        Reset(void);
 };
