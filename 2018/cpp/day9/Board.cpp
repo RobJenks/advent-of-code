@@ -12,14 +12,21 @@ void Board::NewGame(void)
 {
     Data.clear();           // Clear board
     Data.push_back(0);      // Add initial marble
-    CurrentMarble = 0;      // Starting point
+    CurrentMarble = Data.begin();   // Starting point
+    CurrentMarbleIndex = 0;         // Starting point
 }
 
-// Place a marble at the given offset from the current marble.  Returns the index of the marble that was placed
-int Board::PlaceMarble(int marble, int offset)
+// Place a marble at the given offset from the current marble.  Returns an iterator to the marble that was placed
+std::tuple<Board::TData::iterator, bool> Board::PlaceMarble(int marble, int offset)
 {
-    auto it = Data.insert(std::next(Data.begin(), IndexOffset(CurrentMarble, offset)), marble);
-    return static_cast<int>(std::distance(Data.begin(), it));
+    auto move = IndexOffset(CurrentMarbleIndex, offset) - CurrentMarbleIndex;
+    auto insert_point = GetOffsetFromCurrentMarble(move);
+    bool inserting_after_current = (move > 0);
+
+    auto it = Data.insert(insert_point, marble);
+    if (!inserting_after_current) ++CurrentMarbleIndex;
+
+    return { it, inserting_after_current };
 }
 
 // Remove a marble at the given offset from the current marble.  Returns the value of 
@@ -27,15 +34,16 @@ int Board::PlaceMarble(int marble, int offset)
 int Board::RemoveMarble(int offset)
 {
     // Identify the marble to be removed
-    int index = IndexOffset(CurrentMarble, offset);
-    auto it = std::next(Data.begin(), index);
-    int value = *it;
+    auto index = IndexOffset(CurrentMarbleIndex, offset);
+    auto move = (index - CurrentMarbleIndex);
+    auto remove_point = GetOffsetFromCurrentMarble(move);
+    int value = *remove_point;
 
     // Remove the marble
-    Data.erase(it);
+    Data.erase(remove_point);
     
-    // Adjust the current marble pointer if this would shift it along one
-    if (index <= CurrentMarble) --CurrentMarble;
+    // Adjust the current marble pointer if this would shift it along one.  Leave iterator unchanged.
+    if (index <= CurrentMarbleIndex) --CurrentMarbleIndex;
 
     return value;
 }
@@ -44,22 +52,58 @@ int Board::RemoveMarble(int offset)
 // can be positive (for CW traversal) or negative (for CCW traversal)
 int Board::IndexOffset(int index, int offset) const
 {
-    int ix = ((index + offset) % static_cast<int>(Data.size()));
-    if (ix < 0) ix += static_cast<int>(Data.size());
+    const int n = static_cast<int>(Data.size());
+    int ix = ((index + offset) % n);
+    if (ix < 0) ix += n;
 
     return ix;
 }
 
-// Set the current marble to the given board index
+// Set the current marble to the given board index.  Traverses from begin() so not efficient in large collections
 void Board::SetCurrentMarble(int index)
 {
-    CurrentMarble = index;
+    CurrentMarbleIndex = index;
+    CurrentMarble = std::next(Data.begin(), index);
+}
+
+// Move the current marble forwards to the given location
+void Board::MoveCurrentMarbleForwardToPosition(TData::iterator it)
+{
+    auto dist = std::distance(CurrentMarble, it);
+
+    CurrentMarbleIndex += static_cast<int>(dist);
+    CurrentMarble = it;
+}
+
+// Move the current marble backwards to the given location
+void Board::MoveCurrentMarbleBackwardToPosition(TData::iterator it)
+{
+    auto dist = std::distance(it, CurrentMarble);
+
+    CurrentMarbleIndex -= static_cast<int>(dist);
+    CurrentMarble = it;
 }
 
 // Move the current marble position by the given offset, positive (CW) or negative (CCW)
 void Board::MoveCurrentMarble(int offset)
 {
-    CurrentMarble = IndexOffset(CurrentMarble, offset);
+    int move = IndexOffset(CurrentMarbleIndex, offset) - CurrentMarbleIndex;
+
+    CurrentMarbleIndex += move;
+    CurrentMarble = GetOffsetFromCurrentMarble(move);
+}
+
+// Returns an iterator to the position 'offset' from the current marble
+Board::TData::iterator Board::GetOffsetFromCurrentMarble(int offset)
+{
+    if (offset < 0)
+    {
+        return std::prev(CurrentMarble, -offset);
+    }
+    else
+    {
+        return std::next(CurrentMarble, offset);
+    }
 }
 
 // Debug output
@@ -72,7 +116,7 @@ std::string Board::str() const
 
     for (size_t i = 0; i < n; ++i, ++it)
     {
-        if (i == CurrentMarble) ss << "(" << *it << ") ";
+        if (i == CurrentMarbleIndex) ss << "(" << *it << ") ";
         else ss << *it << " ";
     }
 

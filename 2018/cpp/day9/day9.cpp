@@ -11,6 +11,7 @@ void Day9::Run(void) const
 
     RunTests();
     Part1();
+    Part2();
 }
 
 void Day9::Part1(void) const
@@ -18,20 +19,35 @@ void Day9::Part1(void) const
     std::string input = ReadInput(fs::path("day9/input.txt"));
     GameSetup setup = ParseInput(input);
 
-    int result = CalculateHighScore(setup);
+    auto result = CalculateHighScore(setup);
     std::cout << "Part 1 result = " << result << "\n";
+}
+
+void Day9::Part2(void) const
+{
+    std::string input = ReadInput(fs::path("day9/input.txt"));
+    GameSetup setup = ParseInput(input);
+
+    setup.LastMarble *= 100;
+
+    auto result = CalculateHighScore(setup);
+    std::cout << "Part 2 result = " << result << "\n";
 }
 
 void Day9::RunTests(void) const
 {
     std::vector<std::string> input = GetLines(ReadInput(fs::path("day9/tests.txt")));
-    for (std::string in : input)
+    std::vector<Score> expected = { 8317, 146373, 2764, 54718, 37305 };
+
+    for (int test_index = 0; test_index < input.size(); ++test_index)
     {
+        const auto in = input[test_index];
+
         GameSetup setup = ParseInput(in);
         std::cout << "Test: " << in << "\n";
 
-        int result = CalculateHighScore(setup);
-        std::cout << "Result: " << result << "\n\n";
+        auto result = CalculateHighScore(setup);
+        std::cout << "Result: " << result << (result == expected[test_index] ? " (Pass)" : " (FAIL)") << "\n\n";
     }
 }
 
@@ -46,17 +62,17 @@ Day9::GameSetup Day9::ParseInput(const std::string & input) const
     return GameSetup(players, lastmarble);
 }
 
-int Day9::CalculateHighScore(GameSetup setup) const
+Day9::Score Day9::CalculateHighScore(GameSetup setup) const
 {
     Scoreboard scores = PlayGameToMarbleValue(setup);
 
-    int highscore = std::accumulate(scores.begin(), scores.end(), 0, [](int acc, int el) { return std::max(acc, el); });
+    auto highscore = std::accumulate(scores.begin(), scores.end(), static_cast<Score>(0), [](Score acc, Score el) { return std::max(acc, el); });
     return highscore;
 }
 Day9::Scoreboard Day9::NewScoreboard(int players) const
 {
     Scoreboard scoreboard;
-    scoreboard.insert(scoreboard.begin(), players, 0);
+    scoreboard.insert(scoreboard.begin(), players, static_cast<Score>(0));
 
     return scoreboard;
 }
@@ -71,7 +87,6 @@ Day9::Scoreboard Day9::PlayGameToMarbleValue(GameSetup setup) const
     int marble = 0;
 
     std::cout << "Calculating: ";
-
     while (true)
     {
         marble += 1;
@@ -79,8 +94,9 @@ Day9::Scoreboard Day9::PlayGameToMarbleValue(GameSetup setup) const
 
         if (marble % 23 != 0)
         {
-            auto index = board.PlaceMarble(marble, +2);
-            board.SetCurrentMarble(index);
+            //bool fwd = (board.IndexOffset(board.CurrentMarbleIndex, +2) > board.CurrentMarbleIndex);
+            auto inserted = board.PlaceMarble(marble, +2);
+            board.MoveCurrentMarbleToPosition(std::get<0>(inserted), std::get<1>(inserted));
         }
         else
         {

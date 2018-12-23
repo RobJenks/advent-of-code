@@ -13,7 +13,8 @@ public:
 
 private:
 
-    typedef std::vector<int> Scoreboard;
+    typedef unsigned long long Score;
+    typedef std::vector<Score> Scoreboard;
 
 
     struct GameSetup
@@ -27,11 +28,12 @@ private:
 private:
 
     void Part1(void) const;
+    void Part2(void) const;
     void RunTests(void) const;
 
     GameSetup ParseInput(const std::string & input) const;
     Scoreboard NewScoreboard(int players) const;
 
-    int CalculateHighScore(GameSetup setup) const;
+    Score CalculateHighScore(GameSetup setup) const;
     Scoreboard PlayGameToMarbleValue(GameSetup setup) const;
 };
