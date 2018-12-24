@@ -20,8 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\AOCSolution.h" />
+    <ClInclude Include="common\Vec2.h" />
     <ClInclude Include="day10\day10.h" />
-    <ClInclude Include="day10\Vec2.h" />
+    <ClInclude Include="day11\day11.h" />
+    <ClInclude Include="day11\Grid.h" />
     <ClInclude Include="day1\day1.h" />
     <ClInclude Include="day2\day2.h" />
     <ClInclude Include="day3\day3.h" />
@@ -40,6 +42,7 @@
     <ClCompile Include="advent-of-code-2018-cpp.cpp" />
     <ClCompile Include="base\AOCSolution.cpp" />
     <ClCompile Include="day10\day10.cpp" />
+    <ClCompile Include="day11\day11.cpp" />
     <ClCompile Include="day1\day1.cpp" />
     <ClCompile Include="day2\day2.cpp" />
     <ClCompile Include="day3\day3.cpp" />

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../base/AOCSolution.h"
-#include "Vec2.h"
+#include "../common/Vec2.h"
 #include <string>
 
 class Day10 : public AOCSolution

@@ -34,6 +34,12 @@
     <Filter Include="day10">
       <UniqueIdentifier>{d34d650f-d3b7-498e-bb8e-a3c92ec86733}</UniqueIdentifier>
     </Filter>
+    <Filter Include="day11">
+      <UniqueIdentifier>{65d848c2-8f43-4bcf-9b08-c046b03b451c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{b9cd61a1-26b7-4d24-862c-bfceec180a78}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\AOCSolution.h">
@@ -81,8 +87,14 @@
     <ClInclude Include="day10\day10.h">
       <Filter>day10</Filter>
     </ClInclude>
-    <ClInclude Include="day10\Vec2.h">
-      <Filter>day10</Filter>
+    <ClInclude Include="day11\day11.h">
+      <Filter>day11</Filter>
+    </ClInclude>
+    <ClInclude Include="day11\Grid.h">
+      <Filter>day11</Filter>
+    </ClInclude>
+    <ClInclude Include="common\Vec2.h">
+      <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -125,6 +137,9 @@
     </ClCompile>
     <ClCompile Include="day10\day10.cpp">
       <Filter>day10</Filter>
+    </ClCompile>
+    <ClCompile Include="day11\day11.cpp">
+      <Filter>day11</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
