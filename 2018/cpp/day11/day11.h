@@ -17,7 +17,9 @@ private:
     void RunTests(void) const; 
     void RunPowerTests(void) const;
     void RunGroupTests(void) const;
+    void RunRangeTests(void) const;
 
     void Part1(void) const;
+    void Part2(void) const;
     
 };

@@ -8,20 +8,30 @@ void Day11::Run(void) const
 
     RunTests();
     Part1();
+    Part2();
 }
 
 void Day11::Part1(void) const
 {
     Grid<300U, 300U> grid(PROBLEM_INPUT);
 
-    auto result = grid.GetHighestPowerGroup();
+    auto result = grid.GetHighestPowerGroup(3);
     std::cout << "Part 1 result: " << std::get<0>(result).str() << " (power level = " << std::get<1>(result) << ")\n";
+}
+
+void Day11::Part2(void) const
+{
+    Grid<300U, 300U> grid(PROBLEM_INPUT);
+
+    auto result = grid.GetHighestPowerGroupInRange(300);
+    std::cout << "\nPart 2 result: " << std::get<0>(result).str() << ", group size = " << std::get<2>(result) << " (power level = " << std::get<1>(result) << ")\n";
 }
 
 void Day11::RunTests(void) const
 {
     RunPowerTests();
     RunGroupTests();
+    RunRangeTests();
 }
 
 void Day11::RunPowerTests(void) const
@@ -47,25 +57,49 @@ void Day11::RunPowerTests(void) const
 
 void Day11::RunGroupTests(void) const
 {
-    std::vector<std::tuple<int, Vec2<int>, int>> group_tests =
+    std::vector<std::tuple<int, Vec2<int>, int>> tests =
     {
         {18, {33, 45}, 29}, // For grid serial number 18, the largest 3x3 square's top-left is 33,45 (with a total power of 29)
         {42, {21, 61}, 30}  // For grid serial number 42, the largest 3x3 square's top-left is 21,61 (with a total power of 30)
     };
 
-    for (const auto & group_test : group_tests)
+    for (const auto & test : tests)
     {
-        std::cout << "Test: Grid serial = " << std::get<0>(group_test) << ", highest power group expected to be at "
-            << std::get<1>(group_test).str() << " with power level " << std::get<2>(group_test) << "\n";
+        std::cout << "Test: Grid serial = " << std::get<0>(test) << ", highest power group expected to be at "
+            << std::get<1>(test).str() << " with power level " << std::get<2>(test) << "\n";
 
-        Grid<300, 300> grid(std::get<0>(group_test));
+        Grid<300, 300> grid(std::get<0>(test));
   
-        auto result = grid.GetHighestPowerGroup();
+        auto result = grid.GetHighestPowerGroup(3);
 
         std::cout << "Result: " << std::get<0>(result).str() << " (Power " << std::get<1>(result) << ")" <<
-            ((std::get<1>(group_test) == std::get<0>(result) &&
-              std::get<2>(group_test) == std::get<1>(result))
+            ((std::get<1>(test) == std::get<0>(result) &&
+              std::get<2>(test) == std::get<1>(result))
                 ? " (Pass)" : " (FAIL)") << "\n\n";
     }
 }
 
+void Day11::RunRangeTests(void) const
+{
+    std::vector<std::tuple<int, Vec2<int>, int, int>> tests =
+    {
+        {18, {90, 269}, 113, 16},  // For grid serial number 18, the largest square (with a total power of 113) is 16x16 and has a top-left corner of 90,269
+        {42, {232, 251}, 119, 12}  // For grid serial number 42, the largest square (with a total power of 119) is 12x12 and has a top-left corner of 232,251
+    };
+
+    for (const auto & test : tests)
+    {
+        std::cout << "Test: Grid serial = " << std::get<0>(test) << ", highest power group expected to be at "
+            << std::get<1>(test).str() << " with size " << std::get<3>(test) << " and power level " << std::get<2>(test) << "\n";
+
+        Grid<300, 300> grid(std::get<0>(test));
+
+        auto result = grid.GetHighestPowerGroupInRange(300);
+
+        std::cout << "Result: " << std::get<0>(result).str() << " with size " << std::get<2>(result) << " (Power " << std::get<1>(result) << ")" <<
+            ((std::get<1>(test) == std::get<0>(result) &&
+                std::get<3>(test) == std::get<2>(result) && 
+                std::get<2>(test) == std::get<1>(result))
+                ? " (Pass)" : " (FAIL)") << "\n\n";
+    }
+}
