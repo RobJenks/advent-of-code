@@ -40,6 +40,9 @@
     <Filter Include="common">
       <UniqueIdentifier>{b9cd61a1-26b7-4d24-862c-bfceec180a78}</UniqueIdentifier>
     </Filter>
+    <Filter Include="day12">
+      <UniqueIdentifier>{cd707494-d9fb-406e-86cc-74dfbfffe92b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\AOCSolution.h">
@@ -96,6 +99,21 @@
     <ClInclude Include="common\Vec2.h">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="day12\day12.h">
+      <Filter>day12</Filter>
+    </ClInclude>
+    <ClInclude Include="day12\Rule.h">
+      <Filter>day12</Filter>
+    </ClInclude>
+    <ClInclude Include="day12\State.h">
+      <Filter>day12</Filter>
+    </ClInclude>
+    <ClInclude Include="common\StringUtil.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="day12\Value.h">
+      <Filter>day12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="advent-of-code-2018-cpp.cpp" />
@@ -141,6 +159,12 @@
     <ClCompile Include="day11\day11.cpp">
       <Filter>day11</Filter>
     </ClCompile>
+    <ClCompile Include="day12\day12.cpp">
+      <Filter>day12</Filter>
+    </ClCompile>
+    <ClCompile Include="day12\State.cpp">
+      <Filter>day12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="day1\input.txt">
@@ -178,6 +202,9 @@
     </Text>
     <Text Include="day10\tests.txt">
       <Filter>day10</Filter>
+    </Text>
+    <Text Include="day12\input.txt">
+      <Filter>day12</Filter>
     </Text>
   </ItemGroup>
 </Project>

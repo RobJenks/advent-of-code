@@ -20,10 +20,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\AOCSolution.h" />
+    <ClInclude Include="common\StringUtil.h" />
     <ClInclude Include="common\Vec2.h" />
     <ClInclude Include="day10\day10.h" />
     <ClInclude Include="day11\day11.h" />
     <ClInclude Include="day11\Grid.h" />
+    <ClInclude Include="day12\day12.h" />
+    <ClInclude Include="day12\Rule.h" />
+    <ClInclude Include="day12\State.h" />
+    <ClInclude Include="day12\Value.h" />
     <ClInclude Include="day1\day1.h" />
     <ClInclude Include="day2\day2.h" />
     <ClInclude Include="day3\day3.h" />
@@ -43,6 +48,8 @@
     <ClCompile Include="base\AOCSolution.cpp" />
     <ClCompile Include="day10\day10.cpp" />
     <ClCompile Include="day11\day11.cpp" />
+    <ClCompile Include="day12\day12.cpp" />
+    <ClCompile Include="day12\State.cpp" />
     <ClCompile Include="day1\day1.cpp" />
     <ClCompile Include="day2\day2.cpp" />
     <ClCompile Include="day3\day3.cpp" />
@@ -58,6 +65,7 @@
   <ItemGroup>
     <Text Include="day10\input.txt" />
     <Text Include="day10\tests.txt" />
+    <Text Include="day12\input.txt" />
     <Text Include="day1\input.txt">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </DeploymentContent>
