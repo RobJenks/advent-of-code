@@ -50,6 +50,7 @@
     <ClCompile Include="day11\day11.cpp" />
     <ClCompile Include="day12\day12.cpp" />
     <ClCompile Include="day12\State.cpp" />
+    <ClCompile Include="day12\Value.cpp" />
     <ClCompile Include="day1\day1.cpp" />
     <ClCompile Include="day2\day2.cpp" />
     <ClCompile Include="day3\day3.cpp" />

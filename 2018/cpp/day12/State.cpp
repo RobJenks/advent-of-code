@@ -1,5 +1,6 @@
 #include "State.h"
 #include <numeric>
+#include <cassert>
 
 // Default constructor
 State::State(void) 
@@ -19,6 +20,14 @@ State::State(const std::string & state)
         if (c == '#') m_data.push_back(true);
         else if (c == '.') m_data.push_back(false);
     });
+}
+
+// Construct from a subset of a given state object
+State::State(const TData::const_iterator it_start, const TData::const_iterator it_end, size_t zero_point)
+    :
+    m_zeropoint(zero_point),
+    m_data(it_start, it_end)
+{
 }
 
 // Output current state
@@ -78,4 +87,14 @@ int State::DetermineStateScore(void) const
     });
 }
 
+std::string State::GetActivePattern(void) const
+{
+    auto it = std::find(m_data.begin(), m_data.end(), Value::True);
 
+    auto it_end = m_data.end()-1;
+    while (*it_end == Value::False) --it_end;
+
+    std::string pattern;
+    std::for_each(it, it_end, [&pattern](Value el) { pattern.push_back(el ? '#' : '.'); });
+    return pattern;
+}

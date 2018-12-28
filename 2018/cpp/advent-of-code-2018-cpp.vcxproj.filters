@@ -165,6 +165,9 @@
     <ClCompile Include="day12\State.cpp">
       <Filter>day12</Filter>
     </ClCompile>
+    <ClCompile Include="day12\Value.cpp">
+      <Filter>day12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="day1\input.txt">

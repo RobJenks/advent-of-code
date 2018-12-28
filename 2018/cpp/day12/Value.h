@@ -21,6 +21,9 @@ public:
 
     inline ~Value(void) { }
 
+    static const Value True;
+    static const Value False;
+
 private:
 
     bool m_value;

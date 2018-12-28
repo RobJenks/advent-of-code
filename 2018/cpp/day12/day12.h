@@ -17,8 +17,10 @@ private:
 
     void RunTests(void) const; 
     void Part1(void) const;
+    void Part2(void) const;
   
     std::pair<State, std::vector<Rule>> ParseInput(const std::vector<std::string> & input) const;
 
     void RunSimulationVerbose(State & state, const std::vector<Rule> & rules, unsigned int iterations) const;
+
 };

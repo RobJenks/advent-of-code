@@ -10,8 +10,11 @@ class State
 {
 public:
 
+    typedef std::vector<Value>  TData;
+
     State(void);
     State(const std::string & state);
+    State(const TData::const_iterator it_start, const TData::const_iterator it_end, size_t zero_point);
 
     void ApplyRules(const std::vector<Rule> & rules);
 
@@ -19,12 +22,13 @@ public:
     
     inline size_t GetZeroPoint(void) const { return m_zeropoint; }
 
+    std::string GetActivePattern(void) const;
+
     std::string str(bool zero_base) const;
     inline std::string str(void) const { return str(false); }
 
 private:
 
-    typedef std::vector<Value>  TData;
     TData                       m_data;
     size_t                      m_zeropoint;
 
