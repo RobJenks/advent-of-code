@@ -18,8 +18,10 @@ private:
     void RunTests(void) const; 
     void RunStateTests(void) const;
     void RunSequenceTests(void) const;
+    void RunTerminatorTests(void) const;
 
     void Part1(void) const;
+    void Part2(void) const;
 
 
 

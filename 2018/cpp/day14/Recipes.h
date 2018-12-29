@@ -17,6 +17,7 @@ public:
      
     void EvaluateIterations(const size_t iterations);
     void EvaluateToRecipeCount(const size_t recipe_count);
+    size_t EvaluateToTerminatingSequence(const std::string & sequence);
     
     std::string str(void) const;
     std::string str(const size_t begin, const size_t count) const;
@@ -64,6 +65,46 @@ void Recipes<WORKERS>::EvaluateToRecipeCount(const size_t recipe_count)
     while (m_data.size() < recipe_count)
     {
         Evaluate();
+    }
+}
+
+// Evaluate until the score vector ends with the given sequence.  Returns the 
+// number of recipes in the vector prior to this sequence
+template <unsigned int WORKERS>
+size_t Recipes<WORKERS>::EvaluateToTerminatingSequence(const std::string & sequence)
+{
+    std::vector<int> terminator;
+    std::transform(sequence.begin(), sequence.end(), std::back_inserter(terminator), [](char c) { return (c - '0'); });
+
+    // Must evaluate to at least the length of the terminator
+    const size_t termsize = terminator.size();
+    EvaluateToRecipeCount(termsize);
+
+    size_t index;
+    while (true)
+    {
+        const auto prior_size = m_data.size();
+
+        Evaluate();
+
+        const auto count = m_data.size();
+        const auto diff = (count - prior_size);
+
+        // Need to account for potentially multiple new elements -> potentially multiple new matching sequences
+        for (size_t offset = 0U; offset < diff; ++offset)
+        {
+            const auto seq_start = (count - termsize) - offset;
+            for (index = 0U; index < termsize; ++index)
+            {
+                if (m_data[seq_start + index] != terminator[index]) break;
+            }
+
+            // This will only be true if all components of the terminator were matched
+            if (index == termsize)
+            {
+                return seq_start;
+            }
+        }
     }
 }
 
