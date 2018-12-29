@@ -29,6 +29,10 @@
     <ClInclude Include="day12\Rule.h" />
     <ClInclude Include="day12\State.h" />
     <ClInclude Include="day12\Value.h" />
+    <ClInclude Include="day13\Car.h" />
+    <ClInclude Include="day13\Cell.h" />
+    <ClInclude Include="day13\day13.h" />
+    <ClInclude Include="day13\Tracks.h" />
     <ClInclude Include="day1\day1.h" />
     <ClInclude Include="day2\day2.h" />
     <ClInclude Include="day3\day3.h" />
@@ -51,6 +55,10 @@
     <ClCompile Include="day12\day12.cpp" />
     <ClCompile Include="day12\State.cpp" />
     <ClCompile Include="day12\Value.cpp" />
+    <ClCompile Include="day13\Car.cpp" />
+    <ClCompile Include="day13\Cell.cpp" />
+    <ClCompile Include="day13\day13.cpp" />
+    <ClCompile Include="day13\Tracks.cpp" />
     <ClCompile Include="day1\day1.cpp" />
     <ClCompile Include="day2\day2.cpp" />
     <ClCompile Include="day3\day3.cpp" />
@@ -67,6 +75,8 @@
     <Text Include="day10\input.txt" />
     <Text Include="day10\tests.txt" />
     <Text Include="day12\input.txt" />
+    <Text Include="day13\input.txt" />
+    <Text Include="day13\tests.txt" />
     <Text Include="day1\input.txt">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </DeploymentContent>

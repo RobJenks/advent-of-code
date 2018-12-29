@@ -13,6 +13,7 @@
 #include "day10/day10.h"
 #include "day11/day11.h"
 #include "day12/day12.h"
+#include "day13/day13.h"
 
 
 template <typename... TSolutions>
@@ -29,8 +30,9 @@ void RunSolution(const TSolution & solution)
 
 int main(int argc, char *argv[])
 {
+    Run(Day13()); return 0;
     Run(Day1(), Day2(), Day3(), Day4(), Day5(), 
         Day6(), Day7(), Day8(), Day9(), Day10(), 
-        Day11(), Day12());
+        Day11(), Day12(), Day13());
 }
 
