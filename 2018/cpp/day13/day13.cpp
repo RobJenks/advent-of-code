@@ -35,12 +35,13 @@ void Day13::RunTests(void) const
         std::vector<std::string>(input.begin() + 77, input.begin() + 83),
         std::vector<std::string>(input.begin() + 84, input.begin() + 90),
         std::vector<std::string>(input.begin() + 91, input.begin() + 97),
-        std::vector<std::string>(input.begin() + 98, input.begin() + 103),
+        std::vector<std::string>(input.begin() + 98, input.begin() + 104),
     };
 
     Tracks tracks = BuildTracks(steps[0]);
     VerifyTestState(tracks, steps[0]);        
     std::cout << tracks.str() << "\n";
+
     for (size_t i = 1U; i < steps.size(); ++i)
     {
         std::cout << "Simulating step " << i << "\n";
@@ -59,7 +60,13 @@ void Day13::Part1(void) const
     Tracks tracks = BuildTracks(input);
     tracks.VerifyState();
 
-    std::cout << tracks.str() << "\n";
+    while (!tracks.CrashesHaveOccurred())
+    {
+        tracks.Simulate();
+    }
+
+    std::cout << "Part 1:" << tracks.str() << "\n\n";
+    std::cout << "Result: " << tracks.Coord(tracks.GetCrashLocations().at(0)).str() << " (after " << tracks.GetCycleCount() << " cycles)\n";
 }
 
 Tracks Day13::BuildTracks(const std::vector<std::string> & input) const

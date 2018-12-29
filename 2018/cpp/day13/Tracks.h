@@ -22,6 +22,8 @@ public:
     inline Vec2<int>    GetSize(void) const { return m_size; }
     inline size_t       GetCellCount(void) const { return m_count; }
 
+    inline size_t       GetCycleCount(void) const { return m_cycles; }
+
     void                PerformPostProcessing(void);
     void                RegisterCar(size_t index, char schematic);
 
@@ -69,6 +71,7 @@ private:
 
     std::vector<Car>        m_cars;
     std::vector<size_t>     m_crashes;
+    size_t                  m_cycles;
     
 
 };

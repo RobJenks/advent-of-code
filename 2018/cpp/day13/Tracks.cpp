@@ -7,7 +7,8 @@
 Tracks::Tracks(Vec2<int> size)
     :
     m_size(size),
-    m_count(size.x * size.y)
+    m_count(size.x * size.y), 
+    m_cycles(0U)
 {
     Data.insert(Data.begin(), m_count, Cell());
 }
@@ -32,6 +33,8 @@ void Tracks::PerformPostProcessing(void)
 
 void Tracks::Simulate(void)
 {
+    ++m_cycles;
+
     // Evaluate cars in cell index order
     std::vector<std::pair<size_t, size_t>> ordered_cars;    // { car_id, cell_index }
     for (size_t i = 0; i < m_cars.size(); ++i) ordered_cars.push_back({ i, m_cars[i].GetCell() });
@@ -53,7 +56,7 @@ void Tracks::Simulate(void)
 
         if (dest.HasCar())
         {
-            RecordCrash(index, c.first);
+            RecordCrash(dest_index, static_cast<Car::IndexType>(c.first));
             continue;
         }
 
