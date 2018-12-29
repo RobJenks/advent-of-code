@@ -25,9 +25,15 @@ public:
     inline size_t       GetCycleCount(void) const { return m_cycles; }
 
     void                PerformPostProcessing(void);
+
     void                RegisterCar(size_t index, char schematic);
+    size_t              GetActiveCarCount(void) const;
+    std::vector<Car>    GetActiveCars(void) const;
 
     void                Simulate(void);
+
+    void                Terminate(void);
+    bool                HasTerminated(void) const { return m_terminated; }
 
     static const size_t NO_CELL = static_cast<size_t>(0U) - static_cast<size_t>(1U);
     size_t              GetLeft(size_t index) const;
@@ -41,6 +47,9 @@ public:
 
     bool                CrashesHaveOccurred(void) const { return !m_crashes.empty(); }
     const std::vector<size_t> & GetCrashLocations(void) const { return m_crashes; }
+
+    void                UpdateTrackStateWithCrashes(void) { m_update_track_state_with_crashes = true; }
+    void                TerminateAtLastCar(void) { m_terminate_at_last_car = true; }
 
     static Cell::CellState  OppositeDirection(Cell::CellState direction);
 
@@ -71,7 +80,10 @@ private:
 
     std::vector<Car>        m_cars;
     std::vector<size_t>     m_crashes;
+  
     size_t                  m_cycles;
-    
+    bool                    m_terminated;
+    bool                    m_update_track_state_with_crashes;
+    bool                    m_terminate_at_last_car;
 
 };

@@ -3,6 +3,7 @@
 
 Car::Car(void)
     :
+    m_active(true),
     m_cell(0UL-1UL),
     m_direction(Directions::Unknown),
     m_nextturn(Directions::Left)

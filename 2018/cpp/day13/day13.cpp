@@ -13,6 +13,7 @@ void Day13::Run(void) const
 
     RunTests();
     Part1();
+    Part2();
 }
 
 void Day13::RunTests(void) const
@@ -39,7 +40,9 @@ void Day13::RunTests(void) const
     };
 
     Tracks tracks = BuildTracks(steps[0]);
-    VerifyTestState(tracks, steps[0]);        
+    tracks.UpdateTrackStateWithCrashes();
+    VerifyTestState(tracks, steps[0]);       
+
     std::cout << tracks.str() << "\n";
 
     for (size_t i = 1U; i < steps.size(); ++i)
@@ -58,6 +61,7 @@ void Day13::Part1(void) const
     std::vector<std::string> input = GetLines(ReadInput("day13/input.txt"));
 
     Tracks tracks = BuildTracks(input);
+    tracks.UpdateTrackStateWithCrashes();
     tracks.VerifyState();
 
     while (!tracks.CrashesHaveOccurred())
@@ -66,8 +70,28 @@ void Day13::Part1(void) const
     }
 
     std::cout << "Part 1:" << tracks.str() << "\n\n";
-    std::cout << "Result: " << tracks.Coord(tracks.GetCrashLocations().at(0)).str() << " (after " << tracks.GetCycleCount() << " cycles)\n";
+    std::cout << "Part 1 result: " << tracks.Coord(tracks.GetCrashLocations().at(0)).str() << " (after " << tracks.GetCycleCount() << " cycles)\n";
 }
+
+void Day13::Part2(void) const
+{
+    std::vector<std::string> input = GetLines(ReadInput("day13/input.txt"));
+
+    Tracks tracks = BuildTracks(input);
+    tracks.TerminateAtLastCar();
+    tracks.VerifyState();
+
+    while (!tracks.HasTerminated())
+    {
+        tracks.Simulate();
+    }
+    
+    auto active = tracks.GetActiveCars();
+    assert(active.size() == 1U);
+
+    std::cout << "Part 2 result: " << tracks.Coord(active.at(0).GetCell()).str() << " (after " << tracks.GetCycleCount() << " cycles)\n";
+}
+
 
 Tracks Day13::BuildTracks(const std::vector<std::string> & input) const
 {

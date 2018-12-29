@@ -7,8 +7,11 @@
 Tracks::Tracks(Vec2<int> size)
     :
     m_size(size),
-    m_count(size.x * size.y), 
-    m_cycles(0U)
+    m_count(size.x * size.y),
+    m_cycles(0U),
+    m_terminated(false),
+    m_update_track_state_with_crashes(false), 
+    m_terminate_at_last_car(false)
 {
     Data.insert(Data.begin(), m_count, Cell());
 }
@@ -43,6 +46,7 @@ void Tracks::Simulate(void)
     for (const auto & c : ordered_cars)
     {
         Car & car = m_cars[c.first];
+        if (!car.IsActive()) continue;
         
         auto index = car.GetCell();
         Cell & cell = Data[index];
@@ -57,6 +61,13 @@ void Tracks::Simulate(void)
         if (dest.HasCar())
         {
             RecordCrash(dest_index, static_cast<Car::IndexType>(c.first));
+
+            if (m_terminate_at_last_car && GetActiveCarCount() == 1U)
+            {
+                Terminate();
+                break;
+            }
+
             continue;
         }
 
@@ -88,11 +99,36 @@ void Tracks::RecordCrash(size_t index, Car::IndexType entering_car)
     Cell & cell = Data[index];
     auto current_car = cell.GetCar();
 
+    m_cars[entering_car].Deactivate();
+    m_cars[cell.GetCar()].Deactivate();
+
     cell.RemoveCar();
     Data[m_cars[entering_car].GetCell()].RemoveCar();
 
-    cell.AddConnections(Cell::States::Crash);
+    if (m_update_track_state_with_crashes)
+    {
+        cell.AddConnections(Cell::States::Crash);
+    }
+
     m_crashes.push_back(index);
+}
+
+void Tracks::Terminate(void)
+{
+    m_terminated = true;
+}
+
+size_t Tracks::GetActiveCarCount(void) const
+{
+    return std::count_if(m_cars.begin(), m_cars.end(), [](const auto & car) { return (car.IsActive()); });
+}
+
+std::vector<Car> Tracks::GetActiveCars(void) const
+{
+    std::vector<Car> active;
+    std::for_each(m_cars.begin(), m_cars.end(), [&active](const auto & car) { if (car.IsActive()) active.push_back(car); });
+
+    return active;
 }
 
 size_t Tracks::GetLeft(size_t index) const

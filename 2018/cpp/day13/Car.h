@@ -31,6 +31,9 @@ public:
 
     void TakeIntersection(void);
 
+    bool IsActive(void) const { return m_active; }
+    void Activate(void) { m_active = true; }
+    void Deactivate(void) { m_active = false; }
 
     static CarDirection RotateDirectionCCW(CarDirection direction);
     static CarDirection RotateDirectionCW(CarDirection direction);
@@ -42,6 +45,7 @@ public:
 
 private:
 
+    bool            m_active;
     size_t          m_cell;
     CarDirection    m_direction;
     CarDirection    m_nextturn;

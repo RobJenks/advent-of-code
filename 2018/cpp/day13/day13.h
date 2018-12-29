@@ -15,6 +15,7 @@ private:
 
     void RunTests(void) const; 
     void Part1(void) const;
+    void Part2(void) const;
 
     Tracks BuildTracks(const std::vector<std::string> & input) const;
 
