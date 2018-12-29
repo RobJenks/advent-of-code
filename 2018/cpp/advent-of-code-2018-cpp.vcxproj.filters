@@ -46,6 +46,9 @@
     <Filter Include="day13">
       <UniqueIdentifier>{dde0f6b3-b994-4a56-8921-63f9596cfaab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="day14">
+      <UniqueIdentifier>{fa8140ce-6e3f-4ed9-a5ab-f5859dbdcde7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\AOCSolution.h">
@@ -129,6 +132,12 @@
     <ClInclude Include="day13\Tracks.h">
       <Filter>day13</Filter>
     </ClInclude>
+    <ClInclude Include="day14\day14.h">
+      <Filter>day14</Filter>
+    </ClInclude>
+    <ClInclude Include="day14\Recipes.h">
+      <Filter>day14</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="advent-of-code-2018-cpp.cpp" />
@@ -194,6 +203,9 @@
     </ClCompile>
     <ClCompile Include="day13\Tracks.cpp">
       <Filter>day13</Filter>
+    </ClCompile>
+    <ClCompile Include="day14\day14.cpp">
+      <Filter>day14</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
