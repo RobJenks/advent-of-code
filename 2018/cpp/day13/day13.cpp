@@ -69,7 +69,7 @@ void Day13::Part1(void) const
         tracks.Simulate();
     }
 
-    std::cout << "Part 1:" << tracks.str() << "\n\n";
+    std::cout << "Part 1:\n" << tracks.str() << "\n\n";
     std::cout << "Part 1 result: " << tracks.Coord(tracks.GetCrashLocations().at(0)).str() << " (after " << tracks.GetCycleCount() << " cycles)\n";
 }
 
