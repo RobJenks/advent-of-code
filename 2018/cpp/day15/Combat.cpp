@@ -268,13 +268,25 @@ bool Combat::AttackIfPossible(int actor)
     Actor & act = *m_actors[actor].get();
     auto adj = GetAdjacent(act.GetLocation());
 
-    size_t target = Tile::NO_TILE;
+    size_t target = Tile::NO_TILE; 
+    int target_hp = std::numeric_limits<int>::max();
+
     for (int i = 0; i < 4; ++i)
     {
-        // Look for valid tiles containing actors that are our enemy
+        // Look for valid tiles containing actors that are our enemy.  Prioritise more injured units
         if (adj[i] != Tile::NO_TILE && Data[adj[i]].HasActor() && m_actors[Data[adj[i]].GetActor()]->GetClass() != act.GetClass())
         {
-            target = RO::ObjVal(target, adj[i]);
+            auto hp = m_actors[Data[adj[i]].GetActor()]->GetHP();
+            if (hp < target_hp)
+            {
+                target = adj[i];
+                target_hp = hp;
+            }
+            else if (hp == target)
+            {
+                target = RO::ObjVal(target, adj[i]);
+                target_hp = m_actors[Data[target].GetActor()]->GetHP();
+            }
         }
     }
 

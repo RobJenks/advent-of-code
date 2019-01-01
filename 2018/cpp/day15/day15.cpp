@@ -116,7 +116,7 @@ void Day15::TestSampleCombat(void) const
         auto it = expected_hp.find(combat.GetRoundNumber());
         if (it == expected_hp.end()) continue;
 
-        std::cout << "State after round " << combat.GetRoundNumber() << ":\n";
+        std::cout << "\nState after round " << combat.GetRoundNumber() << ":\n";
         std::cout << combat.str() << "\n";
 
         auto remaining_hp = combat.GetRemainingActorHp();
@@ -124,7 +124,7 @@ void Day15::TestSampleCombat(void) const
 
         auto outcome = combat.CalculateOutcome();
         auto expected = (static_cast<long>(it->first) * std::accumulate(it->second.cbegin(), it->second.cend(), 0L));
-        //std::cout << "Outcome: " << outcome << " (Expected: " << expected << ")\n\n";
+        
         Test::AssertVerbose(outcome, expected, "Incorrect outcome at round " + std::to_string(it->first), "Outcome");
     }
 
@@ -185,5 +185,7 @@ void Day15::Part1(void) const
     }
 
     auto result = combat.CalculateOutcome();
-    std::cout << "Part 1 result: " << result << " (after " << combat.GetRoundNumber() << " rounds)\n";
+    std::cout << "\nPart 1 final state:\n\n" << combat.str() << "\n\n";
+
+    std::cout << "\nPart 1 result: " << result << " (after " << combat.GetRoundNumber() << " rounds)\n";
 }
