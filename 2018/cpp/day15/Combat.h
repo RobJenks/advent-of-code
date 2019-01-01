@@ -16,6 +16,7 @@ public:
     typedef std::vector<Tile> TData;
     TData Data;
 
+    Combat(void) : m_size(0), m_count(0), m_round(0), m_terminated(true) { }
     Combat(const std::vector<std::string> & input);
 
     inline size_t       Index(int x, int y) const { return (x + (y * m_size.x)); }
@@ -39,7 +40,12 @@ public:
     inline bool             HasTerminated(void) const { return m_terminated; }
     inline int              GetRoundNumber(void) const { return m_round; }
     std::unordered_multiset<int> GetRemainingActorHp(void) const;
+    std::unordered_multiset<int> GetRemainingActorHpSorted(void) const;
     long                    CalculateOutcome(void) const;
+
+    void                SetFactionAttackStrength(Actor::Class faction, int attack_strength);
+    std::vector<const Actor*> GetActiveActorsOfClass(Actor::Class actor_class) const;
+    std::vector<const Actor*> GetRemainingActors(void) const;
 
     std::string str(void) const;
 

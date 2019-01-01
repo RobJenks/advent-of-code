@@ -282,7 +282,7 @@ bool Combat::AttackIfPossible(int actor)
                 target = adj[i];
                 target_hp = hp;
             }
-            else if (hp == target)
+            else if (hp == target_hp)
             {
                 target = RO::ObjVal(target, adj[i]);
                 target_hp = m_actors[Data[target].GetActor()]->GetHP();
@@ -316,6 +316,25 @@ std::unordered_multiset<int> Combat::GetRemainingActorHp(void) const
     std::unordered_multiset<int> hp;
 
     std::for_each(m_actors.cbegin(), m_actors.cend(), [&hp](const auto & el) {
+        if (el->IsAlive()) hp.emplace(el->GetHP());
+    });
+
+    return hp;
+}
+
+// Returns an unordered set of the remaining actor HP values in this combat, sorted by actor position in reading order
+std::unordered_multiset<int> Combat::GetRemainingActorHpSorted(void) const
+{
+    std::unordered_multiset<int> hp;
+
+    std::vector<Actor*> sorted;
+    std::transform(m_actors.begin(), m_actors.end(), std::back_inserter(sorted), [](const auto & el) { return el.get(); });
+
+    std::sort(sorted.begin(), sorted.end(), [](const auto x0, const auto x1) {
+        return (x0->GetLocation() < x1->GetLocation());
+    });
+
+    std::for_each(sorted.cbegin(), sorted.cend(), [&hp](const auto & el) {
         if (el->IsAlive()) hp.emplace(el->GetHP());
     });
 
@@ -373,7 +392,33 @@ std::vector<size_t> Combat::GetAdjacentEmptyTiles(size_t index) const
     return tiles;
 }
 
+void Combat::SetFactionAttackStrength(Actor::Class faction, int attack_strength)
+{
+    std::for_each(m_actors.begin(), m_actors.end(), [faction, attack_strength](const auto & el) {
+        if (el->GetClass() == faction) el->SetAttackStrength(attack_strength);
+    });
+}
 
+std::vector<const Actor*> Combat::GetActiveActorsOfClass(Actor::Class actor_class) const
+{
+    std::vector<const Actor*> actors;
+    std::for_each(m_actors.cbegin(), m_actors.cend(), [&actors, actor_class](const auto & el) {
+        if (el->IsAlive() && el->GetClass() == actor_class) actors.push_back(el.get());
+    });
+
+    return actors;
+}
+
+// Returns all actors which are currently alive
+std::vector<const Actor*> Combat::GetRemainingActors(void) const
+{
+    std::vector<const Actor*> alive;
+    std::for_each(m_actors.cbegin(), m_actors.cend(), [&alive](const auto & el) {
+        if (el->IsAlive()) alive.push_back(el.get());
+    });
+
+    return alive;
+}
 
 
 

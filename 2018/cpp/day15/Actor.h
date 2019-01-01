@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 class Actor
 {
 public:
@@ -24,10 +26,14 @@ public:
     inline bool IsAlive(void) const { return (m_hp > 0); }
     inline void SetHP(int hp) { m_hp = hp; }
 
-    inline int GetAttackStrength(void) const { return DEFAULT_ATTACK; }
+    inline int GetAttackStrength(void) const { return m_attack; }
+    inline void SetAttackStrength(int attack) { m_attack = attack; }
+
     inline void TakeDamage(int damage) { SetHP(GetHP() - damage); }
 
     inline bool operator<(const Actor & other) const { return (m_location < other.m_location); }
+
+    static std::string ClassString(Actor::Class actor_class);
 
 private:
 
@@ -38,6 +44,7 @@ private:
     Class m_class;
     size_t m_location;
     int m_hp;
+    int m_attack;
 };
 
 
