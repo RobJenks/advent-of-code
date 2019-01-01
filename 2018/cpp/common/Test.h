@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <sstream>
+#include <vector>
+#include <unordered_set>
 
 class Test
 {
@@ -26,14 +28,30 @@ public:
         }
     }
 
+    template <typename TContainer>
+    inline static void AssertIterableVerbose(const TContainer & actual, const TContainer & expected, std::string msg = "", std::string name = "")
+    {
+        std::cout << "\n" << (name.empty() ? "Test" : name) << ": Expected '" << IterableToString(expected.cbegin(), expected.cend())
+            << "', Actual '" << IterableToString(actual.cbegin(), actual.cend()) << "'\n";
+
+        if (actual != expected)
+        {
+            if (!msg.empty()) std::cout << "ERROR: " << msg << "\n";
+            std::cout << "ERROR: Assertion failed, actual result: " << IterableToString(actual.cbegin(), actual.cend()) << "\n\n";
+            PerformAssertion(false);
+        }
+    }
+
     template <typename T>
     inline static void AssertVectorVerbose(const std::vector<T> & actual, const std::vector<T> & expected, std::string msg = "", std::string name = "")
     {
-        std::cout << "\n" << (name.empty() ? "Test" : name) << ": Expected '" << VectorString(expected) << "', Actual '" << VectorString(actual) << "'\n";
+        std::cout << "\n" << (name.empty() ? "Test" : name) << ": Expected '" << IterableToString(expected.cbegin(), expected.cend()) 
+            << "', Actual '" << IterableToString(actual.cbegin(), actual.cend()) << "'\n";
+
         if (!AssertVectorEqual(actual, expected))
         {
             if (!msg.empty()) std::cout << "ERROR: " << msg << "\n";
-            std::cout << "ERROR: Assertion failed, actual result: " << VectorString(actual) << "\n\n";
+            std::cout << "ERROR: Assertion failed, actual result: " << IterableToString(actual.cbegin(), actual.cend()) << "\n\n";
             PerformAssertion(false);
         }
     }
@@ -54,13 +72,13 @@ public:
     
 private:
 
-    template <typename T>
-    inline static std::string VectorString(const std::vector<T> & v)
+    template <typename TIter>
+    inline static std::string IterableToString(TIter start, TIter end)
     {
         std::stringstream ss;
 
         ss << "{ ";
-        std::for_each(v.cbegin(), v.cend(), [&ss](const T & el) { ss << el << " "; });
+        std::for_each(start, end, [&ss](const auto & el) { ss << el << " "; });
         ss << '}';
 
         return ss.str();
@@ -87,7 +105,7 @@ private:
 
         return true;
     }
-
+    
 
     inline static void DeferAssertions(void) { AssertionIsDeferred = true; }
     inline static void ContinueAssertions(void) 

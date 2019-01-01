@@ -49,6 +49,9 @@
     <Filter Include="day14">
       <UniqueIdentifier>{fa8140ce-6e3f-4ed9-a5ab-f5859dbdcde7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="day15">
+      <UniqueIdentifier>{7215c9c2-679a-4b57-8e2b-8267b23f6bc7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\AOCSolution.h">
@@ -138,6 +141,24 @@
     <ClInclude Include="day14\Recipes.h">
       <Filter>day14</Filter>
     </ClInclude>
+    <ClInclude Include="day15\day15.h">
+      <Filter>day15</Filter>
+    </ClInclude>
+    <ClInclude Include="day15\Actor.h">
+      <Filter>day15</Filter>
+    </ClInclude>
+    <ClInclude Include="day15\Combat.h">
+      <Filter>day15</Filter>
+    </ClInclude>
+    <ClInclude Include="day15\Tile.h">
+      <Filter>day15</Filter>
+    </ClInclude>
+    <ClInclude Include="day15\RO.h">
+      <Filter>day15</Filter>
+    </ClInclude>
+    <ClInclude Include="common\Test.h">
+      <Filter>common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="advent-of-code-2018-cpp.cpp" />
@@ -207,6 +228,21 @@
     <ClCompile Include="day14\day14.cpp">
       <Filter>day14</Filter>
     </ClCompile>
+    <ClCompile Include="day15\day15.cpp">
+      <Filter>day15</Filter>
+    </ClCompile>
+    <ClCompile Include="day15\Actor.cpp">
+      <Filter>day15</Filter>
+    </ClCompile>
+    <ClCompile Include="day15\Combat.cpp">
+      <Filter>day15</Filter>
+    </ClCompile>
+    <ClCompile Include="day15\Tile.cpp">
+      <Filter>day15</Filter>
+    </ClCompile>
+    <ClCompile Include="day15\RO.cpp">
+      <Filter>day15</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="day1\input.txt">
@@ -253,6 +289,9 @@
     </Text>
     <Text Include="day13\tests.txt">
       <Filter>day13</Filter>
+    </Text>
+    <Text Include="day15\input.txt">
+      <Filter>day15</Filter>
     </Text>
   </ItemGroup>
 </Project>

@@ -38,6 +38,8 @@ public:
     static Vec2 Min(const Vec2 & x0, const Vec2 & x1) { return Vec2(std::min(x0.x, x1.x), std::min(x0.y, x1.y)); }
     static Vec2 Max(const Vec2 & x0, const Vec2 & x1) { return Vec2(std::max(x0.x, x1.x), std::max(x0.y, x1.y)); }
 
+    inline static const Vec2 Zero(void) { return Vec2(static_cast<T>(0)); };
+
     inline std::string str() const
     {
         std::stringstream ss;
@@ -46,3 +48,10 @@ public:
         return ss.str();
     }
 };
+
+template <typename T>
+inline std::ostream & operator<<(std::ostream & os, const Vec2<T> & v)
+{
+    os << v.str();
+    return os;
+}
