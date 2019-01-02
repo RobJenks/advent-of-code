@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <unordered_set>
+#include <cassert>
 
 class Test
 {
