@@ -3,6 +3,7 @@
 #include <sstream>
 #include <numeric>
 #include "../common/Test.h"
+#include "../common/StringUtil.h"
 #include "Opcode.h"
 #include "CPU.h"
 
@@ -12,6 +13,7 @@ void Day16::Run(void) const
 
     RunTests();
     Part1();
+    Part2();
 }
 
 void Day16::RunTests(void) const
@@ -54,7 +56,7 @@ void Day16::TestOpcodeScenario(void) const
     Test::AssertVerbose(ScenarioMatchesOpcode(scenario, static_cast<int>(Opcode::addi)), true, "Scenario does not match expected opcode", "Opcode scenario test");
     Test::AssertVerbose(ScenarioMatchesOpcode(scenario, static_cast<int>(Opcode::seti)), true, "Scenario does not match expected opcode", "Opcode scenario test");
 
-    Test::AssertVerbose(GetPossibleOpcodeMatches(scenario), 3, "Scenario does not match expected number of opcodes", "Opcode scenario count");
+    Test::AssertVerbose(GetPossibleOpcodeMatches(scenario).size(), 3Ui64, "Scenario does not match expected number of opcodes", "Opcode scenario count");
 }
 
 void Day16::TestInstruction(Registers && initial_state, Instruction && instr, Registers && expected) const
@@ -81,7 +83,24 @@ void Day16::Part1(void) const
         return (acc + (ScenarioMatchesAtLeastThreeOpCodes(sc) ? 1 : 0));
     });
 
-    std::cout << "Part 1 result: " << result << "\n";
+    std::cout << "\nPart 1 result: " << result << "\n\n";
+}
+
+void Day16::Part2(void) const
+{
+    std::vector<std::string> input = GetLines(ReadInput("day16/input.txt"));
+    auto scenarios = ParseInstructionScenarios(input);
+
+    auto program = ParseProgramInput(input.begin() + 3222, input.end());
+    auto mapping = DetermineOpcodeMapping(scenarios);
+
+    CPU _cpu; Registers reg;
+    for (const auto & instr : program)
+    {
+        _cpu.EvaluateInPlaceAs(instr, mapping[instr.OpCode()], reg);
+    }
+
+    std::cout << "\nPart 2 result: " << reg[0] << " (final register state: " << reg << ")\n\n";
 }
 
 
@@ -114,6 +133,26 @@ std::vector<Day16::InstructionScenario> Day16::ParseInstructionScenarios(const s
     return scenarios;
 }
 
+std::vector<Instruction> Day16::ParseProgramInput(const std::vector<std::string>::const_iterator start, 
+                                                  const std::vector<std::string>::const_iterator end) const
+{
+    std::vector<Instruction> instructions;
+
+    for (auto it = start; it != end; ++it)
+    {
+        std::string line = StringUtil::Trim(*it);
+        if (line.empty()) continue;
+
+        Instruction instr;
+        std::stringstream ss(line);
+        ss >> instr.val[0] >> instr.val[1] >> instr.val[2] >> instr.val[3];
+
+        instructions.push_back(instr);
+    }
+
+    return instructions;
+}
+
 bool Day16::ScenarioMatchesOpcode(const InstructionScenario & scenario, int opcode) const
 {
     CPU _cpu;
@@ -123,15 +162,15 @@ bool Day16::ScenarioMatchesOpcode(const InstructionScenario & scenario, int opco
     return (!_cpu.HasErrors());
 }
 
-int Day16::GetPossibleOpcodeMatches(const InstructionScenario & scenario) const
+std::vector<int> Day16::GetPossibleOpcodeMatches(const InstructionScenario & scenario) const
 {
-    int matches = 0;
+    std::vector<int> ops;
     for (int i = 0; i < static_cast<int>(Opcode::_COUNT); ++i)
     {
-        if (ScenarioMatchesOpcode(scenario, i)) ++matches;
+        if (ScenarioMatchesOpcode(scenario, i)) ops.push_back(i);
     }
 
-    return matches;
+    return ops;
 }
 
 bool Day16::ScenarioMatchesAtLeastThreeOpCodes(const InstructionScenario & scenario) const
@@ -144,4 +183,84 @@ bool Day16::ScenarioMatchesAtLeastThreeOpCodes(const InstructionScenario & scena
     }
 
     return false;
+}
+
+Day16::OpcodeMapping Day16::DetermineOpcodeMapping(const std::vector<InstructionScenario> & scenarios) const
+{
+    const int OPCOUNT = static_cast<int>(Opcode::_COUNT);
+    
+    // Generate array showing each value and which opcodes may possibly match it
+    std::array<std::array<bool, OPCOUNT>, OPCOUNT> potential;
+    std::for_each(potential.begin(), potential.end(), [](auto & el) { std::fill(el.begin(), el.end(), true); });
+
+    for (const auto & scenario : scenarios)
+    {
+        for (int op = 0; op < OPCOUNT; ++op)
+        {
+            if (!ScenarioMatchesOpcode(scenario, op))
+            {
+                potential[scenario.instruction.OpCode()][op] = false;
+            }
+        }
+    }
+    
+    // Now process remaining possibilities to look for definite cases, reducing at each iteration
+    std::vector<std::pair<int, int>> confirmed; 
+    std::vector<int> remaining;
+    for (int i = 0; i < OPCOUNT; ++i) remaining.push_back(i);
+
+    while (!remaining.empty())
+    {
+        // Look for an opcode with only one possibility
+        bool found = false;
+        for (const auto op : remaining)
+        {
+            int poss = std::accumulate(potential[op].cbegin(), potential[op].cend(), 0);
+            if (poss == 0)
+            {
+                std::cout << "ERROR: No remaining possibilities for opcode value " << op << "; fatal error\n";
+                assert(false);
+            }
+            else if (poss == 1)
+            {
+                int opcode = 0;
+                for (opcode = 0; opcode < OPCOUNT; ++opcode) { if (potential[op][opcode] == true) break; }
+                assert(opcode != OPCOUNT);
+
+                confirmed.push_back({ op, opcode });
+                remaining.erase(std::find(remaining.cbegin(), remaining.cend(), op));
+
+                for (int i = 0; i < OPCOUNT; ++i) if (i != op) potential[i][opcode] = false;
+
+                std::cout << "Confirmed opcode value " << op << " maps to opcode \"" << OpcodeString(opcode) << "\" (" << opcode << ")\n";
+                found = true;
+                break;
+            }
+        }
+
+        // Terminate on ambiguous mapping.  This would require branching evaluation to determine correct combination
+        if (!found)
+        {
+            std::cout << "Error: Could not derive any further opcode values; no unambiguous mappings\n";
+            std::cout << "Final state:\n";
+            for (int i = 0; i < OPCOUNT; ++i)
+            {
+                std::cout << "Op " << i << ": ";
+                std::for_each(potential[i].cbegin(), potential[i].cend(), [](bool el) { std::cout << el << " "; });
+
+                auto it = std::find_if(confirmed.cbegin(), confirmed.cend(), [i](const auto & el) { return (el.first == i); });
+                if (it != confirmed.cend()) std::cout << " [" << OpcodeString(it->second) << "]";
+                std::cout << "\n";
+            }
+            assert(false);
+        }
+    }
+
+    // Compile and return final opcode mapping { Value -> Opcode }
+    OpcodeMapping mapping;
+    std::for_each(confirmed.cbegin(), confirmed.cend(), [&mapping](const auto & el) {
+        mapping[el.first] = el.second;
+    });
+
+    return mapping;
 }

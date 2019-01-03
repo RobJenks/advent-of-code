@@ -15,7 +15,7 @@ void CPU::EvaluateInPlaceAs(const Instruction & instr, int opcode, Registers & r
     // Output value of instruction is always a register reference
     AssertRegisterID(instr, 3);
 
-    // Switch with few conditions is generally compiled directly to a jump table
+    // Switch with few conditions should be compiled directly to a jump table
     switch (opcode)
     {
         case static_cast<int>(Opcode::addr) : addr(instr, registers); break;

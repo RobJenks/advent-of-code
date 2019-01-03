@@ -57,7 +57,7 @@ inline std::string OpcodeString(Opcode op)
 
     default:
         assert(false && "Invalid opcode");
-        return "<UNKOWN>";
+        return "<UNKNOWN>";
     }
 }
 #undef CaseOp
