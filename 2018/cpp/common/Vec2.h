@@ -20,10 +20,10 @@ public:
     inline bool operator!=(const Vec2 & other) const { return !(*this == other); }
 
     inline bool operator<(const Vec2 & other) const { return (x < other.x && y < other.y); }
-    inline bool operator>=(const Vec2 & other) const { return !(*this < other); }
+    inline bool operator>=(const Vec2 & other) const { return (x >= other.x && y >= other.y); }
 
     inline bool operator>(const Vec2 & other) const { return (x > other.x && y > other.y); }
-    inline bool operator<=(const Vec2 & other) const { return !(*this > other); }
+    inline bool operator<=(const Vec2 & other) const { return (x <= other.x && y <= other.y); }
 
     inline Vec2 & operator+=(const Vec2 & other) { x += other.x; y += other.y; return *this; }
     inline Vec2 & operator-=(const Vec2 & other) { x -= other.x; y -= other.y; return *this; }
