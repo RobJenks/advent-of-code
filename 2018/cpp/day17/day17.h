@@ -11,13 +11,10 @@ public:
     void Run(void) const;
 
 
-
 private:
 
     void RunTests(void) const; 
-
-    void Part1(void) const;
-
+    void Solve(void) const;
     
     Terrain::TerrainInputCollection ParseTerrainInput(const std::vector<std::string> & input) const;
 };

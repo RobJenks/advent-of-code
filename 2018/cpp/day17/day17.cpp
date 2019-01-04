@@ -10,7 +10,7 @@ void Day17::Run(void) const
     std::cout << "\nDay 17:\n";
 
     RunTests();
-    Part1();
+    Solve();
 }
 
 void Day17::RunTests(void) const
@@ -23,11 +23,14 @@ void Day17::RunTests(void) const
     terrain.EvaluateToEquilibrium();
     std::cout << "\n" << terrain.str() << "\n";
 
-    auto result = terrain.GetWaterCellCount();
-    Test::AssertVerbose(result, 57, "Incorrect water cell count", "Water cells");
+    auto water = terrain.GetWaterCellCount();
+    Test::AssertVerbose(water, 57, "Incorrect water cell count", "Water cells");
+
+    auto settled = terrain.GetSettledWaterCount();
+    Test::AssertVerbose(settled, 29, "Incorrect settled water count", "Settled water");
 }
 
-void Day17::Part1(void) const
+void Day17::Solve(void) const
 {
     std::vector<std::string> input = GetLines(ReadInput("day17/input.txt"));
 
@@ -37,8 +40,8 @@ void Day17::Part1(void) const
     terrain.EvaluateToEquilibrium();
     std::cout << "\n" << terrain.str() << "\n";
 
-    auto result = terrain.GetWaterCellCount();
-    std::cout << "Part 1 result: " << result << "\n";
+    std::cout << "Part 1 result: " << terrain.GetWaterCellCount() << "\n";
+    std::cout << "Part 2 result: " << terrain.GetSettledWaterCount() << "\n";
 }
 
 Terrain::TerrainInputCollection Day17::ParseTerrainInput(const std::vector<std::string> & input) const

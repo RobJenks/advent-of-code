@@ -34,6 +34,7 @@ public:
     bool                ValidCoord(const Vec2<int> & coord) const;
 
     int                 GetWaterCellCount(void) const;
+    int                 GetSettledWaterCount(void) const;
 
     size_t              GetLeft(size_t index) const;
     size_t              GetRight(size_t index) const;

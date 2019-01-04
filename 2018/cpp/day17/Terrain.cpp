@@ -171,7 +171,12 @@ bool Terrain::IsAtEquilibrium(void) const
 
 int Terrain::GetWaterCellCount(void) const
 {
-    return std::count_if(m_data.begin(), m_data.end(), [this](const Type type) { return IsWater(type); });
+    return static_cast<int>(std::count_if(m_data.begin(), m_data.end(), [this](const Type type) { return IsWater(type); }));
+}
+
+int Terrain::GetSettledWaterCount(void) const
+{
+    return static_cast<int>(std::count(m_data.begin(), m_data.end(), Type::SettledWater));
 }
 
 bool Terrain::IsWater(const Type type) const
@@ -254,7 +259,7 @@ std::string Terrain::str_slice(size_t pos, int before, int after) const
     const auto end = Index(bottom);
 
     std::stringstream ss;
-    for (int i = start; i <= end; ++i)
+    for (size_t i = start; i <= end; ++i)
     {
         ss << GetSchematic(m_data[i]);
         if (++x == m_size.x) { ss << '\n'; x = 0; }
