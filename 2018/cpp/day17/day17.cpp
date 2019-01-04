@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cassert>
 #include "../common/StringUtil.h"
+#include "../common/Test.h"
 
 
 void Day17::Run(void) const
@@ -17,9 +18,13 @@ void Day17::RunTests(void) const
     std::vector<std::string> input = GetLines(ReadInput("day17/tests.txt"));
 
     auto terrain_input = ParseTerrainInput(input);
-    Terrain terrain(terrain_input);
+    Terrain terrain(terrain_input, { 500,0 });
     
-    std::cout << "\n\n" << terrain.str() << "\n\n";
+    terrain.EvaluateToEquilibrium();
+    std::cout << "\n" << terrain.str() << "\n";
+
+    auto result = terrain.GetWaterCellCount();
+    Test::AssertVerbose(result, 57, "Incorrect water cell count", "Water cells");
 }
 
 void Day17::Part1(void) const
@@ -27,9 +32,13 @@ void Day17::Part1(void) const
     std::vector<std::string> input = GetLines(ReadInput("day17/input.txt"));
 
     auto terrain_input = ParseTerrainInput(input);
-    Terrain terrain(terrain_input);
+    Terrain terrain(terrain_input, { 500,0 });
     
-    std::cout << "\n\n" << terrain.str() << "\n\n";
+    terrain.EvaluateToEquilibrium();
+    std::cout << "\n" << terrain.str() << "\n";
+
+    auto result = terrain.GetWaterCellCount();
+    std::cout << "Part 1 result: " << result << "\n";
 }
 
 Terrain::TerrainInputCollection Day17::ParseTerrainInput(const std::vector<std::string> & input) const
