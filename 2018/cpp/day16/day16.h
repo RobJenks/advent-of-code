@@ -19,7 +19,6 @@ private:
         Registers before, after;
         Instruction instruction;
 
-        inline InstructionScenario(void) { }
         inline InstructionScenario(Registers && _before, Instruction && _instr, Registers && _after) : before(_before), instruction(_instr), after(_after) { }
     };
 
@@ -42,5 +41,7 @@ private:
     bool ScenarioMatchesOpcode(const InstructionScenario & scenario, int opcode) const;
     std::vector<int> GetPossibleOpcodeMatches(const InstructionScenario & scenario) const;
     bool ScenarioMatchesAtLeastThreeOpCodes(const InstructionScenario & scenario) const;
+
+    inline Registers R4(int x0, int x1, int x2, int x3) const { return Registers(4, { x0,x1,x2,x3 }); }
 
 };

@@ -24,33 +24,33 @@ void Day16::RunTests(void) const
 
 void Day16::TestOpcodes(void) const
 {
-    TestInstruction({ 1,2,3,4 }, { Opcode::addr, 1,2,0 }, { 5,2,3,4 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::addi, 2,1,0 }, { 4,2,3,4 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::mulr, 2,3,1 }, { 1,12,3,4 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::muli, 2,3,1 }, { 1,9,3,4 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::banr, 1,2,3 }, { 1,2,3,2 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::bani, 3,7,0 }, { 4,2,3,4 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::borr, 2,3,3 }, { 1,2,3,7 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::bori, 2,5,3 }, { 1,2,3,7 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::setr, 3,0,0 }, { 4,2,3,4 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::seti, 3,0,0 }, { 3,2,3,4 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::gtir, 3,1,3 }, { 1,2,3,1 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::gtir, 2,1,3 }, { 1,2,3,0 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::gtri, 1,0,3 }, { 1,2,3,1 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::gtri, 1,2,3 }, { 1,2,3,0 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::gtrr, 2,1,3 }, { 1,2,3,1 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::gtrr, 1,2,3 }, { 1,2,3,0 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::eqir, 3,2,3 }, { 1,2,3,1 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::eqir, 3,3,3 }, { 1,2,3,0 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::eqri, 0,1,3 }, { 1,2,3,1 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::eqri, 1,1,3 }, { 1,2,3,0 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::eqrr, 2,2,3 }, { 1,2,3,1 });
-    TestInstruction({ 1,2,3,4 }, { Opcode::eqrr, 1,2,3 }, { 1,2,3,0 });
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::addr, 1,2,0 }, R4( 5,2,3,4 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::addi, 2,1,0 }, R4( 4,2,3,4 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::mulr, 2,3,1 }, R4( 1,12,3,4 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::muli, 2,3,1 }, R4( 1,9,3,4 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::banr, 1,2,3 }, R4( 1,2,3,2 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::bani, 3,7,0 }, R4( 4,2,3,4 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::borr, 2,3,3 }, R4( 1,2,3,7 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::bori, 2,5,3 }, R4( 1,2,3,7 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::setr, 3,0,0 }, R4( 4,2,3,4 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::seti, 3,0,0 }, R4( 3,2,3,4 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::gtir, 3,1,3 }, R4( 1,2,3,1 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::gtir, 2,1,3 }, R4( 1,2,3,0 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::gtri, 1,0,3 }, R4( 1,2,3,1 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::gtri, 1,2,3 }, R4( 1,2,3,0 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::gtrr, 2,1,3 }, R4( 1,2,3,1 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::gtrr, 1,2,3 }, R4( 1,2,3,0 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::eqir, 3,2,3 }, R4( 1,2,3,1 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::eqir, 3,3,3 }, R4( 1,2,3,0 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::eqri, 0,1,3 }, R4( 1,2,3,1 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::eqri, 1,1,3 }, R4( 1,2,3,0 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::eqrr, 2,2,3 }, R4( 1,2,3,1 ));
+    TestInstruction(R4( 1,2,3,4 ), { Opcode::eqrr, 1,2,3 }, R4( 1,2,3,0 ));
 }
 
 void Day16::TestOpcodeScenario(void) const
 {
-    InstructionScenario scenario({ 3,2,1,1 }, { 9,2,1,2 }, { 3,2,2,1 });
+    InstructionScenario scenario(R4( 3,2,1,1 ), { 9,2,1,2 }, R4( 3,2,2,1 ));
 
     Test::AssertVerbose(ScenarioMatchesOpcode(scenario, static_cast<int>(Opcode::mulr)), true, "Scenario does not match expected opcode", "Opcode scenario test");
     Test::AssertVerbose(ScenarioMatchesOpcode(scenario, static_cast<int>(Opcode::addi)), true, "Scenario does not match expected opcode", "Opcode scenario test");
@@ -94,7 +94,7 @@ void Day16::Part2(void) const
     auto program = ParseProgramInput(input.begin() + 3222, input.end());
     auto mapping = DetermineOpcodeMapping(scenarios);
 
-    CPU _cpu; Registers reg;
+    CPU _cpu; Registers reg(4);
     for (const auto & instr : program)
     {
         _cpu.EvaluateInPlaceAs(instr, mapping[instr.OpCode()], reg);
@@ -114,7 +114,7 @@ std::vector<Day16::InstructionScenario> Day16::ParseInstructionScenarios(const s
         if ((*it).find_first_of("Before") != std::string::npos)
         {
             // Found a triplet that represents one scenario
-            Registers before, after;
+            Registers before(4), after(4);
             Instruction instr;
 
             std::stringstream ss((*it).substr(9U, 10U));

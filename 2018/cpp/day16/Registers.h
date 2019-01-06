@@ -1,17 +1,23 @@
 #pragma once
 
-#include <array>
+#include <vector>
 #include <sstream>
-
+#include <cassert>
 
 struct Registers
 {
-    typedef std::array<int, 4U> Values;
+
+private:
+
+    const int COUNT;
+
+public:
+
+    typedef std::vector<int> Values;
     Values val;
 
-    inline Registers(void) : val{ 0 } { }
-    inline Registers(Values && values) : val(values) { }
-    inline Registers(int r0, int r1, int r2, int r3) : val{ r0,r1,r2,r3 } { }
+    inline Registers(int register_count) : COUNT(register_count) { val.insert(val.begin(), register_count, 0); }
+    inline Registers(int register_count, Values && values) : COUNT(register_count), val(values) { assert(val.size() == COUNT); }
 
     inline int & operator[](int ix) { return val[ix]; }
     inline int operator[](int ix) const { return val[ix]; }
@@ -23,11 +29,15 @@ struct Registers
     inline std::string str(void) const
     {
         std::stringstream ss;
-        ss << "[ " << val[0] << " " << val[1] << " " << val[2] << " " << val[3] << " ]";
+        
+        ss << "[ ";
+        for (int i = 0; i < COUNT; ++i) ss << val[i] << ' ';
+        ss << " ]";
+
         return ss.str();
     }
+    
 };
-
 
 
 inline std::ostream & operator<<(std::ostream & os, const Registers & reg)
