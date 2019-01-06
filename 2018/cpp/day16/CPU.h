@@ -21,7 +21,12 @@ public:
     Registers EvaluateAs(const Instruction & instr, int opcode, Registers registers) const;
     Registers Evaluate(const Instruction & instr, Registers registers) const;
 
-    Registers EvaluateProgram(Registers reg, std::vector<Instruction> instructions) const;
+    // Evaluates a full program given the specified initial state.  Returns final register state and execution cycle count
+    std::pair<Registers, size_t> EvaluateProgram(Registers reg, std::vector<Instruction> instructions, size_t cycle_limit) const;
+    inline std::pair<Registers, size_t> EvaluateProgram(Registers reg, std::vector<Instruction> instructions) const
+    {
+        return EvaluateProgram(reg, instructions, std::numeric_limits<size_t>::max());
+    }
 
     inline bool HasErrors(void) const { return m_has_errors; }
     inline void ClearErrorState(void) { m_has_errors = false; }
