@@ -58,6 +58,9 @@
     <Filter Include="day17">
       <UniqueIdentifier>{e7259ddf-37f4-464e-9b34-2373e7f5036d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="day18">
+      <UniqueIdentifier>{472cbeec-c756-47fb-8870-753670c2b3e7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\AOCSolution.h">
@@ -186,6 +189,12 @@
     <ClInclude Include="day17\Terrain.h">
       <Filter>day17</Filter>
     </ClInclude>
+    <ClInclude Include="day18\day18.h">
+      <Filter>day18</Filter>
+    </ClInclude>
+    <ClInclude Include="day18\Forest.h">
+      <Filter>day18</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="advent-of-code-2018-cpp.cpp" />
@@ -282,6 +291,12 @@
     <ClCompile Include="day17\Terrain.cpp">
       <Filter>day17</Filter>
     </ClCompile>
+    <ClCompile Include="day18\day18.cpp">
+      <Filter>day18</Filter>
+    </ClCompile>
+    <ClCompile Include="day18\Forest.cpp">
+      <Filter>day18</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="day1\input.txt">
@@ -340,6 +355,9 @@
     </Text>
     <Text Include="day17\tests.txt">
       <Filter>day17</Filter>
+    </Text>
+    <Text Include="day18\input.txt">
+      <Filter>day18</Filter>
     </Text>
   </ItemGroup>
 </Project>

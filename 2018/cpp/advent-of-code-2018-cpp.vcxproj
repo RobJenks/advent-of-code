@@ -48,6 +48,8 @@
     <ClInclude Include="day16\Registers.h" />
     <ClInclude Include="day17\day17.h" />
     <ClInclude Include="day17\Terrain.h" />
+    <ClInclude Include="day18\day18.h" />
+    <ClInclude Include="day18\Forest.h" />
     <ClInclude Include="day1\day1.h" />
     <ClInclude Include="day2\day2.h" />
     <ClInclude Include="day3\day3.h" />
@@ -84,6 +86,8 @@
     <ClCompile Include="day16\day16.cpp" />
     <ClCompile Include="day17\day17.cpp" />
     <ClCompile Include="day17\Terrain.cpp" />
+    <ClCompile Include="day18\day18.cpp" />
+    <ClCompile Include="day18\Forest.cpp" />
     <ClCompile Include="day1\day1.cpp" />
     <ClCompile Include="day2\day2.cpp" />
     <ClCompile Include="day3\day3.cpp" />
@@ -106,6 +110,7 @@
     <Text Include="day16\input.txt" />
     <Text Include="day17\input.txt" />
     <Text Include="day17\tests.txt" />
+    <Text Include="day18\input.txt" />
     <Text Include="day1\input.txt">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </DeploymentContent>
