@@ -14,16 +14,14 @@ public:
     typedef std::vector<CellState> TData;
 
     Forest(const Vec2<int> & size);
+    Forest(const Vec2<int> & size, TData data);
 
     void Populate(const std::vector<std::string> & input);
 
     void Evaluate(void);
-    void Evaluate(int iterations);
-
-    CellState Transform(size_t index) const;
-
-    void GetAdjacentInner(size_t index, std::array<CellState, 8U> (& state)) const;
-    void GetAdjacent(size_t index, std::array<CellState, 8U>(&state)) const;
+    void Evaluate(size_t iterations);
+    
+    inline TData        GetData(void) const { return m_data; }
 
     inline size_t       Index(int x, int y) const { return (x + (y * m_size.x)); }
     inline size_t       Index(const Vec2<int> & v) const { return Index(v.x, v.y); }
@@ -43,6 +41,11 @@ public:
 
 private:
 
+    CellState Transform(size_t index) const;
+
+    void GetAdjacentInner(size_t index, std::array<CellState, 8U>(&state)) const;
+    void GetAdjacent(size_t index, std::array<CellState, 8U>(&state)) const;
+
     
     static char GetSchematic(CellState state);
     static CellState GetSchematicState(char c);
@@ -53,6 +56,6 @@ private:
     const size_t m_count;
 
     TData m_data;
-
+    TData m_transformed;
 
 };

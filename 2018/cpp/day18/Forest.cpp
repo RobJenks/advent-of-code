@@ -8,7 +8,17 @@ Forest::Forest(const Vec2<int> & size)
     m_size(size), 
     m_count(size.x * size.y)
 {
-    m_data.insert(m_data.begin(), m_count, CellState::Open);
+    m_data.insert(m_data.begin(), m_count, CellState::None);
+    m_transformed.insert(m_transformed.begin(), m_count, CellState::None);
+}
+
+Forest::Forest(const Vec2<int> & size, TData data)
+    :
+    m_size(size),
+    m_count(size.x * size.y),
+    m_data(data)
+{
+    m_transformed.insert(m_transformed.begin(), m_count, CellState::None);
 }
 
 
@@ -25,9 +35,9 @@ void Forest::Populate(const std::vector<std::string> & input)
     }
 }
 
-void Forest::Evaluate(int iterations)
+void Forest::Evaluate(const size_t iterations)
 {
-    for (size_t i = 0; i < iterations; ++i)
+    for (size_t i = 0U; i < iterations; ++i)
     {
         Evaluate();
     }
@@ -35,15 +45,13 @@ void Forest::Evaluate(int iterations)
 
 void Forest::Evaluate(void)
 {
-    TData transformed;
-    transformed.reserve(m_count);
-
+    auto it = m_transformed.begin();
     for (size_t i = 0U; i < m_count; ++i)
     {
-        transformed.push_back(Transform(i));
+        *(it++) = Transform(i);
     }
 
-    m_data = transformed;
+    m_data = m_transformed;
 }
 
 
@@ -193,7 +201,7 @@ char Forest::GetSchematic(CellState state)
     {
         case CellState::Open:           return '.';
         case CellState::Trees:          return '|';
-        case CellState::Lumberyard:    return '#';
+        case CellState::Lumberyard:     return '#';
 
         default:
             assert(false);

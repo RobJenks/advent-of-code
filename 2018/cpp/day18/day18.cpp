@@ -12,6 +12,7 @@ void Day18::Run(void) const
 
     RunTests();
     Part1();
+    Part2();
 }
 
 void Day18::RunTests(void) const
@@ -57,6 +58,38 @@ void Day18::Part1(void) const
     
     auto value = forest.GetResourceValue();
     std::cout << "Part 1 result: " << value << "\n";
+}
+
+void Day18::Part2(void) const
+{
+    std::vector<std::string> input = GetLines(ReadInput("day18/input.txt"));
+    Forest forest = CreateForest(input);
+
+    std::vector<Forest::TData> data;        // Collection of forest states at each iteration
+    const size_t ITERATIONS = 1000000000U;  // Not expecting to go this far...
+
+    std::cout << "Part 2 calculating\n";
+    size_t limit = ITERATIONS;
+    for (size_t i = 0; i < limit; ++i)
+    {
+        forest.Evaluate();
+        data.push_back(forest.GetData());
+
+        auto match = std::find(data.begin(), data.end()-1, data.back());
+        if (match != data.end()-1)
+        {
+            auto it0 = std::distance(data.begin(), match);
+            auto it1 = std::distance(data.begin(), data.end() - 1);
+
+            auto difference = (ITERATIONS - it0) % (it1 - it0);
+            std::cout << "Iteration " << i << ": Found cycle with period " << (it1 - it0) << " from iteration " << it0 << " to " << it1 << "\n";
+            std::cout << "(1,000,000,000 - " << it0 << ") % (" << it1 << " - " << (it1 - it0) << ") = " << difference << "\n";
+            limit = (it1 + difference);
+        }
+    }
+
+    std::cout << "Evaluated to iteration " << limit << ", periodically-equivalent to iteration 1,000,000,000\n";
+    std::cout << "Part 2 result: " << forest.GetResourceValue() << "\n";
 }
 
 Forest Day18::CreateForest(const std::vector<std::string> & input) const
