@@ -1,9 +1,11 @@
 #include "CPU.h"
+#include <iostream>
 
 
-CPU::CPU(bool report_errors)
+CPU::CPU(bool report_errors, bool report_execution)
     :
     m_report_errors(report_errors),
+    m_report_exec(report_execution), 
     m_has_errors(false)
 {
 }
@@ -13,7 +15,7 @@ CPU::CPU(bool report_errors)
 void CPU::EvaluateInPlaceAs(const Instruction & instr, int opcode, Registers & registers) const
 {
     // Output value of instruction is always a register reference
-    AssertRegisterID(instr, 3);
+    RequireReg(instr, registers, 3);
 
     // Switch with few conditions should be compiled directly to a jump table
     switch (opcode)
@@ -57,12 +59,57 @@ Registers CPU::Evaluate(const Instruction & instr, Registers registers) const
     return EvaluateAs(instr, instr.val[0], registers);
 }
 
+Registers CPU::EvaluateProgram(Registers reg, std::vector<Instruction> instructions) const
+{
+    int IPR = IP_NONE;       // Instruction pointer register
+    int IP = 0;              // Current instruction pointer value
+    
+    while (IP < instructions.size())
+    {
+        // Write IP to register if it is bound
+        if (IPR != IP_NONE)
+        {
+            reg[IPR] = IP;
+        }
+
+        // Process the instruction or directive
+        const Instruction & instr = instructions[IP];
+        if (instr.OpCode() == static_cast<int>(Opcode::DIRECTIVE_IP))
+        {
+            IPR = BindIP(instr, reg);
+            if (m_report_exec) std::cout << "Executed directive " << instr.str_opname() << "; IPR = " << IPR << "\n";
+            instructions.erase(instructions.begin() + IP);  // Directives are one-shot and should not affect the IP
+            continue;
+        }
+        else
+        {
+            EvaluateInPlace(instr, reg);
+        }
+
+        // Write IPR back to IP
+        if (IPR != IP_NONE)
+        {
+            IP = reg[IPR];
+        }
+
+        // Report state if required
+        if (m_report_exec)
+            std::cout << "Executed " << instr.str_opname() << "; reg = " << reg << ", IP = " << IP << "\n";
+
+        // Next instruction
+        ++IP;
+    }
+    
+    // Return final register state
+    return reg;
+}
+
 
 // addr (add-register): reg(C) = reg(A) + reg(B)
 void CPU::addr(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
-    RequireRegB(instr);
+    RequireRegA(instr, reg);
+    RequireRegB(instr, reg);
 
     reg[instr.OutputC()] = reg[instr.InputA()] + reg[instr.InputB()];
 }
@@ -70,7 +117,7 @@ void CPU::addr(const Instruction & instr, Registers & reg) const
 // addi (add-immediate): reg(C) = reg(A) + B
 void CPU::addi(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
+    RequireRegA(instr, reg);
 
     reg[instr.OutputC()] = reg[instr.InputA()] + instr.InputB();
 }
@@ -78,8 +125,8 @@ void CPU::addi(const Instruction & instr, Registers & reg) const
 // mulr (multiply-register): reg(C) = reg(A) + reg(B)
 void CPU::mulr(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
-    RequireRegB(instr);
+    RequireRegA(instr, reg);
+    RequireRegB(instr, reg);
 
     reg[instr.OutputC()] = reg[instr.InputA()] * reg[instr.InputB()];
 }
@@ -87,7 +134,7 @@ void CPU::mulr(const Instruction & instr, Registers & reg) const
 // muli (multiply-immediate): reg(C) = reg(A) + B
 void CPU::muli(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
+    RequireRegA(instr, reg);
 
     reg[instr.OutputC()] = reg[instr.InputA()] * instr.InputB();
 }
@@ -95,8 +142,8 @@ void CPU::muli(const Instruction & instr, Registers & reg) const
 // banr (bitwise-and-register): reg(C) = reg(A) & reg(B)
 void CPU::banr(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
-    RequireRegB(instr);
+    RequireRegA(instr, reg);
+    RequireRegB(instr, reg);
 
     reg[instr.OutputC()] = reg[instr.InputA()] & reg[instr.InputB()];
 }
@@ -104,7 +151,7 @@ void CPU::banr(const Instruction & instr, Registers & reg) const
 // bani (bitwise-and-immediate): reg(C) = reg(A) & B
 void CPU::bani(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
+    RequireRegA(instr, reg);
 
     reg[instr.OutputC()] = reg[instr.InputA()] & instr.InputB();
 }
@@ -112,8 +159,8 @@ void CPU::bani(const Instruction & instr, Registers & reg) const
 // borr (bitwise-or-register): reg(C) = reg(A) | reg(B)
 void CPU::borr(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
-    RequireRegB(instr);
+    RequireRegA(instr, reg);
+    RequireRegB(instr, reg);
 
     reg[instr.OutputC()] = reg[instr.InputA()] | reg[instr.InputB()];
 }
@@ -121,7 +168,7 @@ void CPU::borr(const Instruction & instr, Registers & reg) const
 // bori (bitwise-or-immediate): reg(C) = reg(A) | B
 void CPU::bori(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
+    RequireRegA(instr, reg);
 
     reg[instr.OutputC()] = reg[instr.InputA()] | instr.InputB();
 }
@@ -129,7 +176,7 @@ void CPU::bori(const Instruction & instr, Registers & reg) const
 // setr (set-register): reg(C) = reg(A)
 void CPU::setr(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
+    RequireRegA(instr, reg);
 
     reg[instr.OutputC()] = reg[instr.InputA()];
 }
@@ -143,7 +190,7 @@ void CPU::seti(const Instruction & instr, Registers & reg) const
 // gtir (greater-than-immediate/register): reg(C) = (A > reg(B) ? 1 : 0)
 void CPU::gtir(const Instruction & instr, Registers & reg) const
 {
-    RequireRegB(instr);
+    RequireRegB(instr, reg);
 
     reg[instr.OutputC()] = (instr.InputA() > reg[instr.InputB()] ? 1 : 0);
 }
@@ -151,7 +198,7 @@ void CPU::gtir(const Instruction & instr, Registers & reg) const
 // gtri (greater-than-register/immediate): reg(C) = (reg(A) > B ? 1 : 0)
 void CPU::gtri(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
+    RequireRegA(instr, reg);
 
     reg[instr.OutputC()] = (reg[instr.InputA()] > instr.InputB() ? 1 : 0);
 }
@@ -159,8 +206,8 @@ void CPU::gtri(const Instruction & instr, Registers & reg) const
 // gtrr (greater-than-register/register): reg(C) = (reg(A) > reg(B) ? 1 : 0)
 void CPU::gtrr(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
-    RequireRegB(instr);
+    RequireRegA(instr, reg);
+    RequireRegB(instr, reg);
 
     reg[instr.OutputC()] = (reg[instr.InputA()] > reg[instr.InputB()] ? 1 : 0);
 }
@@ -168,7 +215,7 @@ void CPU::gtrr(const Instruction & instr, Registers & reg) const
 // eqir (equal-immediate/register): reg(C) = (A == reg(B) ? 1 : 0)
 void CPU::eqir(const Instruction & instr, Registers & reg) const
 {
-    RequireRegB(instr);
+    RequireRegB(instr, reg);
 
     reg[instr.OutputC()] = (instr.InputA() == reg[instr.InputB()] ? 1 : 0);
 }
@@ -176,7 +223,7 @@ void CPU::eqir(const Instruction & instr, Registers & reg) const
 // eqri (equal-register/immediate): reg(C) = (reg(A) == B ? 1 : 0)
 void CPU::eqri(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
+    RequireRegA(instr, reg);
 
     reg[instr.OutputC()] = (reg[instr.InputA()] == instr.InputB() ? 1 : 0);
 }
@@ -184,9 +231,16 @@ void CPU::eqri(const Instruction & instr, Registers & reg) const
 // eqrr (equal-register/register): reg(C) = (reg(A) == reg(B) ? 1 : 0)
 void CPU::eqrr(const Instruction & instr, Registers & reg) const
 {
-    RequireRegA(instr);
-    RequireRegB(instr);
+    RequireRegA(instr, reg);
+    RequireRegB(instr, reg);
 
     reg[instr.OutputC()] = (reg[instr.InputA()] == reg[instr.InputB()] ? 1 : 0);
 }
 
+// #ip (bind-IP): process a directive to bind the instruction pointer to a given register.  Returns the new IPR
+int CPU::BindIP(const Instruction & instr, const Registers & reg) const
+{
+    if (!AssertRegA(instr, reg)) return -1;
+
+    return instr.InputA();
+}

@@ -6,6 +6,7 @@
 
 enum class Opcode : int
 {
+    // Opcodes
     addr,
     addi,
 
@@ -29,7 +30,10 @@ enum class Opcode : int
     eqri,
     eqrr,
 
-    _COUNT
+    _COUNT,
+
+    // Directives
+    DIRECTIVE_IP    // Directive to update the instruction pointer register, introduced in day 19
 };
 
 
@@ -38,6 +42,7 @@ inline std::string OpcodeString(Opcode op)
 {
     switch (op)
     {
+        // Opcodes
         CaseOp(addr)
         CaseOp(addi)
         CaseOp(mulr)
@@ -54,6 +59,9 @@ inline std::string OpcodeString(Opcode op)
         CaseOp(eqir)
         CaseOp(eqri)
         CaseOp(eqrr)
+
+        // Directives
+        case Opcode::DIRECTIVE_IP:  return "#ip";
 
     default:
         assert(false && "Invalid opcode");

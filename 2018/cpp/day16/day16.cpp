@@ -84,6 +84,7 @@ void Day16::Part1(void) const
     });
 
     std::cout << "\nPart 1 result: " << result << "\n\n";
+    assert(result == 544);  // Added in day 19 extension to ensure no regression of day 16
 }
 
 void Day16::Part2(void) const
@@ -101,6 +102,7 @@ void Day16::Part2(void) const
     }
 
     std::cout << "\nPart 2 result: " << reg[0] << " (final register state: " << reg << ")\n\n";
+    assert(reg[0] == 600);  // Added in day 19 extension to ensure no regression of day 16
 }
 
 

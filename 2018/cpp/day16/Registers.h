@@ -8,8 +8,7 @@ struct Registers
 {
 
 private:
-
-    const int COUNT;
+    int COUNT;
 
 public:
 
@@ -25,6 +24,10 @@ public:
     inline bool operator==(const Registers & other) const { return val == other.val; }
     inline bool operator!=(const Registers & other) const { return !(*this == other); }
 
+    inline int Count(void) const { return COUNT; }
+
+    inline Registers(const Registers & other) : COUNT(other.COUNT), val(other.val) { }
+    inline Registers & operator=(const Registers & other) { COUNT = other.COUNT;  val = other.val; return *this; }
 
     inline std::string str(void) const
     {
@@ -32,7 +35,7 @@ public:
         
         ss << "[ ";
         for (int i = 0; i < COUNT; ++i) ss << val[i] << ' ';
-        ss << " ]";
+        ss << "]";
 
         return ss.str();
     }
