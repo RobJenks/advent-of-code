@@ -32,6 +32,7 @@ public:
     size_t              GetUp(size_t index) const;
     size_t              GetDown(size_t index) const;
 
+    inline bool         IsEdge(const Vec2<int> & coord) const { return (coord.x == 0 || coord.y == 0 || coord.x == (m_size.x - 1) || coord.y == (m_size.y - 1)); }
     CellState           GetState(size_t index) const;
 
     std::array<int, STATE_COUNT>    GetStateCounts(void) const;
@@ -43,8 +44,8 @@ private:
 
     CellState Transform(size_t index) const;
 
-    void GetAdjacentInner(size_t index, std::array<CellState, 8U>(&state)) const;
-    void GetAdjacent(size_t index, std::array<CellState, 8U>(&state)) const;
+    std::array<CellState, 8U> GetAdjacentInner(size_t index) const;
+    std::array<CellState, 8U> GetAdjacent(size_t index) const;
 
     
     static char GetSchematic(CellState state);

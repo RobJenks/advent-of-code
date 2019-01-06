@@ -56,18 +56,9 @@ void Forest::Evaluate(void)
 
 
 Forest::CellState Forest::Transform(size_t index) const
-{
-    std::array<CellState, 8U> adj;
-    
+{    
     auto coord = Coord(index);
-    if (coord.x == 0 || coord.y == 0 || coord.x == (m_size.x - 1) || coord.y == (m_size.y - 1))
-    {
-        GetAdjacent(index, adj);
-    }
-    else
-    {
-        GetAdjacentInner(index, adj);
-    }
+    std::array<CellState, 8U> adj = (IsEdge(coord) ? GetAdjacent(index) : GetAdjacentInner(index));
 
     int count = 0;
     auto state = m_data[index];
@@ -100,8 +91,10 @@ Forest::CellState Forest::Transform(size_t index) const
 
 // Return the state of all surrounding elements when the cell if known to NOT be an edge.  Can be applied
 // to the majority of cells and avoids bounds-checking each lookup
-void Forest::GetAdjacentInner(size_t index, std::array<CellState, 8U>(&state)) const
+std::array<Forest::CellState, 8U> Forest::GetAdjacentInner(size_t index) const
 {
+    std::array<CellState, 8U> state;
+
     --index; 
     state[0] = m_data[index];      // Left
 
@@ -125,12 +118,14 @@ void Forest::GetAdjacentInner(size_t index, std::array<CellState, 8U>(&state)) c
 
     --index;
     state[7] = m_data[index];      // Down-left
+
+    return state;
 }
 
 // Return the state of all adjacent cells, for a cell that may or may not be an edge cell
-void Forest::GetAdjacent(size_t index, std::array<CellState, 8U>(&state)) const
+std::array<Forest::CellState, 8U> Forest::GetAdjacent(size_t index) const
 {
-    state = { CellState::None };
+    std::array<CellState, 8U> state = { CellState::None };
 
     auto up = GetUp(index);
     if (up != NO_CELL)
@@ -150,6 +145,8 @@ void Forest::GetAdjacent(size_t index, std::array<CellState, 8U>(&state)) const
 
     state[6] = GetState(GetLeft(index));
     state[7] = GetState(GetRight(index));
+
+    return state;
 }
 
 
