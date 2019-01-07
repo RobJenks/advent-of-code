@@ -14,9 +14,7 @@ public:
 private:
 
     void RunTests(void) const; 
-
-    void Part1(void) const;
-
+    void Solve(void) const;
 
 
 private:

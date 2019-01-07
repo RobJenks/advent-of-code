@@ -35,6 +35,7 @@ public:
     int RoomCount(void) const { return static_cast<int>(m_rooms.size()); }
     int GetMostDistantRoom(void) const;
 
+    const std::vector<int> & GetDistanceMap(void) const { return m_distance; }
 
     template <typename TCellLambda>
     std::string str(TCellLambda cl, int cell_size = 1) const;

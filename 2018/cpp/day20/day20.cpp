@@ -11,7 +11,7 @@ void Day20::Run(void) const
     std::cout << "\nDay 20:\n";
 
     RunTests();
-    Part1();
+    Solve();
 }
 
 void Day20::RunTests(void) const
@@ -44,7 +44,7 @@ void Day20::RunTests(void) const
     }
 }
 
-void Day20::Part1(void) const
+void Day20::Solve(void) const
 {
     auto input = ParseInput(ReadInput("day20/input.txt"));
 
@@ -54,6 +54,9 @@ void Day20::Part1(void) const
     std::cout << rooms.str() << "\n";
 
     std::cout << "Part 1 result: " << rooms.GetMostDistantRoom() << "\n";
+
+    auto distant = std::count_if(rooms.GetDistanceMap().cbegin(), rooms.GetDistanceMap().cend(), [](int el) { return (el >= 1000); });
+    std::cout << "Part 2 result: " << distant << " (of " << rooms.GetDistanceMap().size() << " total cells)\n";
 }
 
 
