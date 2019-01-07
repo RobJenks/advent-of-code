@@ -42,6 +42,7 @@
     <ClInclude Include="day15\RO.h" />
     <ClInclude Include="day15\Tile.h" />
     <ClInclude Include="day16\CPU.h" />
+    <ClInclude Include="day16\CPUConfig.h" />
     <ClInclude Include="day16\day16.h" />
     <ClInclude Include="day16\Instruction.h" />
     <ClInclude Include="day16\Opcode.h" />
@@ -52,11 +53,13 @@
     <ClInclude Include="day18\Forest.h" />
     <ClInclude Include="day19\day19.h" />
     <ClInclude Include="day19\OpcodeMap.h" />
+    <ClInclude Include="day19\ProgramParser.h" />
     <ClInclude Include="day1\day1.h" />
     <ClInclude Include="day20\day20.h" />
     <ClInclude Include="day20\Room.h" />
     <ClInclude Include="day20\RoomDir.h" />
     <ClInclude Include="day20\Rooms.h" />
+    <ClInclude Include="day21\day21.h" />
     <ClInclude Include="day2\day2.h" />
     <ClInclude Include="day3\day3.h" />
     <ClInclude Include="day4\day4.h" />
@@ -98,6 +101,7 @@
     <ClCompile Include="day1\day1.cpp" />
     <ClCompile Include="day20\day20.cpp" />
     <ClCompile Include="day20\Rooms.cpp" />
+    <ClCompile Include="day21\day21.cpp" />
     <ClCompile Include="day2\day2.cpp" />
     <ClCompile Include="day3\day3.cpp" />
     <ClCompile Include="day4\day4.cpp" />
@@ -132,6 +136,7 @@
       </DeploymentContent>
     </Text>
     <Text Include="day20\input.txt" />
+    <Text Include="day21\input.txt" />
     <Text Include="day2\input.txt" />
     <Text Include="day3\input.txt" />
     <Text Include="day4\input.txt" />

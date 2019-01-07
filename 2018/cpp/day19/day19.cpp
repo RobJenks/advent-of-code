@@ -51,7 +51,7 @@ void Day19::Part2(void) const
     // so can run for a period to identify the number being factored and then directly calculate the factor sum here
     std::cout << "\nPart 2 executing...\n";
     CPU _cpu(true, false);
-    auto [registers, cycles] = _cpu.EvaluateProgram(R6(1, 0, 0, 0, 0, 0), instructions, 1000U);
+    auto [registers, cycles] = _cpu.EvaluateProgram(R6(1, 0, 0, 0, 0, 0), instructions, CPUConfig().WithCycleLimit(1000U));
 
     int number = registers[0]; int reg = 0;
     for (int i = 1; i < registers.Count(); ++i) 
