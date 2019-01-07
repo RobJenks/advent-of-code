@@ -4,6 +4,7 @@
 #include "../common/Test.h"
 #include "../day16/CPU.h"
 #include "OpcodeMap.h"
+#include "ProgramParser.h"
 
 
 void Day19::Run(void) const
@@ -18,7 +19,7 @@ void Day19::Run(void) const
 void Day19::RunTests(void) const
 {
     std::vector<std::string> input = GetLines(ReadInput("day19/tests.txt"));
-    auto instructions = ParseProgram(input);
+    auto instructions = ProgramParser::Parse(input);
 
     CPU _cpu(true, true);
     Registers registers(6);
@@ -32,7 +33,7 @@ void Day19::RunTests(void) const
 void Day19::Part1(void) const
 {
     std::vector<std::string> input = GetLines(ReadInput("day19/input.txt"));
-    auto instructions = ParseProgram(input);
+    auto instructions = ProgramParser::Parse(input);
 
     std::cout << "\nPart 1 executing...\n";
     CPU _cpu(true, false);
@@ -44,7 +45,7 @@ void Day19::Part1(void) const
 void Day19::Part2(void) const
 {
     std::vector<std::string> input = GetLines(ReadInput("day19/input.txt"));
-    auto instructions = ParseProgram(input);
+    auto instructions = ProgramParser::Parse(input);
 
     // Shortcut: program is finding all integer factors of a large number and computing the sum.  Algorithm is very long-running,
     // so can run for a period to identify the number being factored and then directly calculate the factor sum here
@@ -65,30 +66,4 @@ void Day19::Part2(void) const
     }
 
     std::cout << "Part 2 result: " << total << " (factor sum of " << number << ")\n";
-}
-
-
-
-std::vector<Instruction> Day19::ParseProgram(const std::vector<std::string> & input) const
-{
-    OpcodeMap opcodes;
-    std::vector<Instruction> instructions;
-
-    for (const auto & in : input)
-    {
-        auto line = StringUtil::Trim(in);
-        if (line.empty()) continue;
-
-        Instruction instr; 
-        std::string opcode;;
-        std::stringstream ss(line);
-
-        ss >> opcode;
-        instr.val[0] = static_cast<int>(opcodes.Get(opcode));
-
-        ss >> instr.val[1] >> instr.val[2] >> instr.val[3];
-        instructions.push_back(instr);
-    }
-
-    return instructions;
 }
