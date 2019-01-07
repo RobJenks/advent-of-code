@@ -59,19 +59,22 @@ Registers CPU::Evaluate(const Instruction & instr, Registers registers) const
     return EvaluateAs(instr, instr.val[0], registers);
 }
 
-std::pair<Registers, size_t> CPU::EvaluateProgram(Registers reg, std::vector<Instruction> instructions, const size_t cycle_limit) const
+std::pair<Registers, size_t> CPU::EvaluateProgram(Registers reg, std::vector<Instruction> instructions, CPUConfig config) const
 {
     int IPR = IP_NONE;       // Instruction pointer register
     int IP = 0;              // Current instruction pointer value
     size_t cycles = 0Ui64;   // Cycle count for this execution
     
-    while (IP < instructions.size() && cycles++ != cycle_limit)
+    while (IP < instructions.size() && cycles++ != config.GetCycleLimit())
     {
         // Write IP to register if it is bound
         if (IPR != IP_NONE)
         {
             reg[IPR] = IP;
         }
+
+        // Trap any instruction halt if specified
+        if (IP == config.GetInstructionHalt()) break;
 
         // Process the instruction or directive
         const Instruction & instr = instructions[IP];

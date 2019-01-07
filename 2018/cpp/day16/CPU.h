@@ -4,6 +4,7 @@
 #include "Opcode.h"
 #include "Instruction.h"
 #include "Registers.h"
+#include "CPUConfig.h"
 
 
 class CPU
@@ -22,10 +23,10 @@ public:
     Registers Evaluate(const Instruction & instr, Registers registers) const;
 
     // Evaluates a full program given the specified initial state.  Returns final register state and execution cycle count
-    std::pair<Registers, size_t> EvaluateProgram(Registers reg, std::vector<Instruction> instructions, size_t cycle_limit) const;
+    std::pair<Registers, size_t> EvaluateProgram(Registers reg, std::vector<Instruction> instructions, CPUConfig config) const;
     inline std::pair<Registers, size_t> EvaluateProgram(Registers reg, std::vector<Instruction> instructions) const
     {
-        return EvaluateProgram(reg, instructions, std::numeric_limits<size_t>::max());
+        return EvaluateProgram(reg, instructions, CPUConfig());
     }
 
     inline bool HasErrors(void) const { return m_has_errors; }
