@@ -60,6 +60,9 @@
     <ClInclude Include="day20\RoomDir.h" />
     <ClInclude Include="day20\Rooms.h" />
     <ClInclude Include="day21\day21.h" />
+    <ClInclude Include="day22\Cave.h" />
+    <ClInclude Include="day22\day22.h" />
+    <ClInclude Include="day22\Region.h" />
     <ClInclude Include="day2\day2.h" />
     <ClInclude Include="day3\day3.h" />
     <ClInclude Include="day4\day4.h" />
@@ -102,6 +105,8 @@
     <ClCompile Include="day20\day20.cpp" />
     <ClCompile Include="day20\Rooms.cpp" />
     <ClCompile Include="day21\day21.cpp" />
+    <ClCompile Include="day22\Cave.cpp" />
+    <ClCompile Include="day22\day22.cpp" />
     <ClCompile Include="day2\day2.cpp" />
     <ClCompile Include="day3\day3.cpp" />
     <ClCompile Include="day4\day4.cpp" />
@@ -137,6 +142,8 @@
     </Text>
     <Text Include="day20\input.txt" />
     <Text Include="day21\input.txt" />
+    <Text Include="day22\input.txt" />
+    <Text Include="day22\tests.txt" />
     <Text Include="day2\input.txt" />
     <Text Include="day3\input.txt" />
     <Text Include="day4\input.txt" />
