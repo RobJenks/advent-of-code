@@ -1,4 +1,5 @@
 #include "CPU.h"
+#include "CPUConfig.h"
 #include <iostream>
 
 
@@ -61,20 +62,18 @@ Registers CPU::Evaluate(const Instruction & instr, Registers registers) const
 
 std::pair<Registers, size_t> CPU::EvaluateProgram(Registers reg, std::vector<Instruction> instructions, CPUConfig config) const
 {
-    int IPR = IP_NONE;       // Instruction pointer register
-    int IP = 0;              // Current instruction pointer value
-    size_t cycles = 0Ui64;   // Cycle count for this execution
+    int IPR = config.GetInitialIPR();           // Instruction pointer register
+    int IP = config.GetInstructionEntryPoint(); // Current instruction pointer value
+    size_t cycles = 0Ui64;                      // Cycle count for this execution
+    int LAST_IP = 0;                            // Instruction pointer before the last IPR write to IP
     
     while (IP < instructions.size() && cycles++ != config.GetCycleLimit())
     {
         // Write IP to register if it is bound
-        if (IPR != IP_NONE)
+        if (IPR != CPUConfig::IP_NONE)
         {
             reg[IPR] = IP;
         }
-
-        // Trap any instruction halt if specified
-        if (IP == config.GetInstructionHalt()) break;
 
         // Process the instruction or directive
         const Instruction & instr = instructions[IP];
@@ -91,7 +90,8 @@ std::pair<Registers, size_t> CPU::EvaluateProgram(Registers reg, std::vector<Ins
         }
 
         // Write IPR back to IP
-        if (IPR != IP_NONE)
+        LAST_IP = IP;
+        if (IPR != CPUConfig::IP_NONE)
         {
             IP = reg[IPR];
         }
@@ -99,6 +99,9 @@ std::pair<Registers, size_t> CPU::EvaluateProgram(Registers reg, std::vector<Ins
         // Report state if required
         if (m_report_exec)
             std::cout << "Executed " << instr.str_opname() << "; reg = " << reg << ", IP = " << IP << "\n";
+
+        // Trap any instruction halt if specified
+        if (LAST_IP == config.GetInstructionHalt()) break;
 
         // Next instruction
         ++IP;

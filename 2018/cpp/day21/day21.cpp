@@ -12,7 +12,8 @@ void Day21::Run(void) const
 {
     std::cout << "\nDay 21:\n";
 
-    Part1();
+   // Part1();
+    Part2();
 }
 
 
@@ -33,4 +34,61 @@ void Day21::Part1(void) const
     auto[registers, cycles] = _cpu.EvaluateProgram(Registers(6), instructions, CPUConfig().WithInstructionHalt(28)); 
 
     std::cout << "Part 1 result = " << registers[1] << " (after " << cycles << " cycles; register state = " << registers << ")\n";
+}
+
+void Day21::Part2(void) const
+{
+    std::vector<std::string> input = GetLines(ReadInput("day21/input.txt"));
+    auto instructions = ProgramParser::Parse(input);
+
+    std::cout << "\nPart 2 executing...\n";
+    CPU _cpu(true, false);
+
+    // Values in the target register are periodic, so accumulate all halting values until we encounter a repeat
+    // and then choose the last value BEFORE the cycle repeats
+    std::vector<int> values;
+    std::unordered_set<int> found;
+
+    // Remove IP# directive from the instruction set and apply it via config instead, since this can otherwise
+    // affect insruction ordering between runs
+    instructions.erase(std::remove_if(instructions.begin(), instructions.end(), [](const Instruction & instr) { 
+        return (instr.OpCode() == static_cast<int>(Opcode::DIRECTIVE_IP)); 
+    }));
+
+    Registers registers = Registers(6);
+    CPUConfig config = CPUConfig()
+        .WithInstructionHalt(28)
+        .WithInitialIPR(4);
+
+    int total_executions = 0;
+    size_t total_cycles = 0U;
+    int result = -1;
+
+    std::cout << "Identifying halting values ('.' = x100): ";
+    while (true)
+    {
+        auto[new_reg, cycles] = _cpu.EvaluateProgram(registers, instructions, config);
+        ++total_executions;
+        total_cycles += cycles;
+
+        if (found.find(new_reg[1]) != found.end()) 
+        {
+            // Cycle has repeated, so return the last value before this one
+            result = values.back();
+            break;
+        }
+
+        // Otherwise record this value
+        if (values.size() % 100 == 0) std::cout << '.';
+        values.push_back(new_reg[1]);
+        found.insert(new_reg[1]);
+
+        // Restore program state and set our entry point to IP=29, so we can continue execution where we left off
+        registers = new_reg;
+        config.WithInstructionEntryPoint(29);    // Start immediately after the last termination point
+        assert(registers[0] != registers[1]);    // Validate that the halt condition will not be met by this change
+    }
+
+    std::cout << "\n\nPart 2 result = " << result << " (after " << total_executions << " program executions and " 
+        << total_cycles << " total cycles; registers = " << registers << ")\n";
 }

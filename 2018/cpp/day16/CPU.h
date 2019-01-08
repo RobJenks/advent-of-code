@@ -75,8 +75,6 @@ private:
     // Directives
     int BindIP(const Instruction & instr, const Registers & reg) const;
 
-    static const int IP_NONE = -1;
-
 private:
 
     mutable bool m_has_errors;
