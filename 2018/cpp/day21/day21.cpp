@@ -12,7 +12,7 @@ void Day21::Run(void) const
 {
     std::cout << "\nDay 21:\n";
 
-   // Part1();
+    Part1();
     Part2();
 }
 
