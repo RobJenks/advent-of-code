@@ -23,6 +23,7 @@
 #include "day20/day20.h"
 #include "day21/day21.h"
 #include "day22/day22.h"
+#include "day23/day23.h"
 
 
 template <typename... TSolutions>
@@ -43,6 +44,6 @@ int main(int argc, char *argv[])
         Day6(), Day7(), Day8(), Day9(), Day10(), 
         Day11(), Day12(), Day13(), Day14(), Day15(),
         Day16(), Day17(), Day18(), Day19(), Day20(),
-        Day21(), Day22());
+        Day21(), Day22(), Day23());
 }
 
