@@ -10,11 +10,17 @@ void Day22::Run(void) const
     std::cout << "\nDay 22:\n";
 
     RunTests();
-    Part1();
+    Solve();
 }
 
 
 void Day22::RunTests(void) const
+{
+    TestTraversalCost();
+    TestRiskAssessment();
+}
+
+void Day22::TestRiskAssessment(void) const
 {
     auto input = GetLines(ReadInput("day22/tests.txt"));
     auto data = ParseInput(input);
@@ -23,17 +29,35 @@ void Day22::RunTests(void) const
     std::cout << "\nTests:\n" << cave.str() << "\n";
 
     Test::AssertVerbose(cave.CalculateRiskScore(), 114, "Region risk score is incorrect", "Risk score");
+    std::cout << "Shortest path: " << cave.GetShortestPath() << "\n";
+    std::cout << cave.str_path(data.second, 1) << "\n";
+    return;
 }
 
-void Day22::Part1(void) const
+void Day22::TestTraversalCost(void) const
+{
+    Cave cave(1, Vec2<int>(5));
+    cave.GetShortestPath();
+
+    Test::AssertVerbose(8, cave.CostBetween(Region::RegionType::Rocky, 1, Region::RegionType::Wet, 0), "Incorrect traversal cost", "Traversal cost");
+    Test::AssertVerbose(1, cave.CostBetween(Region::RegionType::Rocky, 0, Region::RegionType::Wet, 0), "Incorrect traversal cost", "Traversal cost");
+    Test::AssertVerbose(8, cave.CostBetween(Region::RegionType::Rocky, 1, Region::RegionType::Wet, 1), "Incorrect traversal cost", "Traversal cost");
+    Test::AssertVerbose(8, cave.CostBetween(Region::RegionType::Rocky, 1, Region::RegionType::Rocky, 0), "Incorrect traversal cost", "Traversal cost");
+    Test::AssertVerbose(8, cave.CostBetween(Region::RegionType::Rocky, 0, Region::RegionType::Rocky, 1), "Incorrect traversal cost", "Traversal cost");
+    Test::AssertVerbose(1, cave.CostBetween(Region::RegionType::Narrow, 0, Region::RegionType::Narrow, 0), "Incorrect traversal cost", "Traversal cost");
+}
+
+void Day22::Solve(void) const
 {
     auto input = GetLines(ReadInput("day22/input.txt"));
     auto data = ParseInput(input);
     
     Cave cave(data.first, data.second);
-    std::cout << "\Part 1:\n" << cave.str() << "\n";
-
+    
     std::cout << "Part 1 result: " << cave.CalculateRiskScore() << "\n";
+    std::cout << "Part 2 result: " << cave.GetShortestPath() << "\n";
+
+    std::cout << cave.str_path(data.second, 1);
 }
 
 

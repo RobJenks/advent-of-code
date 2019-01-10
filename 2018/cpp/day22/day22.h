@@ -17,7 +17,10 @@ public:
 private:
 
     void RunTests(void) const;
-    void Part1(void) const;
+    void TestRiskAssessment(void) const;
+    void TestTraversalCost(void) const;
+
+    void Solve(void) const;
 
 
 private:
