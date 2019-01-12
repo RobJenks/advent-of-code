@@ -49,13 +49,25 @@ public:
         return s;
     }
 
-    inline static std::string Concat(const std::vector<std::string> & strings, const std::string & delimiter = "\n")
+    inline static std::string ConcatLines(const std::vector<std::string> & strings)
     {
         std::stringstream ss;
 
         for (const auto & s : strings)
         {
             ss << s << '\n';
+        }
+
+        return ss.str();
+    }
+
+    inline static std::string Concat(const std::vector<std::string> & strings, const std::string & delimiter = "\n")
+    {
+        std::stringstream ss;
+
+        for (size_t i = 0U; i < strings.size(); ++i)
+        {
+            ss << (i == 0U ? "" : delimiter) << strings[i];
         }
 
         return ss.str();
