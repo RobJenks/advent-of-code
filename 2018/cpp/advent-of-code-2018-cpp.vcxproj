@@ -65,6 +65,7 @@
     <ClInclude Include="day22\day22.h" />
     <ClInclude Include="day22\Region.h" />
     <ClInclude Include="day23\Bot.h" />
+    <ClInclude Include="day23\BotArea.h" />
     <ClInclude Include="day23\Bots.h" />
     <ClInclude Include="day23\day23.h" />
     <ClInclude Include="day2\day2.h" />

@@ -16,6 +16,7 @@ public:
     Bot(void) : ID(-1), Position(0L), Radius(0L) { }
     Bot(int id, Vec3<long> position, long radius);
 
+    bool InRange(const Vec3<long> & pmin, const Vec3<long> & pmax) const;
 
     std::string str(void) const;
 

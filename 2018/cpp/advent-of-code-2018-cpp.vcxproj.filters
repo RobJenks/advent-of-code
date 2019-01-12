@@ -258,6 +258,9 @@
     <ClInclude Include="common\Vec3.h">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="day23\BotArea.h">
+      <Filter>day23</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="advent-of-code-2018-cpp.cpp" />

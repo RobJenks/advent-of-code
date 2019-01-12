@@ -4,7 +4,7 @@
 #include <string>
 #include "../common/Vec3.h"
 #include "Bot.h"
-
+class BotArea;
 
 class Bots
 {
@@ -19,8 +19,10 @@ public:
     size_t Count(void) const { return m_data.size(); }
 
     int GetStrongest(void) const;
-    int GetBotsInRange(int id) const;
 
+    int GetBotsInRange(int id) const;
+    int GetBotsInRange(const Vec3<long> coord) const;
+    int GetBotsInRange(const Vec3<long> pmin, const Vec3<long> pmax) const;
 
 private:
 
