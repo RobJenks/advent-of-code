@@ -60,4 +60,40 @@ public:
 
         return ss.str();
     }
+
+    inline static void LowerInPlace(std::string & str)
+    {
+        std::transform(str.begin(), str.end(), str.begin(), std::tolower);
+    }
+    
+    inline static void UpperInPlace(std::string & str)
+    {
+        std::transform(str.begin(), str.end(), str.begin(), std::toupper);
+    }
+    
+    inline static void SentenceCaseInPlace(std::string & str)
+    {
+        std::transform(str.begin(), str.end(), str.begin(), std::tolower);
+        if (!str.empty()) str[0] = std::toupper(str[0]);
+    }
+
+    inline static std::string Lower(std::string str)
+    {
+        LowerInPlace(str);
+        return str;
+    }
+    
+    inline static std::string Upper(std::string str)
+    {
+        UpperInPlace(str);
+        return str;
+    }
+
+    inline static std::string SentenceCase(std::string str)
+    {
+        SentenceCaseInPlace(str);
+        return str;
+    }
+
+
 };
