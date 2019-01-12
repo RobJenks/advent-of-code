@@ -17,6 +17,8 @@ public:
         ~DeferredAssertionScope(void) { ContinueAssertions(); }
     };
 
+#   define TEST_SCOPE_DEFER_ASSERTIONS Test::DeferredAssertionScope TEST_SCOPE_DEFER = Test::DeferredAssertionScope();
+
     template <typename T>
     inline static void AssertVerbose(const T & actual, const T & expected, std::string msg = "", std::string name = "")
     {
