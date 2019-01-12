@@ -82,14 +82,14 @@ void Day15::TestSampleMovement(void) const
     Combat combat(tests[0]);
 
     std::cout << "Initial state:\n";
-    Test::AssertComplexVerbose(combat.str(), StringUtil::Concat(tests[0]));
+    Test::AssertComplexVerbose(combat.str(), StringUtil::ConcatLines(tests[0]));
 
     for (size_t i = 1U; i < 4; ++i)
     {
         std::cout << "After " << i << " round" << (i != 1 ? "s" : "") << ":\n";
         combat.Execute();
 
-        Test::AssertComplexVerbose(combat.str(), StringUtil::Concat(tests[i]));
+        Test::AssertComplexVerbose(combat.str(), StringUtil::ConcatLines(tests[i]));
     }
 }
 
@@ -152,8 +152,8 @@ void Day15::TestFullScenarios(void) const
     for (const auto & test : test_scenarios)
     {
         auto start = std::vector<std::string>(input.begin() + std::get<0>(test).first, input.begin() + std::get<0>(test).second);
-        auto exp_start = StringUtil::Concat(start);
-        auto exp_end = StringUtil::Concat(std::vector<std::string>(input.begin() + std::get<1>(test).first, input.begin() + std::get<1>(test).second));
+        auto exp_start = StringUtil::ConcatLines(start);
+        auto exp_end = StringUtil::ConcatLines(std::vector<std::string>(input.begin() + std::get<1>(test).first, input.begin() + std::get<1>(test).second));
 
         std::cout << "\nScenario test " << ++scenario << ":\n";
         
@@ -194,8 +194,8 @@ void Day15::TestAttackPower(void) const
     for (const auto & test : test_scenarios)
     {
         auto start = std::vector<std::string>(input.begin() + std::get<0>(test).first, input.begin() + std::get<0>(test).second);
-        auto exp_start = StringUtil::Concat(start);
-        auto exp_end = StringUtil::Concat(std::vector<std::string>(input.begin() + std::get<1>(test).first, input.begin() + std::get<1>(test).second));
+        auto exp_start = StringUtil::ConcatLines(start);
+        auto exp_end = StringUtil::ConcatLines(std::vector<std::string>(input.begin() + std::get<1>(test).first, input.begin() + std::get<1>(test).second));
 
         std::cout << "\nAttack power test " << ++scenario << " (with power = " << std::get<2>(test) << "):\n";
 

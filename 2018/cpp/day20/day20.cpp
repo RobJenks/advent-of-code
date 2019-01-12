@@ -31,7 +31,7 @@ void Day20::RunTests(void) const
     for (Scenario test : tests)
     {
         auto pattern = std::get<0>(test);
-        auto expected_map = StringUtil::Concat(std::get<1>(test));
+        auto expected_map = StringUtil::ConcatLines(std::get<1>(test));
         auto expected_path = std::get<2>(test);
 
         std::cout << "\nTest pattern: " << pattern << "\n";
