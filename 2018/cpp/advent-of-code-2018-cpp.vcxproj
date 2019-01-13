@@ -68,6 +68,10 @@
     <ClInclude Include="day23\BotArea.h" />
     <ClInclude Include="day23\Bots.h" />
     <ClInclude Include="day23\day23.h" />
+    <ClInclude Include="day24\ArmyGroup.h" />
+    <ClInclude Include="day24\Damage.h" />
+    <ClInclude Include="day24\day24.h" />
+    <ClInclude Include="day24\ImmuneCombat.h" />
     <ClInclude Include="day2\day2.h" />
     <ClInclude Include="day3\day3.h" />
     <ClInclude Include="day4\day4.h" />
@@ -115,6 +119,9 @@
     <ClCompile Include="day23\Bot.cpp" />
     <ClCompile Include="day23\Bots.cpp" />
     <ClCompile Include="day23\day23.cpp" />
+    <ClCompile Include="day24\ArmyGroup.cpp" />
+    <ClCompile Include="day24\day24.cpp" />
+    <ClCompile Include="day24\ImmuneCombat.cpp" />
     <ClCompile Include="day2\day2.cpp" />
     <ClCompile Include="day3\day3.cpp" />
     <ClCompile Include="day4\day4.cpp" />
@@ -153,6 +160,8 @@
     <Text Include="day22\input.txt" />
     <Text Include="day22\tests.txt" />
     <Text Include="day23\input.txt" />
+    <Text Include="day24\input.txt" />
+    <Text Include="day24\tests.txt" />
     <Text Include="day2\input.txt" />
     <Text Include="day3\input.txt" />
     <Text Include="day4\input.txt" />

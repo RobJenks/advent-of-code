@@ -1,0 +1,54 @@
+Immune System:
+Group 1 contains 17 units
+Group 2 contains 989 units
+Infection:
+Group 1 contains 801 units
+Group 2 contains 4485 units
+
+Immune System:
+Group 2 contains 905 units
+Infection:
+Group 1 contains 797 units
+Group 2 contains 4434 units
+
+Immune System:
+Group 2 contains 761 units
+Infection:
+Group 1 contains 793 units
+Group 2 contains 4434 units
+
+Immune System:
+Group 2 contains 618 units
+Infection:
+Group 1 contains 789 units
+Group 2 contains 4434 units
+
+Immune System:
+Group 2 contains 475 units
+Infection:
+Group 1 contains 786 units
+Group 2 contains 4434 units
+
+Immune System:
+Group 2 contains 333 units
+Infection:
+Group 1 contains 784 units
+Group 2 contains 4434 units
+
+Immune System:
+Group 2 contains 191 units
+Infection:
+Group 1 contains 783 units
+Group 2 contains 4434 units
+
+Immune System:
+Group 2 contains 49 units
+Infection:
+Group 1 contains 782 units
+Group 2 contains 4434 units
+
+Immune System:
+No groups remain.
+Infection:
+Group 1 contains 782 units
+Group 2 contains 4434 units
