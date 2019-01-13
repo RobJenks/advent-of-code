@@ -79,6 +79,9 @@
     <Filter Include="day24">
       <UniqueIdentifier>{0d0c1225-a547-445e-9a6a-d3bf24f6c095}</UniqueIdentifier>
     </Filter>
+    <Filter Include="day25">
+      <UniqueIdentifier>{5834e9e6-ec5c-4acd-97cf-96c30d095b0b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\AOCSolution.h">
@@ -276,6 +279,18 @@
     <ClInclude Include="day24\ImmuneCombat.h">
       <Filter>day24</Filter>
     </ClInclude>
+    <ClInclude Include="day25\day25.h">
+      <Filter>day25</Filter>
+    </ClInclude>
+    <ClInclude Include="common\Vec4.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="day25\Points.h">
+      <Filter>day25</Filter>
+    </ClInclude>
+    <ClInclude Include="day25\Pt.h">
+      <Filter>day25</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="advent-of-code-2018-cpp.cpp" />
@@ -414,6 +429,12 @@
     <ClCompile Include="day24\ImmuneCombat.cpp">
       <Filter>day24</Filter>
     </ClCompile>
+    <ClCompile Include="day25\day25.cpp">
+      <Filter>day25</Filter>
+    </ClCompile>
+    <ClCompile Include="day25\Points.cpp">
+      <Filter>day25</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="day1\input.txt">
@@ -499,6 +520,12 @@
     </Text>
     <Text Include="day24\tests.txt">
       <Filter>day24</Filter>
+    </Text>
+    <Text Include="day25\input.txt">
+      <Filter>day25</Filter>
+    </Text>
+    <Text Include="day25\tests.txt">
+      <Filter>day25</Filter>
     </Text>
   </ItemGroup>
 </Project>

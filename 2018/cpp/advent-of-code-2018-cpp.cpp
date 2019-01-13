@@ -25,6 +25,7 @@
 #include "day22/day22.h"
 #include "day23/day23.h"
 #include "day24/day24.h"
+#include "day25/day25.h"
 
 
 template <typename... TSolutions>
@@ -41,10 +42,10 @@ void RunSolution(const TSolution & solution)
 
 int main(int argc, char *argv[])
 {
-    Run(Day1(), Day2(), Day3(), Day4(), Day5(), 
-        Day6(), Day7(), Day8(), Day9(), Day10(), 
+    Run(Day1(),  Day2(),  Day3(),  Day4(),  Day5(), 
+        Day6(),  Day7(),  Day8(),  Day9(),  Day10(), 
         Day11(), Day12(), Day13(), Day14(), Day15(),
         Day16(), Day17(), Day18(), Day19(), Day20(),
-        Day21(), Day22(), Day23(), Day24());
+        Day21(), Day22(), Day23(), Day24(), Day25());
 }
 
