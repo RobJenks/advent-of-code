@@ -6,7 +6,16 @@
 
 ImmuneCombat::ImmuneCombat(void)
     :
-    m_round(0)
+    m_round(0),
+    m_is_stalemate(false)
+{
+}
+
+ImmuneCombat::ImmuneCombat(const ImmuneCombat & other) 
+    :
+    m_groups(other.m_groups),
+    m_round(other.m_round),
+    m_is_stalemate(other.m_is_stalemate)
 {
 }
 
@@ -34,6 +43,14 @@ void ImmuneCombat::Execute(void)
 
     auto targets = PerformTargetSelection();
     ExecuteCombat(targets);
+}
+
+void ImmuneCombat::ExecuteToCompletion(void)
+{
+    while (!Complete())
+    {
+        Execute();
+    }
 }
 
 std::vector<std::pair<int, int>> ImmuneCombat::PerformTargetSelection(void) const
@@ -87,6 +104,7 @@ void ImmuneCombat::ExecuteCombat(const std::vector<std::pair<int, int>> & target
     std::sort(order.begin(), order.end(), [](const auto & x0, const auto & x1) { return (x0.second > x1.second); });
 
     // Evaluate combat
+    int total_casualties = 0;
     for (const auto & ord : order)
     {
         auto index = ord.first;
@@ -100,8 +118,10 @@ void ImmuneCombat::ExecuteCombat(const std::vector<std::pair<int, int>> & target
         if (tgt == -1) continue;
 
         auto & target_group = m_groups[tgt];
-        target_group.TakeDamageFrom(group);
+        total_casualties += target_group.TakeDamageFrom(group);
     }
+
+    if (total_casualties == 0) m_is_stalemate = true;
 }
 
 std::vector<int> ImmuneCombat::GetEffectivePowerOrder(void) const
@@ -125,10 +145,45 @@ std::vector<int> ImmuneCombat::GetEffectivePowerOrder(void) const
 
 bool ImmuneCombat::Complete(void) const
 {
-    return (GetFactionGroupCount(ArmyGroup::Faction::Immune) == 0 ||
+    return (m_is_stalemate ||
+            GetFactionGroupCount(ArmyGroup::Faction::Immune) == 0 ||
             GetFactionGroupCount(ArmyGroup::Faction::Infection) == 0);
 }
 
+void ImmuneCombat::ApplyBoost(ArmyGroup::Faction faction, int boost)
+{
+    std::for_each(m_groups.begin(), m_groups.end(), [boost, faction](auto & group) {
+        if (group.GetFaction() == faction) group.IncreaseAttackPower(boost);
+    });
+}
+
+int ImmuneCombat::GetActiveUnitCount(void) const
+{
+    return std::accumulate(m_groups.cbegin(), m_groups.cend(), 0, [](int acc, const ArmyGroup & el) {
+        return (acc + el.GetUnitCount());
+    });
+}
+
+// Returns the faction that has won the combat, or "Unknown" if units from both sides are still present
+ArmyGroup::Faction ImmuneCombat::DetermineWinner(void) const
+{
+    auto active = std::accumulate(m_groups.cbegin(), m_groups.cend(), std::make_pair<int,int>(0,0), 
+        [](const std::pair<int, int> & acc, const ArmyGroup & el)
+    {
+        if (!el.IsActive()) return acc;
+        return (el.GetFaction() == ArmyGroup::Faction::Immune ? std::make_pair<int, int>(acc.first + 1, acc.second + 0)
+                                                              : std::make_pair<int, int>(acc.first + 0, acc.second + 1));
+    });
+
+    if (active.first != 0)
+    {
+        return (active.second == 0 ? ArmyGroup::Faction::Immune : ArmyGroup::Faction::Unknown);
+    }
+    else
+    {
+        return (active.second != 0 ? ArmyGroup::Faction::Infection : ArmyGroup::Faction::Unknown);
+    }
+}
 
 
 

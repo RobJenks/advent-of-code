@@ -15,6 +15,9 @@ public:
               const std::vector<Damage::Type> & weaknesses, const std::vector<Damage::Type> & immunities);
     inline ArmyGroup(void) : ArmyGroup(Faction::Unknown) { }
 
+    ArmyGroup(const ArmyGroup & other);
+    ArmyGroup & operator=(const ArmyGroup & other);
+
     inline int GetIndex(void) const { return m_index; }
     inline void SetIndex(int index) { m_index = index; }
     inline Faction GetFaction(void) const { return m_faction; }
@@ -26,13 +29,14 @@ public:
     inline int GetInitiative(void) const { return m_initiative; }
     inline int GetBaseDamage(void) const { return m_damage; }
     inline Damage::Type GetDamageType(void) const { return m_damagetype; }
+    inline void IncreaseAttackPower(int boost) { m_damage += boost; }
 
     inline int EffectivePower(void) const { return (m_units * m_damage); }
 
     int CalculateDamageFrom(const ArmyGroup & other) const;
     inline int CalculateDamageTo(const ArmyGroup & other) const { return other.CalculateDamageFrom(*this); }
 
-    void TakeDamageFrom(const ArmyGroup & group);
+    int TakeDamageFrom(const ArmyGroup & group);
 
     std::string str() const;
     std::string str_summary() const;

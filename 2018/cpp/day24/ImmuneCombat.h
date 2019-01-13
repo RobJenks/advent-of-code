@@ -9,6 +9,7 @@ class ImmuneCombat
 public:
 
     ImmuneCombat(void);
+    ImmuneCombat(const ImmuneCombat & other);
     
     void AddGroup(const ArmyGroup & group);
     
@@ -18,14 +19,20 @@ public:
     int GetFactionGroupCount(ArmyGroup::Faction faction) const;
 
     void Execute(void);
+    void ExecuteToCompletion(void);
 
     inline int RoundsExecuted(void) const { return m_round; }
     bool Complete(void) const;
+
+    int GetActiveUnitCount(void) const;
+    ArmyGroup::Faction DetermineWinner(void) const;
 
     std::vector<std::pair<int, int>> PerformTargetSelection(void) const;
     std::vector<int> GetEffectivePowerOrder(void) const;
 
     void ExecuteCombat(const std::vector<std::pair<int, int>> & targets);
+
+    void ApplyBoost(ArmyGroup::Faction faction, int boost);
 
     template <typename Pred>
     inline std::vector<int> GroupIndices(Pred pred) const;
@@ -39,6 +46,7 @@ private:
 
     std::vector<ArmyGroup> m_groups;
     int m_round;
+    bool m_is_stalemate;
 
 };
 

@@ -11,6 +11,7 @@ void Day24::Run(void) const
 
     RunTests();
     Part1();
+    Part2();
 }
 
 
@@ -134,11 +135,72 @@ void Day24::Part1(void) const
     }
 
     std::cout << "\nFinal state:\n\n" << combat.str_detail() << "\n\n";
-    int result = std::accumulate(combat.GetGroups().cbegin(), combat.GetGroups().cend(), 0, [](int acc, const ArmyGroup & el) {
-        return (acc + el.GetUnitCount());
-    });
-
+    
+    int result = combat.GetActiveUnitCount();
     std::cout << "Part 1 result: " << result << " (after " << combat.RoundsExecuted() << " rounds)\n";
+}
+
+void Day24::Part2(void) const
+{
+    std::cout << "Part 2:\n\n";
+    auto input = GetLines(ReadInput("day24/input.txt"));
+
+    const auto base_combat = ParseInput(input);
+    int low = 0, high = 10000, boost;
+    std::unordered_map<int, ArmyGroup::Faction> cache;
+
+    while (true)
+    {
+        boost = (low + high) / 2;
+
+        std::cout << "Testing combat outcome with boost value of " << boost << "...";
+        auto winner = ExecuteBoostedCombat(base_combat, ArmyGroup::Faction::Immune, boost, cache);
+        
+        if (winner == ArmyGroup::Faction::Immune)
+        {
+            auto predecessor = ExecuteBoostedCombat(base_combat, ArmyGroup::Faction::Immune, boost - 1, cache);
+            if (predecessor != ArmyGroup::Faction::Immune)
+            {
+                std::cout << "optimal\n";
+                break;  // This is the optimal point
+            }
+
+            std::cout << "immune system win\n";
+            high = boost;
+        }
+        else
+        {
+            std::cout << "immune system failure\n";
+            low = boost + 1;
+        }
+    }
+
+    // Re-execute the combat for the identified boost value for simplicty and return the result
+    ImmuneCombat combat(base_combat);
+    combat.ApplyBoost(ArmyGroup::Faction::Immune, boost);
+    combat.ExecuteToCompletion();
+    
+    assert(combat.DetermineWinner() == ArmyGroup::Faction::Immune);
+    std::cout << "\nOptimal outcome:\n\n" << combat.str_detail() << "\n\n";
+
+    std::cout << "Part 2 result: " << combat.GetActiveUnitCount() << " (with boost value " << boost << ", after " << combat.RoundsExecuted() << " combat rounds\n";
+}
+
+ArmyGroup::Faction Day24::ExecuteBoostedCombat(const ImmuneCombat & base, ArmyGroup::Faction faction, int boost, 
+                                               std::unordered_map<int, ArmyGroup::Faction> & cache) const
+{
+    auto cached = cache.find(boost);
+    if (cached != cache.end()) return cached->second;
+
+    ImmuneCombat combat(base);
+    
+    combat.ApplyBoost(faction, boost);
+    combat.ExecuteToCompletion();
+
+    auto winner = combat.DetermineWinner();
+    cache[boost] = winner;
+
+    return winner;
 }
 
 

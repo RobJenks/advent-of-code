@@ -2,6 +2,7 @@
 
 #include "../base/AOCSolution.h"
 #include <vector>
+#include <unordered_map>
 #include "ImmuneCombat.h"
 
 
@@ -22,6 +23,7 @@ private:
     void TestSpecialStats(void) const;
     
     void Part1(void) const;
+    void Part2(void) const;
 
 
 private:
@@ -29,4 +31,5 @@ private:
     ImmuneCombat ParseInput(const std::vector<std::string> & input) const;
     std::pair<std::vector<Damage::Type>, std::vector<Damage::Type>> ParseSpecialProperties(const std::string & input) const;
 
+    ArmyGroup::Faction ExecuteBoostedCombat(const ImmuneCombat & base, ArmyGroup::Faction faction, int boost, std::unordered_map<int, ArmyGroup::Faction> & cache) const;
 };

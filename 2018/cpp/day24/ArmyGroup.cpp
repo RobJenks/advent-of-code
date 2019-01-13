@@ -29,6 +29,37 @@ ArmyGroup::ArmyGroup(Faction faction, int units, int hp, int initiative, int dam
 {
 }
 
+ArmyGroup::ArmyGroup(const ArmyGroup & other)
+    :
+    m_damage(other.m_damage),
+    m_damagetype(other.m_damagetype),
+    m_faction(other.m_faction),
+    m_faction_group_index(other.m_faction_group_index),
+    m_hp(other.m_hp),
+    m_immunities(other.m_immunities),
+    m_index(other.m_index),
+    m_initiative(other.m_initiative),
+    m_units(other.m_units),
+    m_weaknesses(other.m_weaknesses)
+{
+}
+
+ArmyGroup & ArmyGroup::operator=(const ArmyGroup & other)
+{
+    m_damage = other.m_damage;
+    m_damagetype = other.m_damagetype;
+    m_faction = other.m_faction;
+    m_faction_group_index = other.m_faction_group_index;
+    m_hp = other.m_hp;
+    m_immunities = other.m_immunities;
+    m_index = other.m_index;
+    m_initiative = other.m_initiative;
+    m_units = other.m_units;
+    m_weaknesses = other.m_weaknesses;
+
+    return *this;
+}
+
 
 int ArmyGroup::CalculateDamageFrom(const ArmyGroup & other) const
 {
@@ -44,12 +75,16 @@ int ArmyGroup::CalculateDamageFrom(const ArmyGroup & other) const
     return other.EffectivePower();
 }
 
-void ArmyGroup::TakeDamageFrom(const ArmyGroup & group)
+// Applies damage from the specified group.  Returns the number of casualties that were taken
+int ArmyGroup::TakeDamageFrom(const ArmyGroup & group)
 {
     auto damage = CalculateDamageFrom(group);
     auto casualties = (damage / m_hp);
 
-    m_units -= std::min(casualties, m_units);
+    casualties = std::min(casualties, m_units);
+    m_units -= casualties;
+
+    return casualties;
 }
 
 
