@@ -3,5 +3,6 @@
 *.iml
 
 # Exclude intermediate and build output
+/target/
 */target/*
-
+*/target/**
