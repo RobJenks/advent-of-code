@@ -10,9 +10,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "day2"
+version = "0.1.0"
+dependencies = [
+ "common 0.1.0",
+]
+
+[[package]]
 name = "rust"
 version = "0.1.0"
 dependencies = [
  "day1 0.1.0",
+ "day2 0.1.0",
 ]
 
