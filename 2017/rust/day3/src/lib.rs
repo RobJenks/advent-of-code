@@ -4,11 +4,17 @@ pub fn run() {
     const INPUT: u32 = 361527;
 
     println!("Part 1 result: {}", part1(INPUT));
+    println!("Part 2 result: {}", part2(INPUT));
 }
 
 fn part1(input: u32) -> i32 {
     get_coord(input).manhattan(Vec2::<i32>{x: 0, y: 0})
 }
+
+fn part2(input: u32) -> u32 {
+    calculate_spiral_value(input)
+}
+
 
 fn get_coord(val : u32) -> Vec2<i32> {
     // Each concentric ring of cells will increase in count by 8 at each level
@@ -41,6 +47,42 @@ fn get_coord(val : u32) -> Vec2<i32> {
     panic!("No result was found...");
 }
 
+fn calculate_spiral_value(input: u32) -> u32 {
+    // Nothing fancy for this part; just calculate it
+    const AREA_SIZE : usize = 20;
+    const INDICES : [(i32,i32); 8] = [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)];
+
+    let mut data = [[0i32; AREA_SIZE]; AREA_SIZE];
+
+    let mut pos : Vec2<i32> = Vec2::<i32>{x: (AREA_SIZE as i32) / 2, y: (AREA_SIZE as i32) / 2};
+    data[pos.x as usize][pos.y as usize] = 1;
+    pos.x += 1;
+
+    // Process concentric rings of increasing side length
+    for side in (1..).map(|x| (x * 2) + 1).take(100) {
+        // Process each side of the ring in turn
+        for (x_inc, y_inc, sl) in &[(0,-1,side-2), (-1,0,side-1), (0,1,side-1), (1,0,side)] {
+            // For each cell in this side of the ring
+            for _ in 0..*sl {
+
+                // Each cell is the sum of all (zero-initialised) neighbours
+                let val : i32 = INDICES.iter().map(|(x, y)| data[(pos.x + x) as usize][(pos.y + y) as usize]).sum();
+
+                // Exit condition
+                if val as u32 > input { return val as u32; }
+
+                // Store value and then move to the next cell
+                data[pos.x as usize][pos.y as usize] = val;
+                pos.x += x_inc;
+                pos.y += y_inc;
+            }
+        }
+    }
+
+    panic!("No solution in defined bounds");
+}
+
+
 #[derive(Debug)]
 struct SpiralIter {
     level_count : u32,
@@ -68,6 +110,7 @@ impl Iterator for SpiralIter {
 
 
 
+
 #[cfg(test)]
 mod tests {
     use common::Vec2;
@@ -88,5 +131,13 @@ mod tests {
         assert_eq!(crate::get_coord(80).manhattan(Vec2::<i32> { x: 0, y: 0 }), 7);
         assert_eq!(crate::get_coord(81).manhattan(Vec2::<i32> { x: 0, y: 0 }), 8);
         assert_eq!(crate::get_coord(50).manhattan(Vec2::<i32> { x: 0, y: 0 }), 7);
+    }
+
+    #[test]
+    fn test_spiral_calc() {
+        assert_eq!(crate::calculate_spiral_value(1), 2);
+        assert_eq!(crate::calculate_spiral_value(5), 10);
+        assert_eq!(crate::calculate_spiral_value(147), 304);
+        assert_eq!(crate::calculate_spiral_value(747), 806);
     }
 }
