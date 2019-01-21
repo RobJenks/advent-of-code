@@ -114,30 +114,31 @@ impl Iterator for SpiralIter {
 #[cfg(test)]
 mod tests {
     use common::Vec2;
+    use super::{ get_coord, calculate_spiral_value };
 
     #[test]
     fn test_coords() {
-        assert_eq!(crate::get_coord(28), Vec2::<i32>{ x: 3, y: 0 });
-        assert_eq!(crate::get_coord(22), Vec2::<i32>{ x: -1, y: 2 });
-        assert_eq!(crate::get_coord(80), Vec2::<i32>{ x: 3, y: 4 });
-        assert_eq!(crate::get_coord(81), Vec2::<i32>{ x: 4, y: 4 });
-        assert_eq!(crate::get_coord(50), Vec2::<i32>{ x: 4, y: 3 });
+        assert_eq!(get_coord(28), Vec2::<i32>{ x: 3, y: 0 });
+        assert_eq!(get_coord(22), Vec2::<i32>{ x: -1, y: 2 });
+        assert_eq!(get_coord(80), Vec2::<i32>{ x: 3, y: 4 });
+        assert_eq!(get_coord(81), Vec2::<i32>{ x: 4, y: 4 });
+        assert_eq!(get_coord(50), Vec2::<i32>{ x: 4, y: 3 });
     }
 
     #[test]
     fn test_dist() {
-        assert_eq!(crate::get_coord(28).manhattan(Vec2::<i32> { x: 0, y: 0 }), 3);
-        assert_eq!(crate::get_coord(22).manhattan(Vec2::<i32> { x: 0, y: 0 }), 3);
-        assert_eq!(crate::get_coord(80).manhattan(Vec2::<i32> { x: 0, y: 0 }), 7);
-        assert_eq!(crate::get_coord(81).manhattan(Vec2::<i32> { x: 0, y: 0 }), 8);
-        assert_eq!(crate::get_coord(50).manhattan(Vec2::<i32> { x: 0, y: 0 }), 7);
+        assert_eq!(get_coord(28).manhattan(Vec2::<i32> { x: 0, y: 0 }), 3);
+        assert_eq!(get_coord(22).manhattan(Vec2::<i32> { x: 0, y: 0 }), 3);
+        assert_eq!(get_coord(80).manhattan(Vec2::<i32> { x: 0, y: 0 }), 7);
+        assert_eq!(get_coord(81).manhattan(Vec2::<i32> { x: 0, y: 0 }), 8);
+        assert_eq!(get_coord(50).manhattan(Vec2::<i32> { x: 0, y: 0 }), 7);
     }
 
     #[test]
     fn test_spiral_calc() {
-        assert_eq!(crate::calculate_spiral_value(1), 2);
-        assert_eq!(crate::calculate_spiral_value(5), 10);
-        assert_eq!(crate::calculate_spiral_value(147), 304);
-        assert_eq!(crate::calculate_spiral_value(747), 806);
+        assert_eq!(calculate_spiral_value(1), 2);
+        assert_eq!(calculate_spiral_value(5), 10);
+        assert_eq!(calculate_spiral_value(147), 304);
+        assert_eq!(calculate_spiral_value(747), 806);
     }
 }
