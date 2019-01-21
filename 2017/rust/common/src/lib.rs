@@ -15,7 +15,6 @@ impl Vec2<i32> {
     pub fn manhattan(self, rhs : Vec2<i32>) -> i32 { (self.x - rhs.x).abs() + (self.y - rhs.y).abs() }
 }
 
-
 impl <T> std::ops::Add<Vec2<T>> for Vec2<T>
     where T: std::ops::Add<Output = T> {
 
