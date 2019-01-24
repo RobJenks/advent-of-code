@@ -5,14 +5,14 @@ pub fn run() {
     println!("Part 2 result: {}", part2());
 }
 
-fn part1() -> u32 {
+fn part1() -> usize {
     JumpVec::new(parsed_input(&common::read_file("day5/input.txt")), |_| 1)
-        .map(|_| 1).sum::<u32>() + 1
+        .count() + 1
 }
 
-fn part2() -> u32 {
+fn part2() -> usize {
     JumpVec::new(parsed_input(&common::read_file("day5/input.txt")), |x| if x >= 3 { -1 } else { 1 })
-        .map(|_| 1).sum::<u32>() + 1
+        .count() + 1
 }
 
 
@@ -57,7 +57,7 @@ mod tests {
     fn test_jumps() {
         let jump_vec = JumpVec::new(vec![0, 3, 0, 1, -3], |_| 1);
 
-        let result : u32 = jump_vec.map(|_| 1).sum::<u32>() + 1;
+        let result = jump_vec.count() + 1;
         assert_eq!(result, 5);
     }
 
@@ -67,7 +67,7 @@ mod tests {
         let jump_vec = JumpVec::new(vec![0, 3, 0, 1, -3],
                                         |x| if x >= 3 { -1 } else { 1 });
 
-        let result : u32 = jump_vec.map(|_| 1).sum::<u32>() + 1;
+        let result = jump_vec.count() + 1;
         assert_eq!(result, 10);
     }
 }
