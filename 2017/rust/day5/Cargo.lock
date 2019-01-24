@@ -3,34 +3,6 @@ name = "common"
 version = "0.1.0"
 
 [[package]]
-name = "day1"
-version = "0.1.0"
-dependencies = [
- "common 0.1.0",
-]
-
-[[package]]
-name = "day2"
-version = "0.1.0"
-dependencies = [
- "common 0.1.0",
-]
-
-[[package]]
-name = "day3"
-version = "0.1.0"
-dependencies = [
- "common 0.1.0",
-]
-
-[[package]]
-name = "day4"
-version = "0.1.0"
-dependencies = [
- "common 0.1.0",
-]
-
-[[package]]
 name = "day5"
 version = "0.1.0"
 dependencies = [
@@ -99,17 +71,6 @@ dependencies = [
 name = "num-traits"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "rust"
-version = "0.1.0"
-dependencies = [
- "day1 0.1.0",
- "day2 0.1.0",
- "day3 0.1.0",
- "day4 0.1.0",
- "day5 0.1.0",
-]
 
 [metadata]
 "checksum num 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "cf4825417e1e1406b3782a8ce92f4d53f26ec055e3622e1881ca8e9f5f9e08db"
