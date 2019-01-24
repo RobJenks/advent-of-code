@@ -2,10 +2,21 @@ extern crate num;
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> u32 {
-    let mut jump_vec = JumpVec::new(parsed_input(&common::read_file("day5/input.txt")));
+    let mut jump_vec = JumpVec::new(parsed_input(&common::read_file("day5/input.txt")), |_| 1);
+
+    let mut result : u32 = 1;
+    while jump_vec.next() != None { result += 1 }
+
+    result
+}
+
+fn part2() -> u32 {
+    let mut jump_vec = JumpVec::new(parsed_input(&common::read_file("day5/input.txt")),
+                                    |x| if x >= 3 { -1 } else { 1 });
 
     let mut result : u32 = 1;
     while jump_vec.next() != None { result += 1 }
@@ -16,11 +27,12 @@ fn part1() -> u32 {
 
 struct JumpVec<T> {
     vec : Vec<T>,
-    index : i32
+    index : i32,
+    advance: fn(T) -> T
 }
 
 impl <T> JumpVec<T> {
-    fn new(data: Vec<T>) -> JumpVec<T> { JumpVec::<T> { vec: data, index: 0 } }
+    fn new(data: Vec<T>, advance_fn: fn(T) -> T) -> JumpVec<T> { JumpVec::<T> { vec: data, index: 0, advance: advance_fn } }
 }
 
 impl <T> Iterator for JumpVec<T>
@@ -31,7 +43,7 @@ impl <T> Iterator for JumpVec<T>
 
     fn next(&mut self) -> Option<T> {
         let jump = self.vec[self.index as usize];
-        self.vec[self.index as usize] += num::cast::<i32, T>(1).unwrap();
+        self.vec[self.index as usize] += (self.advance)(jump);
 
         self.index += num::cast::<T, i32>(jump).unwrap();
         if self.index >= 0 && self.index < self.vec.len() as i32 { Some(self.vec[self.index as usize]) } else { None }
@@ -52,11 +64,23 @@ mod tests {
 
     #[test]
     fn test_jumps() {
-        let mut jump_vec = JumpVec::new(vec![0, 3, 0, 1, -3]);
+        let mut jump_vec = JumpVec::new(vec![0, 3, 0, 1, -3], |_| 1);
 
         let mut result : u32 = 1;
         while jump_vec.next() != None { result += 1 }
 
         assert_eq!(result, 5);
+    }
+
+
+    #[test]
+    fn test_conditional_jumps() {
+        let mut jump_vec = JumpVec::new(vec![0, 3, 0, 1, -3],
+                                        |x| if x >= 3 { -1 } else { 1 });
+
+        let mut result : u32 = 1;
+        while jump_vec.next() != None { result += 1 }
+
+        assert_eq!(result, 10);
     }
 }
