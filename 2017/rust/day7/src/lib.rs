@@ -27,12 +27,25 @@ fn part2() -> (u32, u32) {
     // There will be multiple unbalanced nodes; since only one weight can be changed, if all other nodes were balanced
     // then updating the unbalanced node would force its parents out of balance.  Select the lightest node as the one
     // furthest from the root and therefore the one which needs rebalancing
-    unbalanced.iter()
-        .map(|n| tree.nodes[*n].children.iter()
-            .map(|c| wt[*c])
-            .fold((std::u32::MAX, std::u32::MIN), |(mn, mx), x| (std::cmp::min(mn, x), std::cmp::max(mx, x)))
-        )
-        .min_by(|(x0,_),(x1,_)| x0.cmp(x1)).unwrap()
+    let diff = unbalanced.iter()
+        .map(|n| (*n, tree.nodes[*n].children.iter().enumerate()
+            .map(|(i,c)| (i,wt[*c]))
+            .fold((None::<(usize,u32)>, None::<(usize,u32)>),
+                  |(x0, x1), (i, x)| {
+                      if x0.is_none() { (Some((i, x)), None) }
+                      else if x1.is_none() && x != x0.unwrap().1  { (x0, Some((i, x))) }
+                      else { (x0, x1) }
+                  })
+        ))
+        .min_by(|(n0, (x0a, x0b)) ,(n1, (x1a, x1b))| x0a.unwrap().1.cmp(&x1a.unwrap().1)).unwrap();
+
+    println!("{:?}", diff);
+
+    let node = &tree.nodes[diff.0];
+    let dt = ((diff.1).1.unwrap().1) - ((diff.1).0.unwrap().1);
+    let ix = [(diff.1).0, (diff.1).1].iter().map(|x| x.unwrap().0).collect::<Vec<usize>>();
+
+    (tree.nodes[node.children[ix[0]]].weight - dt, tree.nodes[node.children[ix[1]]].weight - dt)
 }
 
 
