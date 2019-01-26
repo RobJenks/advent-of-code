@@ -1,12 +1,38 @@
 use std::collections::HashMap;
+use std::collections::VecDeque;
 
 pub fn run() {
-    println!("Part 1 result: {}", part1());
+    println!("Part 1 result: {}",   part1());
+    println!("Part 2 result: {:?}", part2());
 }
 
 fn part1() -> String {
     let tree = construct_tree(common::read_file("day7/input.txt"));
     tree.nodes[tree.get_root()].name.clone()
+}
+
+fn part2() -> (u32, u32) {
+    let tree = construct_tree(common::read_file("day7/input.txt"));
+    let wt = cumulative_weights(&tree);
+
+    let unbalanced = tree.nodes.iter()
+        .map(|n| n.children.iter()
+            .map(|x| wt[*x])
+            .fold((n.id, 0, false), |(n,val,diff), x| if x == val || val == 0 { (n, x, diff) } else { (n, val, true) } )
+        )
+        .filter(|(_, _, diff)| *diff)
+        .map(|(n, _, _)| n)
+        .collect::<Vec<usize>>();
+
+    // There will be multiple unbalanced nodes; since only one weight can be changed, if all other nodes were balanced
+    // then updating the unbalanced node would force its parents out of balance.  Select the lightest node as the one
+    // furthest from the root and therefore the one which needs rebalancing
+    unbalanced.iter()
+        .map(|n| tree.nodes[*n].children.iter()
+            .map(|c| wt[*c])
+            .fold((std::u32::MAX, std::u32::MIN), |(mn, mx), x| (std::cmp::min(mn, x), std::cmp::max(mx, x)))
+        )
+        .min_by(|(x0,_),(x1,_)| x0.cmp(x1)).unwrap()
 }
 
 
@@ -38,20 +64,6 @@ impl Tree {
         match self.names.get(name) {
             Some(id) => Some(*id),
             None => None
-        }
-    }
-
-    fn get_node(&mut self, name: &str) -> Option<&mut Node> {
-        match self.get(name) {
-            Some(id) => Some(&mut self.nodes[id]),
-            None => None
-        }
-    }
-
-    fn get_direct(&mut self, name: &str) -> &mut Node {
-        match self.get(name) {
-            Some(id) => &mut self.nodes[id],
-            None => panic!("Node does not exist")
         }
     }
 
@@ -103,4 +115,27 @@ fn construct_tree(input: String) -> Tree {
         });
 
     tr
+}
+
+fn cumulative_weights(tree: &Tree) -> Vec<u32> {
+    let mut eval= VecDeque::<usize>::new();
+    let mut wt = vec![0; tree.nodes.len()];
+
+    eval.push_front(tree.get_root());
+    while !eval.is_empty() {
+        let id = *eval.front().unwrap();
+
+        if !tree.nodes[id].children.is_empty() && wt[tree.nodes[id].children[0]] == 0 {
+            tree.nodes[id].children.iter()
+                .for_each(|x| eval.push_front(*x));
+
+            continue;
+        }
+
+        wt[id] = tree.nodes[id].weight +
+                 tree.nodes[id].children.iter().map(|x| wt[*x]).sum::<u32>();
+        eval.pop_front();
+    }
+
+    wt
 }
