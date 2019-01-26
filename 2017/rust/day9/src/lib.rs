@@ -13,7 +13,7 @@ struct Stream {
 }
 
 impl Stream {
-    fn new(input: &str) -> Self { Stream { data: input.chars().collect::<Vec<char>>(), ptr: 0, level: 0 }}
+    fn new(input: &str) -> Self { Stream { data: input.chars().collect::<Vec<char>>(), ptr: 0, level: 0 } }
 }
 
 impl Iterator for Stream {
@@ -22,24 +22,20 @@ impl Iterator for Stream {
     fn next(&mut self) -> Option<Self::Item> {
         let mut in_garbage = false;
         loop {
-            let ch = self.data[self.ptr];
-            if ch == '{' && !in_garbage {
-                self.level += 1;
-                self.ptr += 1;
-                return Some((self.ptr - 1, self.level));
-            }
-            else if ch == '}' && !in_garbage {
-                self.level -= 1;
-                if self.level == 0 { return None; }
-            }
-            else if ch == '<' {
-                in_garbage = true;
-            }
-            else if ch == '>' {
-                in_garbage = false;
-            }
-            else if ch == '!' {
-                self.ptr += 1;      // Skip next char
+            match self.data[self.ptr] {
+                '{' if !in_garbage => {
+                    self.level += 1;
+                    self.ptr += 1;
+                    return Some((self.ptr - 1, self.level));
+                }
+                '}' if !in_garbage => {
+                    self.level -= 1;
+                    if self.level == 0 { return None; }
+                }
+                '<' => { in_garbage = true; }
+                '>' => { in_garbage = false; }
+                '!' => { self.ptr += 1; }      // Skip next char
+                _ => ()
             }
 
             self.ptr += 1;
@@ -50,7 +46,7 @@ impl Iterator for Stream {
 
 #[cfg(test)]
 mod tests {
-    use super::{Stream};
+    use super::Stream;
 
     #[test]
     fn test_count() {
