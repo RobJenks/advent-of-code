@@ -39,8 +39,6 @@ fn part2() -> (u32, u32) {
         ))
         .min_by(|(n0, (x0a, x0b)) ,(n1, (x1a, x1b))| x0a.unwrap().1.cmp(&x1a.unwrap().1)).unwrap();
 
-    println!("{:?}", diff);
-
     let node = &tree.nodes[diff.0];
     let dt = ((diff.1).1.unwrap().1) - ((diff.1).0.unwrap().1);
     let ix = [(diff.1).0, (diff.1).1].iter().map(|x| x.unwrap().0).collect::<Vec<usize>>();
