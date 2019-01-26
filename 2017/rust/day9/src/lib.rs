@@ -1,9 +1,22 @@
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> u32 {
     Stream::new(common::read_file("day9/input.txt").as_str()).map(|(_, x)| x).sum()
+}
+
+fn part2() -> u32 {
+    common::read_file("day9/input.txt").chars()
+        .fold((0, false, false), |(n, in_garbage, skip_next), ch| match ch {
+            _ if skip_next => (n, in_garbage, false),
+            '<' if !in_garbage => (n, true, skip_next),
+            '>' if in_garbage => (n, false, skip_next),
+            '!' => (n, in_garbage, true),
+            _ if in_garbage => (n+1, in_garbage, skip_next),
+            _ => (n, in_garbage, skip_next)
+        }).0
 }
 
 struct Stream {
