@@ -1,4 +1,5 @@
 pub mod hex;
+pub mod hash;
 
 pub fn read_file(path : &str) -> String {
     match std::fs::read_to_string(path) {
