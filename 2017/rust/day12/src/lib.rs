@@ -1,5 +1,6 @@
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> usize {
@@ -8,6 +9,13 @@ fn part1() -> usize {
 
     let g0 = progs[0].group.unwrap();
     progs.iter().filter(|x| x.group.unwrap() == g0).count()
+}
+
+fn part2() -> usize {
+    let mut progs = parse_input(common::read_file("day12/input.txt"));
+    assign_groups(&mut progs);
+
+    progs.iter().map(|x| x.group.unwrap()).max().unwrap() as usize + 1
 }
 
 fn parse_input(input: String) -> Vec<Prog> {
