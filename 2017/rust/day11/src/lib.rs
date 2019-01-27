@@ -2,6 +2,7 @@ use common::hex::{Hex, HexDir};
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> i32 {
@@ -14,11 +15,19 @@ fn part1() -> i32 {
 
 }
 
+fn part2() -> i32 {
+    common::read_file("day11/input.txt")
+        .split(",")
+        .map(|x| HexDir::from_str(x))
+        .fold((Hex::origin(), 0), |(pos, max_dist), d| {
+            let adj = pos.neighbour(d);
+            (adj.clone(), std::cmp::max(max_dist, adj.mag()))
+        }).1
+}
+
 fn origin_dist(directions: &Vec<HexDir>) -> i32 {
     Hex::origin().clone().follow_path(directions).dist(&Hex::origin())
 }
-
-
 
 
 
