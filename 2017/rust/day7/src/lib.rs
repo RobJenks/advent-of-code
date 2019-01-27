@@ -37,7 +37,7 @@ fn part2() -> (u32, u32) {
                       else { (x0, x1) }
                   })
         ))
-        .min_by(|(n0, (x0a, x0b)) ,(n1, (x1a, x1b))| x0a.unwrap().1.cmp(&x1a.unwrap().1)).unwrap();
+        .min_by(|(_, (x0a, _)) ,(_, (x1a, _))| x0a.unwrap().1.cmp(&x1a.unwrap().1)).unwrap();
 
     let node = &tree.nodes[diff.0];
     let dt = ((diff.1).1.unwrap().1) - ((diff.1).0.unwrap().1);
