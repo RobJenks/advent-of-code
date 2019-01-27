@@ -1,14 +1,16 @@
-
+#[derive(Clone)]
 pub struct Hex {
     coords: Vec<i32>
 }
 
+#[derive(Clone)]
 pub enum HexDir {
     N, NE, SE, S, SW, NW
 }
 
 impl Hex {
-    pub fn new(q: i32, r: i32, s: i32) -> Self { Self { coords: vec![q, r, s] }}
+    pub fn new(q: i32, r: i32, s: i32) -> Self { Self { coords: vec![q, r, s] } }
+    pub fn origin() -> Self { Self::new(0, 0, 0) }
 
     pub fn q(&self) -> i32 { self.coords[0] }
     pub fn r(&self) -> i32 { self.coords[1] }
@@ -29,6 +31,10 @@ impl Hex {
             HexDir::NW => Hex::new(-1, 1, 0)
         }
     }
+
+    pub fn follow_path(&self, directions: &Vec<HexDir>) -> Hex {
+        directions.iter().fold(self.clone(), |pos, d| pos.neighbour(d.clone()))
+    }
 }
 
 impl std::ops::Add for &Hex {
@@ -45,3 +51,16 @@ impl std::ops::Sub for &Hex {
     }
 }
 
+impl HexDir {
+    pub fn from_str(s: &str) -> HexDir {
+        match s {
+            "n" => HexDir::N,
+            "ne" => HexDir::NE,
+            "se" => HexDir::SE,
+            "s" => HexDir::S,
+            "sw" => HexDir::SW,
+            "nw" => HexDir::NW,
+            _ => panic!("Invalid hex direction")
+        }
+    }
+}
