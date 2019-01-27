@@ -1,9 +1,14 @@
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> i32 {
-    calc_trip(&mut parse_input(common::read_file("day13/input.txt")), 0)
+    calc_trip(&mut parse_input(common::read_file("day13/input.txt")), true)
+}
+
+fn part2() -> i32 {
+    calc_minimum_delay(&parse_input(common::read_file("day13/input.txt")))
 }
 
 
@@ -26,24 +31,36 @@ fn parse_input(input: String) -> Vec<Layer> {
     layers
 }
 
-fn calc_trip(layers: &mut Vec<Layer>, packet_depth: i32) -> i32 {
+fn calc_trip(layers: &mut Vec<Layer>, permit_catch: bool) -> i32 {
+    const PACKET_DEPTH : i32 = 0;
     let mut severity = 0i32;
     let n = layers.len();
 
     for i in 0..n {
         severity += match layers[i].scanner {
-            Some(x) if x == packet_depth => layers[i].depth * layers[i].range,
+            Some(x) if x == PACKET_DEPTH && !permit_catch => return std::i32::MAX,
+            Some(x) if x == PACKET_DEPTH => layers[i].depth * layers[i].range,
             _ => 0
         };
 
-        layers.iter_mut().for_each(|x| x.step());
+        timestep(layers);
     }
 
     severity
 }
 
+fn calc_minimum_delay(initial_state: &Vec<Layer>) -> i32 {
+    let mut layers = initial_state.clone();
+    (1..).take_while(|_| calc_trip(&mut timestep(&mut layers).clone(), false) != 0).max().unwrap() + 1
+}
 
-#[derive(Debug)]
+fn timestep(layers: &mut Vec<Layer>) -> &mut Vec<Layer> {
+    layers.iter_mut().for_each(|x| x.step());
+    layers
+}
+
+
+#[derive(Debug, Clone)]
 struct Layer {
     depth: i32,
     range: i32,
@@ -70,10 +87,15 @@ impl Layer {
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_input, calc_trip};
+    use super::{parse_input, calc_trip, calc_minimum_delay};
 
     #[test]
     fn test_severity_calc() {
-        assert_eq!(calc_trip(&mut parse_input("0: 3\n1: 2\n4: 4\n6: 4".to_string()), 0), 24);
+        assert_eq!(calc_trip(&mut parse_input("0: 3\n1: 2\n4: 4\n6: 4".to_string()), true), 24);
+    }
+
+    #[test]
+    fn test_delay() {
+        assert_eq!(calc_minimum_delay(&parse_input("0: 3\n1: 2\n4: 4\n6: 4".to_string())), 10);
     }
 }
