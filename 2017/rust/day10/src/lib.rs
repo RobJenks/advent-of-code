@@ -9,7 +9,7 @@ fn part1() -> u32 {
 
     hash.last().unwrap().iter()
         .take(2)
-        .fold(0, |acc,x| if acc == 0 { *x } else { acc * *x })
+        .fold(1, |acc,x| acc * *x )
 }
 
 
