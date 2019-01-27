@@ -34,7 +34,15 @@ impl Iterator for Hash {
     }
 }
 
-pub fn calculate_ascii_hash(input_data: String) -> String {
+pub fn calculate_ascii_hash_hex(input_data: String) -> String {
+    calculate_dense_hash(input_data).iter().map(|x| format!("{:01$x}", x, 2)).collect::<String>()
+}
+
+pub fn calculate_ascii_hash_binary(input_data: String) -> String {
+    calculate_dense_hash(input_data).iter().map(|x| format!("{0:01$b}", x, 8)).collect::<String>()
+}
+
+fn calculate_dense_hash(input_data: String) -> Vec<u32> {
     let mut input = input_data.into_bytes().iter().map(|x| *x as usize).collect::<Vec<usize>>();
     input.append(&mut vec![17, 31, 73, 47, 23]);
 
@@ -49,7 +57,7 @@ pub fn calculate_ascii_hash(input_data: String) -> String {
         dense[i] = iter.by_ref().take(16).fold(0, |acc,x| if acc == 0 { *x } else { acc ^ *x });
     }
 
-    dense.iter().map(|x| format!("{:01$x}", x, 2)).collect::<String>()
+    dense
 }
 
 
@@ -57,7 +65,7 @@ pub fn calculate_ascii_hash(input_data: String) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{ Hash, calculate_ascii_hash };
+    use super::{Hash, calculate_ascii_hash_hex};
 
     #[test]
     fn test_hash() {
@@ -65,10 +73,16 @@ mod tests {
     }
 
     #[test]
-    fn test_ascii_hash() {
-        assert_eq!(calculate_ascii_hash("".to_string()), "a2582a3a0e66e6e86e3812dcb672a272");
-        assert_eq!(calculate_ascii_hash("AoC 2017".to_string()), "33efeb34ea91902bb2f59c9920caa6cd");
-        assert_eq!(calculate_ascii_hash("1,2,3".to_string()), "3efbe78a8d82f29979031a4aa0b16a9d");
-        assert_eq!(calculate_ascii_hash("1,2,4".to_string()), "63960835bcdc130f0b66d7ff4f6a5a8e");
+    fn test_ascii_hex_hash() {
+        assert_eq!(calculate_ascii_hash_hex("".to_string()), "a2582a3a0e66e6e86e3812dcb672a272");
+        assert_eq!(calculate_ascii_hash_hex("AoC 2017".to_string()), "33efeb34ea91902bb2f59c9920caa6cd");
+        assert_eq!(calculate_ascii_hash_hex("1,2,3".to_string()), "3efbe78a8d82f29979031a4aa0b16a9d");
+        assert_eq!(calculate_ascii_hash_hex("1,2,4".to_string()), "63960835bcdc130f0b66d7ff4f6a5a8e");
+    }
+
+    #[test]
+    fn test_ascii_binary_hash() {
+        assert_eq!(format!("{0:01$b}", 17, 8), "00010001");
+        assert_eq!(format!("{0:01$b}", 168566807, 8), "1010000011000010000000010111");
     }
 }

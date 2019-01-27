@@ -1,4 +1,4 @@
-use common::hash::{Hash, calculate_ascii_hash};
+use common::hash::{Hash, calculate_ascii_hash_hex};
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
@@ -16,6 +16,6 @@ fn part1() -> u32 {
 
 
 fn part2() -> String {
-    calculate_ascii_hash(common::read_file("day10/input.txt"))
+    calculate_ascii_hash_hex(common::read_file("day10/input.txt"))
 }
 
