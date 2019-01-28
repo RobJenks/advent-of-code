@@ -1,10 +1,32 @@
+use std::collections::hash_map::HashMap;
+
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> String {
     execute_moves(&create_programs(16), &parse_input(common::read_file("day16/input.txt")))
         .iter().collect::<String>()
+}
+
+fn part2() -> String {
+    let mut progs = create_programs(16);
+    let moves = parse_input(common::read_file("day16/input.txt"));
+
+    let mut history : Vec<Vec<char>> = vec![];
+    let mut seen = HashMap::<Vec<char>, usize>::new();
+
+    for i in 0usize.. {
+        progs = execute_moves(&progs, &moves);
+
+        match seen.get(&progs) {
+            Some(_) => return history[(1_000_000_000 % i)-1].iter().collect::<String>(),
+            None => { seen.insert(progs.clone(), i); history.push(progs.clone()); }
+        }
+    }
+
+    panic!("Incorrectly terminated search");
 }
 
 
