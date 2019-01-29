@@ -2,6 +2,7 @@ const INPUT : usize = 343;
 
 pub fn run() {
     println!("Part 1 result: {}", part1(INPUT));
+    println!("Part 2 result: {}", part2(INPUT));
 }
 
 fn part1(input: usize) -> usize {
@@ -9,6 +10,16 @@ fn part1(input: usize) -> usize {
     let ptr = sl.insert_multiple(2017);
 
     sl.data[(ptr + 1) % sl.data.len()]
+}
+
+fn part2(input: usize) -> usize {
+    // Can calculate this without expensive [re]allocations by tracking the relative positions
+    // of only the 0 and next element while 'inserting' values, since we don't care about the remainder
+    (1..=50_000_000)
+        .fold((0, 0), |(ip, res), x| {
+            let insertion_pt = ((ip + input) % x) + 1;
+            (insertion_pt, if insertion_pt == 1 { x } else { res })
+        }).1
 }
 
 
@@ -23,9 +34,7 @@ impl SpinLock {
 
     pub fn insert(&mut self) -> usize {
         self.ptr = (self.ptr + self.step + 1) % self.data.len();
-
-        let val = self.data.len();
-        self.data.insert(self.ptr, val);
+        self.data.insert(self.ptr, self.data.len());
 
         self.ptr
     }
