@@ -20,7 +20,7 @@ fn part2() -> usize {
 
 
 fn run_multiple(instr: &Vec<Instruction>, reg_count: usize) -> Vec<CPUState> {
-    let mut cpu = (0..2).map(|x| CPU::new(100, instr.clone())).collect::<Vec<CPU>>();
+    let mut cpu = (0..2).map(|_| CPU::new(reg_count, instr.clone())).collect::<Vec<CPU>>();
 
     // cpu-id register 'p', unique to each instance
     cpu.iter_mut().enumerate().for_each(|(i,x)| x.set_val(&RegVal::Reg{x: 'p'}, i as isize));
@@ -126,7 +126,7 @@ impl CPU {
 
 impl Iterator for CPU {
     type Item = CPUState;
-    fn next(&mut self) -> Option<CPUState> {
+    fn next(&mut self) -> Option<Self::Item> {
         let instr = self.instr[self.ip as usize].clone();
 
         //println!("Executing instruction {:?} with reg: {:?}, ip: {}, out: {}, rcv: {}", instr, self.reg, self.ip, self.state.out, self.state.rcv);
