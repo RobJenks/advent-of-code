@@ -40,7 +40,6 @@ pub enum Instruction {
 #[derive(Clone, Debug)]
 pub enum RegVal {
     Reg{x: char},
-    RegFixed{x: char},
     Val{x: isize}
 }
 
@@ -52,16 +51,14 @@ impl CPU {
     fn reg(&self, rv: &RegVal) -> isize {
         match *rv {
             RegVal::Val {x} => x,
-            RegVal::Reg {x} => self.reg[(x as usize) - ('a' as usize)],
-            RegVal::RegFixed {x} => self.reg[(x as usize) - ('a' as usize)]
+            RegVal::Reg {x} => self.reg[(x as usize) - ('a' as usize)]
         }
     }
 
     fn reg_index(&self, rv: &RegVal) -> isize {
         match *rv {
             RegVal::Val {x} => x,
-            RegVal::Reg {x} => self.reg[(x as usize) - ('a' as usize)],
-            RegVal::RegFixed {x} => (x as isize) - ('a' as isize)
+            RegVal::Reg {x} => (x as isize) - ('a' as isize)
         }
     }
 
@@ -106,8 +103,6 @@ impl RegVal {
             Err(_) => RegVal::Reg {x: s.chars().next().unwrap()}
         }
     }
-
-    pub fn new_reg(s: &str) -> Self { RegVal::RegFixed {x: s.chars().next().unwrap()} }
 }
 
 
@@ -116,11 +111,11 @@ fn parse_instructions(input: String) -> Vec<Instruction> {
         .map(|s| s.split_whitespace().collect::<Vec<&str>>())
         .map(|s| match *s.first().unwrap() {
             "snd" => Instruction::snd{ x: RegVal::new(s[1]) },
-            "set" => Instruction::set{ x: RegVal::new_reg(s[1]), y: RegVal::new(s[2])},
-            "add" => Instruction::add{ x: RegVal::new_reg(s[1]), y: RegVal::new(s[2])},
-            "mul" => Instruction::mul{ x: RegVal::new_reg(s[1]), y: RegVal::new(s[2])},
-            "mod" => Instruction::mdo{ x: RegVal::new_reg(s[1]), y: RegVal::new(s[2])},
-            "rcv" => Instruction::rcv{ x: RegVal::new_reg(s[1]) },
+            "set" => Instruction::set{ x: RegVal::new(s[1]), y: RegVal::new(s[2])},
+            "add" => Instruction::add{ x: RegVal::new(s[1]), y: RegVal::new(s[2])},
+            "mul" => Instruction::mul{ x: RegVal::new(s[1]), y: RegVal::new(s[2])},
+            "mod" => Instruction::mdo{ x: RegVal::new(s[1]), y: RegVal::new(s[2])},
+            "rcv" => Instruction::rcv{ x: RegVal::new(s[1]) },
             "jgz" => Instruction::jgz{ x: RegVal::new(s[1]), y: RegVal::new(s[2])},
             _ => panic!("Unknown instruction")
         })
