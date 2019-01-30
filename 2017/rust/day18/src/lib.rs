@@ -23,26 +23,21 @@ fn run_multiple(instr: &Vec<Instruction>, reg_count: usize) -> Vec<CPUState> {
     let mut cpu = (0..2).map(|_| CPU::new(reg_count, instr.clone())).collect::<Vec<CPU>>();
 
     // cpu-id register 'p', unique to each instance
-    cpu.iter_mut().enumerate().for_each(|(i,x)| x.set_val(&RegVal::Reg{x: 'p'}, i as isize));
+    cpu.iter_mut().enumerate().for_each(|(i, x)| x.set_val(&RegVal::Reg{x: 'p'}, i as isize));
 
-    loop {
-        let active = (0..2).map(|i| {
-            match &cpu[i].by_ref().next() {
-                Some(st) if st.sending => {                     // Transmit data ready in output pipe
-                    cpu[(i+1)%2].receive_value(st.out);
-                    cpu[i].state.sending = false;
-                    true
-                },
-                Some(st) if st.receiving => false,              // Blocking receive, no data available yet
-                None => false,                                  // Execution terminated
+    while (0..2).map(|i| {                         // Iterate while at least one CPU is active and not blocked
+        match &cpu[i].by_ref().next() {
+            Some(st) if st.sending => {                     // Transmit data ready in output pipe
+                cpu[(i+1)%2].receive_value(st.out);
+                cpu[i].state.sending = false;
+                true
+            },
+            Some(st) if st.receiving => false,              // Blocking receive, no data available yet
+            None => false,                                  // Execution terminated
 
-                _ => true                                       // Any other instruction
-            }
-        })
-        .collect::<Vec<bool>>();
-
-        if active.iter().all(|x| !*x) { break; }  // Should technically wait another full cycle, but not required in this problem
-    }
+            _ => true                                       // Any other instruction
+        }
+    }).any(|x| x) { }
 
     vec![cpu[0].state.clone(), cpu[1].state.clone()]
 }
