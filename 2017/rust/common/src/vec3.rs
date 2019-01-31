@@ -11,6 +11,7 @@ impl <T> Vec3<T> {
 
 impl Vec3<isize> {
     pub fn manhattan(self, rhs : &Vec3<isize>) -> isize { (self.x - rhs.x).abs() + (self.y - rhs.y).abs() + (self.z - rhs.z).abs() }
+    pub fn mag(&self) -> isize { self.x.abs() + self.y.abs() + self.z.abs() }
 }
 
 impl <T> std::ops::Add<&Vec3<T>> for &Vec3<T>
