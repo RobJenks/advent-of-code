@@ -1,4 +1,4 @@
-use common::Vec2;
+use common::vec2::Vec2;
 
 pub fn run() {
     const INPUT: u32 = 361527;
@@ -113,7 +113,7 @@ impl Iterator for SpiralIter {
 
 #[cfg(test)]
 mod tests {
-    use common::Vec2;
+    use common::vec2::Vec2;
     use super::{ get_coord, calculate_spiral_value };
 
     #[test]

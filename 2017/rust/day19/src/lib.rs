@@ -1,4 +1,4 @@
-use common::Vec2;
+use common::vec2::Vec2;
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
