@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub struct Vec3<T> {
     pub x : T,
     pub y : T,
