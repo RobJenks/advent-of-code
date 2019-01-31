@@ -8,7 +8,7 @@ pub fn run() {
 }
 
 fn part1(input: u32) -> i32 {
-    get_coord(input).manhattan(Vec2::<i32>{x: 0, y: 0})
+    get_coord(input).manhattan(&Vec2::<i32>{x: 0, y: 0})
 }
 
 fn part2(input: u32) -> u32 {
