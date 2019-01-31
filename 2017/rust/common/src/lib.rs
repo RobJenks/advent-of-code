@@ -1,4 +1,5 @@
 pub mod vec2;
+pub mod vec3;
 pub mod hex;
 pub mod hash;
 
