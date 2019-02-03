@@ -6,23 +6,21 @@ pub fn run() {
 }
 
 fn part1() -> usize {
-    Image::new(parse_rules(common::read_file("day21/input.txt")))
-        .take(5)
-        .last().unwrap()
-        .chars()
-        .filter(|c| *c == '#')
-        .count()
+    active_pixels_after_cycles(common::read_file("day21/input.txt"), 5)
 }
 
 fn part2() -> usize {
-    Image::new(parse_rules(common::read_file("day21/input.txt")))
-        .take(18)
+    active_pixels_after_cycles(common::read_file("day21/input.txt"), 18)
+}
+
+fn active_pixels_after_cycles(input: String, cycles: usize) -> usize {
+    Image::new(parse_rules(input))
+        .take(cycles)
         .last().unwrap()
         .chars()
         .filter(|c| *c == '#')
         .count()
 }
-
 
 type Rules = HashMap<String, String>;
 type ImageArray = Vec<Vec<char>>;
