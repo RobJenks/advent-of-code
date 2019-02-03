@@ -2,11 +2,21 @@ use std::collections::hash_map::HashMap;
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> usize {
     Image::new(parse_rules(common::read_file("day21/input.txt")))
         .take(5)
+        .last().unwrap()
+        .chars()
+        .filter(|c| *c == '#')
+        .count()
+}
+
+fn part2() -> usize {
+    Image::new(parse_rules(common::read_file("day21/input.txt")))
+        .take(18)
         .last().unwrap()
         .chars()
         .filter(|c| *c == '#')
