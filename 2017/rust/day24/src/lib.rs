@@ -1,10 +1,19 @@
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> u32 {
     build_bridge(&mut parse_input(common::read_file("day24/input.txt")),0, &State::null(), &State::null(), &State::null(),
                  |state, best| State::new(std::cmp::max(state.strength, best.strength), 0))
+        .strength
+}
+
+fn part2() -> u32 {
+    build_bridge(&mut parse_input(common::read_file("day24/input.txt")),0, &State::null(), &State::null(), &State::null(),
+                 |state, best| {
+                     if state.length > best.length || state.length == best.length && state.strength > best.strength { *state } else { *best }
+                 })
         .strength
 }
 
@@ -45,7 +54,7 @@ pub struct Comp {
     used: bool
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct State {
     strength: u32,
     length: u32
