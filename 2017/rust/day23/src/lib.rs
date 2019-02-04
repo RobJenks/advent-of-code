@@ -2,6 +2,7 @@ use day18;
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> usize {
@@ -11,6 +12,25 @@ fn part1() -> usize {
             _ => false
         })
         .count()
+}
+
+fn part2() -> usize {
+    // Reconstructed from CPU instructions, as required by part 2
+    (0..=1_000)
+        .map(|x| 108400 + (17 * x))
+        .filter(|x| !is_prime(*x))
+        .count()
+}
+
+
+fn is_prime(x: usize) -> bool {
+    let mut div = 2usize;
+    while div * div <= x {
+        if x % div == 0 { return false };
+        div += 1;
+    }
+
+    true
 }
 
 

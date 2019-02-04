@@ -115,7 +115,7 @@ impl CPU {
         self.reg[ri as usize] = self.reg(val);
     }
 
-    fn set_val(&mut self, reg: &RegVal, val: isize) {
+    pub fn set_val(&mut self, reg: &RegVal, val: isize) {
         let ri = self.reg_index(reg);
         self.reg[ri as usize] = val;
     }
