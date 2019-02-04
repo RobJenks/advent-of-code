@@ -1,10 +1,10 @@
 pub fn run() {
-    println!("Part 1 result: {}", part1());
-    println!("Part 2 result: {}", part2());
+    println!("Part 1 result: {}", part1(common::read_file("day18/input.txt")));
+    println!("Part 2 result: {}", part2(common::read_file("day18/input.txt")));
 }
 
-fn part1() -> isize {
-    CPU::new(100, parse_instructions(common::read_file("day18/input.txt"), APIVersion::V1)).by_ref()
+pub fn part1(input: String) -> isize {
+    CPU::new(100, parse_instructions(input, APIVersion::V1)).by_ref()
         .take_while(|st| st.rcv_count == 0)
         .last()
         .unwrap()
@@ -12,9 +12,9 @@ fn part1() -> isize {
 }
 
 
-fn part2() -> usize {
+pub fn part2(input: String) -> usize {
     run_multiple(
-        &parse_instructions(common::read_file("day18/input.txt"), APIVersion::V2), 100
+        &parse_instructions(input, APIVersion::V2), 100
     )[1].snd_count
 }
 
@@ -53,24 +53,28 @@ pub struct CPU {
 
 #[derive(Clone, Debug)]
 pub struct CPUState {
-    out: isize,                 // Last output message
-    rcv: Vec<isize>,            // Input message queue
-    snd_count: usize,           // The number of send actions triggered
-    rcv_count: usize,           // The number of receive actions triggered
-    sending: bool,              // Indicates that the output pipe has sent a new value (through 'out'); set until cleared by caller
-    receiving: bool,            // Indicates that the input pipe is waiting for a new value (through 'rcv')
+    pub last: Instruction,          // Copy of the last instruction executed
+    pub out: isize,                 // Last output message
+    pub rcv: Vec<isize>,            // Input message queue
+    pub snd_count: usize,           // The number of send actions triggered
+    pub rcv_count: usize,           // The number of receive actions triggered
+    pub sending: bool,              // Indicates that the output pipe has sent a new value (through 'out'); set until cleared by caller
+    pub receiving: bool,            // Indicates that the input pipe is waiting for a new value (through 'rcv')
 }
 
 #[allow(non_camel_case_types)]
 #[derive(Clone, Debug)]
 pub enum Instruction {
+    nil,
     snd{x: RegVal, v: APIVersion},
     set{x: RegVal, y: RegVal},
     add{x: RegVal, y: RegVal},
     mul{x: RegVal, y: RegVal},
     mdo{x: RegVal, y: RegVal},
     rcv{x: RegVal, v: APIVersion},
-    jgz{x: RegVal, y: RegVal}
+    jgz{x: RegVal, y: RegVal},
+    sub{x: RegVal, y: RegVal},
+    jnz{x: RegVal, y: RegVal}
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -87,7 +91,9 @@ pub enum RegVal {
 
 impl CPU {
     pub fn new(register_count: usize, instr: Vec<Instruction>) -> Self {
-        Self { reg: vec![0isize; register_count], instr, ip: 0, state: CPUState { out: 0, rcv: vec![], snd_count: 0, rcv_count: 0, sending: false, receiving: false } }
+        Self { reg: vec![0isize; register_count], instr, ip: 0, state: CPUState {
+            last: Instruction::nil, out: 0, rcv: vec![], snd_count: 0, rcv_count: 0, sending: false, receiving: false }
+        }
     }
 
     fn reg(&self, rv: &RegVal) -> isize {
@@ -123,6 +129,7 @@ impl Iterator for CPU {
     type Item = CPUState;
     fn next(&mut self) -> Option<Self::Item> {
         let instr = self.instr[self.ip as usize].clone();
+        self.state.last = instr.clone();
 
         //println!("Executing instruction {:?} with reg: {:?}, ip: {}, out: {}, rcv: {}", instr, self.reg, self.ip, self.state.out, self.state.rcv);
         match &instr {
@@ -150,6 +157,10 @@ impl Iterator for CPU {
                 self.state.receiving = false;
             },
 
+            Instruction::sub {x,y} => self.set_val(&x, self.reg(&x) - self.reg(&y)),
+            Instruction::jnz {ref x, ref y} if self.reg(&x) != 0 => self.ip += (self.reg(&y) - 1) as isize,  // -1 since we will increment next
+            Instruction::jnz {x:_,y:_} => (),
+
             _ => panic!("Unknown instruction")
         }
 
@@ -168,7 +179,7 @@ impl RegVal {
 }
 
 
-fn parse_instructions(input: String, api_version: APIVersion) -> Vec<Instruction> {
+pub fn parse_instructions(input: String, api_version: APIVersion) -> Vec<Instruction> {
     input.split("\n")
         .map(|s| s.split_whitespace().collect::<Vec<&str>>())
         .map(|s| match *s.first().unwrap() {
@@ -179,6 +190,8 @@ fn parse_instructions(input: String, api_version: APIVersion) -> Vec<Instruction
             "mod" => Instruction::mdo{ x: RegVal::new(s[1]), y: RegVal::new(s[2])},
             "jgz" => Instruction::jgz{ x: RegVal::new(s[1]), y: RegVal::new(s[2])},
             "rcv" => Instruction::rcv{ x: RegVal::new(s[1]), v: api_version.clone() },
+            "sub" => Instruction::sub{ x: RegVal::new(s[1]), y: RegVal::new(s[2])},
+            "jnz" => Instruction::jnz{ x: RegVal::new(s[1]), y: RegVal::new(s[2])},
             _ => panic!("Unknown instruction")
         })
         .collect::<Vec<Instruction>>()
