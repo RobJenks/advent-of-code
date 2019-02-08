@@ -1,0 +1,11 @@
+# IDE config
+/.idea/*
+*.iml
+
+# Exclude intermediate and build output
+/target/
+*/target/*
+*/target/**
+
+# Exclude python compiled and cached files
+*/__pycache__/*
