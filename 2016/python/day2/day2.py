@@ -1,3 +1,4 @@
+from operator import add
 from common import io
 
 def run():
@@ -6,13 +7,13 @@ def run():
 
 
 def part1():
-    return [list(reversed(list(get_key(x, keypad=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], start=[1, 1]))))[0]
+    return [list(get_key(x, keypad=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], start=[1, 1]))[-1]
             for x in parse_input("day2/input.txt")]
 
 
 def part2():
-    return [list(reversed(list(get_key(x, keypad=[['0', '0', '1', '0', '0'], ['0', '2', '3', '4', '0'], ['5', '6', '7', '8', '9'],
-                                                  ['0', 'A', 'B', 'C', '0'], ['0', '0', 'D', '0', '0']], start=[1, 1]))))[0]
+    return [list(get_key(x, keypad=[['0', '0', '1', '0', '0'], ['0', '2', '3', '4', '0'], ['5', '6', '7', '8', '9'],
+                                                  ['0', 'A', 'B', 'C', '0'], ['0', '0', 'D', '0', '0']], start=[0, 2]))[-1]
             for x in parse_input("day2/input.txt")]
 
 
@@ -27,7 +28,7 @@ def get_key(path, keypad, start):
 
 
 def valid_key(keypad, pos, dir):
-    ptr = [x + y for (x, y) in zip(pos, dir)]
+    ptr = list(map(add, pos, dir))
     return ptr if all(x >= 0 for x in ptr) and ptr[1] < len(keypad) and ptr[0] < len(keypad[ptr[1]]) and keypad[ptr[1]][ptr[0]] != '0' \
         else pos
 
