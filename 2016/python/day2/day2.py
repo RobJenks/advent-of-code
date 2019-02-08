@@ -1,5 +1,4 @@
-from common import io, util
-
+from common import io
 
 def run():
     print("Part 1 result:", part1())
