@@ -1,4 +1,4 @@
-from itertools import islice
+from itertools import islice, count
 import hashlib
 
 def input():
@@ -26,10 +26,8 @@ def part2(input):
 
 
 def get_char(door_id):
-    index = 0
-    while True:
+    for index in count():
         digest = hashlib.md5("{}{}".format(door_id, index).encode()).hexdigest()
-        index += 1
 
         if digest[:5] == '00000':
             yield digest[5:7]
