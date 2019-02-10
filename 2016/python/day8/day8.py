@@ -4,10 +4,15 @@ from common import io, util
 
 def run():
     print("Part 1 result:", part1())
+    print("Part 2 result:", part2())
 
 
 def part1():
     return sum(sum(1 for x in row if x) for row in process_commands(parse_input("day8/input.txt"), (50, 6)))
+
+
+def part2():
+    return ''.join(['\n', *render_display(process_commands(parse_input("day8/input.txt"), (50, 6)))])
 
 
 def process_commands(cmds, size):
@@ -40,6 +45,11 @@ def parse_input(path):
             else 'ERROR')
 
     return res
+
+
+def render_display(disp):
+    lines = ([['#' if x else '.' for x in row] for row in disp])
+    return ''.join([''.join([*x, '\n']) for x in lines])
 
 
 class CommandType(IntEnum):
