@@ -4,12 +4,13 @@ from day3 import day3
 from day4 import day4
 from day5 import day5
 from day6 import day6
+from day7 import day7
 
 
 def main():
     solutions = [
         day1.run, day2.run, day3.run, day4.run, day5.run,
-        day6.run
+        day6.run, day7.run
     ]
 
     for (i, soln) in enumerate(solutions):
