@@ -11,10 +11,17 @@ Action = Tuple[int, int, List[int]]
 
 def run():
     print("Part 1 result:", part1())
+    print("Part 2 result:", part2())
 
 
 def part1():
     (state, mapping) = parse_input("day11/input.txt")
+    (_, actions) = solve(state, mapping)
+    return len(actions)
+
+
+def part2():
+    (state, mapping) = parse_input("day11/input2.txt")
     (_, actions) = solve(state, mapping)
     return len(actions)
 
