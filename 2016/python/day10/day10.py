@@ -1,13 +1,20 @@
 from enum import IntEnum
+from functools import reduce
 from common import io
 
 def run():
     print("Part 1 result:", part1())
+    print("Part 2 result:", part2())
 
 
 def part1():
     return [x for x in follow_instructions(parse_input("day10/input.txt"))
-        if x[1][0][0] == 17 and x[1][1][0] == 61][0][0]
+        if x[1] and x[1][0][0] == 17 and x[1][1][0] == 61][0][0]
+
+
+def part2():
+    outputs = ([x for x in follow_instructions(parse_input("day10/input.txt"))][-1])[2]
+    return reduce(lambda acc, x: (acc * x[0]), outputs[:3], 1)
 
 
 def follow_instructions(instr):
@@ -30,13 +37,15 @@ def follow_instructions(instr):
         vals = sorted(bots[i])
         assign = dist[i]
 
-        yield((i, [(vals[ix], assign[ix]) for ix in range(2)]))  # Yield { bot, [(val0, tgt0), (val1, tgt1)] }
+        yield((i, [(vals[ix], assign[ix]) for ix in range(2)], outputs))  # Yield { bot, [(val0, tgt0), (val1, tgt1)], output }
 
         bots[i] = []
         for (i, x) in enumerate(assign):
             [bots, outputs][x[1] == DestType.Output][x[0]].append(vals[i])
 
         eval.extend([x[0] for x in assign if x[1] == DestType.Bot and len(bots[x[0]]) == 2])
+
+    yield((None, None, outputs))
 
 
 def parse_input(path):
