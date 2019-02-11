@@ -19,8 +19,8 @@ def part2():
 
 def follow_instructions(instr):
     # Perform all one-time initialisation before the generator cycle
-    bot_count = list(max([[x[i] for i in [2, 4] if x[i+1] == DestType.Bot] for x in instr if x[0] == InstructionType.Give]))[0] + 1
-    out_count = list(max([[x[i] for i in [2, 4] if x[i+1] == DestType.Output] for x in instr if x[0] == InstructionType.Give]))[0] + 1
+    bot_count = max([x[i] for i in [2, 4] if x[i+1] == DestType.Bot] for x in instr if x[0] == InstructionType.Give)[0] + 1
+    out_count = max([x[i] for i in [2, 4] if x[i+1] == DestType.Output] for x in instr if x[0] == InstructionType.Give)[0] + 1
 
     bots = [[] for _ in range(bot_count)]
     outputs = [[] for _ in range(out_count)]
