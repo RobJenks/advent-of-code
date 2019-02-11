@@ -1,0 +1,61 @@
+>>> Direct translation with branching & flow control:
+
+cpy 1 a			a = 1
+cpy 1 b			b = 1
+cpy 26 d		d = 26
+jnz c 2			if c == 0
+jnz 1 5			  goto 12
+cpy 7 c 		c = 7
+inc d			do { d += 1
+dec c     		     c -= 1
+jnz c -2		} while c != 0
+cpy a c			do { c = a
+inc a				 do { a += 1
+dec b			          b -= 1
+jnz b -2		     } while b != 0
+cpy c b			     b = c
+dec d			     d -= 1
+jnz d -6		} while d != 0
+cpy 14 c		c = 14
+cpy 14 d 		do { d = 14
+inc a			     do { a += 1
+dec d			          d -= 1
+jnz d -2		     } while d != 0
+dec c			     c -= 1
+jnz c -5		} while c != 0
+
+
+>>> Simplified:
+
+a = b = 1
+d = 26
+
+if c != 0 {
+	c = 7
+	do { 
+		d++, c--
+	} while c != 0
+}
+
+do { 
+	c = a
+	do { 
+		a++, b--
+	} while b != 0
+	
+	b = c
+	d--
+} while d != 0
+
+c = 14
+do { 
+	d = 14
+	do { 
+		a++, d--
+	} while d != 0
+	c--
+} while c != 0
+
+
+
+
