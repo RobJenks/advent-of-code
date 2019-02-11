@@ -5,11 +5,19 @@ from common import io
 
 def run():
     print("Part 1 result:", part1())
+    print("Part 2 result:", part2())
 
 
 def part1():
     inst = parse_input("day12/input.txt")
     (reg_final, _) = execute(inst, [0, 0, 0, 0])
+
+    return reg_final[0]
+
+
+def part2():
+    inst = parse_input("day12/input.txt")
+    (reg_final, _) = execute(inst, [0, 0, 1, 0])
 
     return reg_final[0]
 
