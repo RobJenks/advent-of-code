@@ -7,10 +7,16 @@ def input():
 
 def run():
     print("Part 1 result:", part1(input()))
+    print("Part 2 result:", part2(input()))
 
 
 def part1(input):
     return distance_map(generate(40, 50, input), (1, 1))[39][31]
+
+
+def part2(input):
+    dist = distance_map(generate(55, 55, input), (1, 1))
+    return sum(sum(1 for x in row if x <= 50) for row in dist)
 
 
 def generate(width, height, seed):
