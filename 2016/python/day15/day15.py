@@ -16,9 +16,9 @@ def part2():
     return optimal_time([*parse_input("day15/input.txt"), (7, 11, 0)])
 
 
-def optimal_time(input):
+def optimal_time(data):
     for i in count():
-        if all((x[0] + x[2] + i) % x[1] == 0 for x in input):
+        if all((x[0] + x[2] + i) % x[1] == 0 for x in data):
             return i
 
 
