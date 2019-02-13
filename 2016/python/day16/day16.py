@@ -7,10 +7,15 @@ def input():
 
 def run():
     print("Part 1 result:", part1())
+    print("Part 2 result:", part2())
 
 
 def part1():
     return decode(checksum(dragon_curve(encode(input()), 272)))
+
+
+def part2():
+    return decode(checksum(dragon_curve(encode(input()), 35651584)))
 
 
 # Generate a modified dragon curve over binary data, for the specified number of bits
