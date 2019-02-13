@@ -4,10 +4,15 @@ from common import io
 
 def run():
     print("Part 1 result:", part1())
+    print("Part 2 result:", part2())
 
 
 def part1():
     return safe_count(generate(parse_input(io.read_file("day18/input.txt")), 40))
+
+
+def part2():
+    return safe_count(generate(parse_input(io.read_file("day18/input.txt")), 400_000))
 
 
 def generate(row_0, rows):
