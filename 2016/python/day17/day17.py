@@ -8,10 +8,15 @@ def input():
 
 def run():
     print("Part 1 result:", part1())
+    print("Part 2 result:", part2())
 
 
 def part1():
-    return pathfind(input(), 20)
+    return min(pathfind(input(), 20), key=len)
+
+
+def part2():
+    return max(len(x) for x in pathfind(input(), 1000))
 
 
 def pathfind(input, max_depth):
@@ -34,7 +39,7 @@ def pathfind(input, max_depth):
     if not res:
         raise RuntimeError("No solution within maximum search space depth")
 
-    return min(res, key=len)
+    return res
 
 
 def get_options(input, path):
@@ -55,7 +60,12 @@ DIRS = [('U', (0, -1)), ('D', (0, 1)), ('L', (-1, 0)), ('R', (1, 0))]
 
 class Tests(TestCase):
     def test_pathfinding(self):
-        self.assertEqual('DDRRRD', pathfind('ihgpwlah', 10))
-        self.assertEqual('DDUDRLRRUDRD', pathfind('kglvqrro', 20))
-        self.assertEqual('DRURDRUDDLLDLUURRDULRLDUUDDDRR', pathfind('ulqzkmiv', 36))
+        self.assertEqual('DDRRRD', min(pathfind('ihgpwlah', 10), key=len))
+        self.assertEqual('DDUDRLRRUDRD', min(pathfind('kglvqrro', 20), key=len))
+        self.assertEqual('DRURDRUDDLLDLUURRDULRLDUUDDDRR', min(pathfind('ulqzkmiv', 36), key=len))
 
+
+    def test_longest_routes(self):
+        self.assertEqual(370, max(len(x) for x in pathfind('ihgpwlah', 400)))
+        self.assertEqual(492, max(len(x) for x in pathfind('kglvqrro', 600)))
+        self.assertEqual(830, max(len(x) for x in pathfind('ulqzkmiv', 1000)))
