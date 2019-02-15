@@ -1,17 +1,26 @@
 from unittest import TestCase
+from itertools import permutations
 from enum import IntEnum, auto
 from common import io, util
 
 def run():
     print("Part 1 result:", part1())
+    print("Part 2 result:", part2())
 
 
 def part1():
     return process('abcdefgh', parse_input(io.read_file("day21/input.txt")))
 
 
+def part2():
+    instr = parse_input(io.read_file("day21/input.txt"))
+    for x in [''.join(x) for x in permutations('abcdefgh')]:
+        if process(x, instr) == 'fbgdceah':
+            return x
+
+
 def process(value, commands):
-    x = [x for x in value]
+    x = list(value)
     for cmd in commands:
         if cmd[0] == Command.SwapPosition:
             swap_position(x, cmd[1], cmd[2])
