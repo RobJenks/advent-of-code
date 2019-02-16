@@ -50,6 +50,9 @@ def execute(instructions, registers: List[int]) -> (List[int], int):    # Return
             if 0 <= tgt < n:
                 instructions[tgt] = toggle(instructions[tgt])
 
+        elif inst.typ == Inst.mul:
+            registers[register_id(inst.args[0])] *= registers[register_id(inst.args[1])]
+
         pc += 1
 
     return (registers, pc)
@@ -82,6 +85,7 @@ class Inst(IntEnum):
     dec = 2
     jnz = 3
     tgl = 4     # Day 23 extension
+    mul = 5     # Day 23 optimiser extension
 
 
 class Instruction:
@@ -99,7 +103,7 @@ class Instruction:
         return self.__str__()
 
 
-INST_NAMES = {Inst.cpy: "cpy", Inst.inc: "inc", Inst.dec: "dec", Inst.jnz: "jnz", Inst.tgl: "tgl"}
+INST_NAMES = {Inst.cpy: "cpy", Inst.inc: "inc", Inst.dec: "dec", Inst.jnz: "jnz", Inst.tgl: "tgl", Inst.mul: "mul"}
 INST_ID = dict([(y, x) for (x, y) in INST_NAMES.items()])
 
 
