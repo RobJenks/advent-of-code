@@ -5,11 +5,18 @@ from common import io
 
 def run():
     print("Part 1 result:", part1())
+    print("Part 2 result:", part2())
 
 
 def part1():
     conn = determine_connectivity(parse_input("day24/input.txt"))
-    _, cost = determine_best_path(conn)
+    _, cost = determine_best_path(conn, False)
+    return cost
+
+
+def part2():
+    conn = determine_connectivity(parse_input("day24/input.txt"))
+    _, cost = determine_best_path(conn, True)
     return cost
 
 
@@ -54,8 +61,8 @@ def perform_pathfinding(grid, start, locations):
     return [dist[y][x] for (i, (x, y)) in sorted(locations.items())]
 
 
-def determine_best_path(conn):
-    perm = [[0] + list(x) for x in permutations(range(1, len(conn)))]
+def determine_best_path(conn, return_to_start):
+    perm = [[0] + list(x) + ([0] if return_to_start else []) for x in permutations(range(1, len(conn)))]
     best, best_index = sys.maxsize, -1
     for i, p in enumerate(perm):
         cost = sum(conn[px][p[pi+1]] for pi, px in enumerate(p[:-1]))
