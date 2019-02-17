@@ -9,13 +9,13 @@ def run():
 
 
 def part1(input):
-    (reg_final, _) = execute(parse_input(input), [0, 0, 0, 0])
+    (reg_final, _, _) = execute(parse_input(input), [0, 0, 0, 0])
 
     return reg_final[0]
 
 
 def part2(input):
-    (reg_final, _) = execute(parse_input(input), [0, 0, 1, 0])
+    (reg_final, _, _) = execute(parse_input(input), [0, 0, 1, 0])
 
     return reg_final[0]
 
@@ -25,8 +25,14 @@ def parse_input(path):
             [line.split() for line in io.read_file(path).splitlines(False)]]
 
 
-def execute(instructions, registers: List[int]) -> (List[int], int):    # Returns (Registers, PC)
+def execute(instructions, registers: List[int]) -> (List[int], int, List[int]):    # Returns (Registers, PC, Output)
+    return list(execute_to_output(instructions, registers))[-1]
+
+
+def execute_to_output(instructions, registers: List[int]) -> (List[int], int, List[int]):    # Returns (Registers, PC, Output)
     pc, n = 0, len(instructions)
+    out = []
+
     while pc < n:
         inst = instructions[pc]
         if inst.typ == Inst.cpy:
@@ -53,9 +59,13 @@ def execute(instructions, registers: List[int]) -> (List[int], int):    # Return
         elif inst.typ == Inst.mul:
             registers[register_id(inst.args[0])] *= registers[register_id(inst.args[1])]
 
+        elif inst.typ == Inst.out:
+            out.append(resolve_arg(registers, inst.args[0]))
+            yield registers[:], pc, out[:]
+
         pc += 1
 
-    return (registers, pc)
+    yield (registers, pc, out)
 
 
 def register_id(reg: str) -> int:
@@ -86,6 +96,7 @@ class Inst(IntEnum):
     jnz = 3
     tgl = 4     # Day 23 extension
     mul = 5     # Day 23 optimiser extension
+    out = 6     # Day 24 extension
 
 
 class Instruction:
@@ -103,14 +114,15 @@ class Instruction:
         return self.__str__()
 
 
-INST_NAMES = {Inst.cpy: "cpy", Inst.inc: "inc", Inst.dec: "dec", Inst.jnz: "jnz", Inst.tgl: "tgl", Inst.mul: "mul"}
+INST_NAMES = {Inst.cpy: "cpy", Inst.inc: "inc", Inst.dec: "dec", Inst.jnz: "jnz",
+              Inst.tgl: "tgl", Inst.mul: "mul", Inst.out: "out"}
 INST_ID = dict([(y, x) for (x, y) in INST_NAMES.items()])
 
 
 class Tests(TestCase):
     def test_program(self):
         inst = parse_input("tests.txt")
-        (reg_final, _) = execute(inst, [0, 0, 0, 0])
+        (reg_final, _, _) = execute(inst, [0, 0, 0, 0])
         self.assertEqual(42, reg_final[0])
 
     def test_regression(self):

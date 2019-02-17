@@ -10,7 +10,7 @@ def run():
 
 
 def part1():
-    (reg_final, _) = day12.execute(day12.parse_input("day23/input.txt"), [7, 0, 0, 0])
+    (reg_final, _, _) = day12.execute(day12.parse_input("day23/input.txt"), [7, 0, 0, 0])
     return reg_final[0]
 
 
@@ -21,5 +21,5 @@ def part2():
 
 class Tests(TestCase):
     def test_execution(self):
-        (reg_final, _) = day12.execute(day12.parse_input("tests.txt"), [0, 0, 0, 0])
+        (reg_final, _, _) = day12.execute(day12.parse_input("tests.txt"), [0, 0, 0, 0])
         self.assertEqual(3, reg_final[0])
