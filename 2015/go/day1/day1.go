@@ -2,8 +2,9 @@ package day1
 
 import (
 	"fmt"
+	"math"
 
-	input "../common"
+	"../common"
 )
 
 // Day1 : Solutions
@@ -12,10 +13,12 @@ func Day1() {
 }
 
 func part1() int {
-	data := input.ReadFile("day1/input.txt")
+	return evaluate(common.ReadFile("day1/input.txt"))
+}
 
+func evaluate(data string) int {
 	// Not at all necessary, but testing out goroutines/channels
-	cN := 10
+	cN := int(math.Min(10, float64(len(data))))
 	channels := []chan int{}
 	for i := 0; i < cN; i++ {
 		channels = append(channels, make(chan int))
