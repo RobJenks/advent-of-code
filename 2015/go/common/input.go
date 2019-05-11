@@ -35,3 +35,8 @@ func ReadFile(path string) string {
 func GetLines(data string) []string {
 	return strings.Split(data, "\n")
 }
+
+// GetChars: Split a text block into component UTF-8 chars
+func GetChars(data string) []string {
+	return strings.Split(data, "")
+}
