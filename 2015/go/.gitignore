@@ -1,0 +1,6 @@
+# IDE config
+/.vscode/*
+*.code-workspace
+
+# Exclude intermediate and build output
+
