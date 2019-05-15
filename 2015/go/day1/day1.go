@@ -10,10 +10,15 @@ import (
 // Day1 : Solutions
 func Day1() {
 	fmt.Println("Part 1 result:", part1())
+	fmt.Println("Part 2 result:", part2())
 }
 
 func part1() int {
 	return evaluate(common.ReadFile("day1/input.txt"))
+}
+
+func part2() int {
+	return evaluateToFloor(common.ReadFile("day1/input.txt"), -1)
 }
 
 func evaluate(data string) int {
@@ -31,6 +36,23 @@ func evaluate(data string) int {
 	}
 
 	return level
+}
+
+func evaluateToFloor(data string, floor int) int {
+	f := 0
+	for i, ch := range data {
+		if ch == '(' {
+			f++
+		} else {
+			f--
+		}
+
+		if f == floor {
+			return i + 1
+		}
+	}
+
+	panic("Failed to reach target")
 }
 
 func getLevelChange(data string, ch chan int) {
