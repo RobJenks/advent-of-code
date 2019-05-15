@@ -30,3 +30,13 @@ func AssertTrueS(t *testing.T, val interface{}, assertionErrorMsg string) {
 func AssertTrue(t *testing.T, val interface{}) {
 	AssertTrueS(t, val, "Expression does not evaluate to true")
 }
+
+// AssertFalseS : Assert that the given expression evaluates to false, or fail with the given assertion failure message
+func AssertFalseS(t *testing.T, val interface{}, assertionErrorMsg string) {
+	AssertEqS(t, false, val, assertionErrorMsg)
+}
+
+// AssertFalse : Assert that the given expression evaluates to false, or otherwise fail
+func AssertFalse(t *testing.T, val interface{}) {
+	AssertFalseS(t, val, "Expression does not evaluate to false")
+}
