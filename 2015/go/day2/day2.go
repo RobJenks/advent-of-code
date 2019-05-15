@@ -12,35 +12,52 @@ import (
 // Day2 : Solutions
 func Day2() {
 	fmt.Println("Part 1 result:", part1())
+	fmt.Println("Part 2 result:", part2())
 }
 
 func part1() int {
 	pres := parseInput(common.ReadFile("day2/input.txt"))
+	return accumulate(pres, paperRequired)
+}
 
-	paper := 0
+func part2() int {
+	pres := parseInput(common.ReadFile("day2/input.txt"))
+	return accumulate(pres, ribbonRequired)
+}
+
+func accumulate(pres []present, f func(*present) int) int {
+	acc := 0
 	for _, p := range pres {
-		paper += p.paperRequired()
+		acc += f(&p)
 	}
 
-	return paper
+	return acc
 }
 
 type present struct {
 	x, y, z int
 }
 
-func (p present) paperRequired() int {
+func paperRequired(p *present) int {
+	dims := p.sortedDimensions()
 	return (2 * p.x * p.y) +
 		(2 * p.y * p.z) +
 		(2 * p.z * p.x) +
-		p.smallestSideArea()
+		(dims[0] * dims[1])
 }
 
-func (p present) smallestSideArea() int {
+func ribbonRequired(p *present) int {
+	dims := p.sortedDimensions()
+	return dims[0] + dims[0] +
+		dims[1] + dims[1] +
+		(dims[0] * dims[1] * dims[2])
+}
+
+func (p present) sortedDimensions() []int {
 	dims := []int{p.x, p.y, p.z}
 	sort.Ints(dims)
 
-	return dims[0] * dims[1]
+	return dims
 }
 
 func parsePresent(s string) present {
