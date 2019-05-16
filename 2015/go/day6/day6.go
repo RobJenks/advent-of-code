@@ -2,6 +2,7 @@ package day6
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -13,22 +14,38 @@ const GRID_SIZE int = 1000
 // Day6 : Solutions
 func Day6() {
 	fmt.Println("Part 1 result:", part1())
+	fmt.Println("Part 2 result:", part2())
 }
 
 func part1() int {
 	return getLit(common.GetLines(common.ReadFile("day6/input.txt")))
 }
 
+func part2() int {
+	return getBrightness(common.GetLines(common.ReadFile("day6/input.txt")))
+}
+
 func getLit(lines []string) int {
 	commands := parseInput(lines)
 
-	var grid [GRID_SIZE][GRID_SIZE]bool
-	processCommands(&grid, commands)
+	var grid [GRID_SIZE][GRID_SIZE]int
+	processCommands(&grid, commands, func(op operation, currentVal int) int {
+		switch op {
+		case on:
+			return 1
+		case off:
+			return 0
+		case toggle:
+			return (currentVal + 1) % 2
+		default:
+			panic("Unknown operation type")
+		}
+	})
 
 	count := 0
 	for _, row := range grid {
 		for _, cell := range row {
-			if cell {
+			if cell != 0 {
 				count++
 			}
 		}
@@ -37,20 +54,42 @@ func getLit(lines []string) int {
 	return count
 }
 
-func processCommands(grid *[GRID_SIZE][GRID_SIZE]bool, cmds []command) {
+func getBrightness(lines []string) int {
+	commands := parseInput(lines)
+
+	var grid [GRID_SIZE][GRID_SIZE]int
+	processCommands(&grid, commands, func(op operation, currentVal int) int {
+		switch op {
+		case on:
+			return currentVal + 1
+		case off:
+			return int(math.Max(0.0, float64(currentVal)-1.0))
+		case toggle:
+			return currentVal + 2
+		default:
+			panic("Unknown operation type")
+		}
+	})
+
+	total := 0
+	for _, row := range grid {
+		for _, cell := range row {
+			total += cell
+		}
+	}
+
+	return total
+}
+
+func processCommands(
+	grid *[GRID_SIZE][GRID_SIZE]int,
+	cmds []command,
+	stepFn func(operation, int) int) {
+
 	for _, c := range cmds {
 		for x := c.start.x; x <= c.end.x; x++ {
 			for y := c.start.y; y <= c.end.y; y++ {
-				switch c.op {
-				case on:
-					grid[x][y] = true
-				case off:
-					grid[x][y] = false
-				case toggle:
-					grid[x][y] = !grid[x][y]
-				default:
-					panic("Unknown operation type")
-				}
+				grid[x][y] = stepFn(c.op, grid[x][y])
 			}
 		}
 	}
