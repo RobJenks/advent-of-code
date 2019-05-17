@@ -11,12 +11,26 @@ import (
 // Day7 : Solutions
 func Day7() {
 	fmt.Println("Part 1 result:", part1())
+	fmt.Println("Part 2 result:", part2())
 }
 
 func part1() signal {
 	lines := common.GetLines(common.ReadFile("day7/input.txt"))
 	graph := processGraph(lines)
 
+	return graph["a"].value
+}
+
+func part2() signal {
+	lines := common.GetLines(common.ReadFile("day7/input.txt"))
+
+	for i, line := range lines {
+		if line[len(line)-4:] == "-> b" {
+			lines[i] = "46065 -> b"
+		}
+	}
+
+	graph := processGraph(lines)
 	return graph["a"].value
 }
 
