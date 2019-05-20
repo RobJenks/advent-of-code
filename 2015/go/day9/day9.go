@@ -11,17 +11,43 @@ import (
 // Day9 : Solutions
 func Day9() {
 	fmt.Println("Part 1 result:", part1())
+	fmt.Println("Part 2 result:", part2())
 }
 
 func part1() int {
 	nodes := parseInput(common.GetLines(common.ReadFile("day9/input.txt")))
 
-	return shortestDistance(nodes)
+	return bestDistance(nodes, func() func(int) bool {
+		best := int(1e6)
+		return func(x int) bool {
+			if x < best {
+				best = x
+				return true
+			}
+			return false
+		}
+	})
 }
 
-// Return the length of the shortest travelling-salesperson route.  Just brute force for
-// this part even though it's O(n!), since n == 7 -> 5040
-func shortestDistance(nodes map[string]node) int {
+func part2() int {
+	nodes := parseInput(common.GetLines(common.ReadFile("day9/input.txt")))
+
+	return bestDistance(nodes, func() func(int) bool {
+		best := -int(1e6)
+		return func(x int) bool {
+			if x > best {
+				best = x
+				return true
+			}
+			return false
+		}
+	})
+}
+
+// Return the length of the [best] travelling-salesperson route.  Objective function evaluates
+// both arguments and returns true if its first argument is better than the second.
+// Just brute force for this part even though it's O(n!), since n == 7 -> 5040
+func bestDistance(nodes map[string]node, objectiveFn func() func(int) bool) int {
 	keys, indices := []string{}, []int{}
 	for k := range nodes {
 		indices = append(indices, len(keys))
@@ -31,6 +57,7 @@ func shortestDistance(nodes map[string]node) int {
 	routes := permutations(indices)
 	nodeCount := len(keys)
 
+	obj := objectiveFn()
 	bestDist := int(1e6)
 	for _, route := range routes {
 		dist := 0
@@ -38,7 +65,7 @@ func shortestDistance(nodes map[string]node) int {
 			dist += nodes[keys[route[i]]].links[keys[route[i+1]]]
 		}
 
-		if dist < bestDist {
+		if obj(dist) {
 			bestDist = dist
 		}
 	}
