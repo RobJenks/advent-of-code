@@ -6,10 +6,10 @@ import (
 	"../common"
 )
 
-// TestCommands : Unit test
+// TestUnescape : Unit test
 func TestUnescape(t *testing.T) {
-	common.AssertEq(t, 2, sizeDelta(`""`))
-	common.AssertEq(t, 2, sizeDelta(`"abc"`))
-	common.AssertEq(t, 3, sizeDelta(`"aaa\"aaa"`))
-	common.AssertEq(t, 5, sizeDelta(`"\x27"`))
+	common.AssertEq(t, 2, sizeDelta(`""`, unescape))
+	common.AssertEq(t, 2, sizeDelta(`"abc"`, unescape))
+	common.AssertEq(t, 3, sizeDelta(`"aaa\"aaa"`, unescape))
+	common.AssertEq(t, 5, sizeDelta(`"\x27"`, unescape))
 }
