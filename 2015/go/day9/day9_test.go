@@ -16,5 +16,14 @@ func TestDistance(t *testing.T) {
 
 	nodes := parseInput(lines)
 
-	common.AssertEq(t, 605, shortestDistance(nodes))
+	common.AssertEq(t, 605, bestDistance(nodes, func() func(int) bool {
+		best := int(1e6)
+		return func(x int) bool {
+			if x < best {
+				best = x
+				return true
+			}
+			return false
+		}
+	}))
 }
