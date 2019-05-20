@@ -10,6 +10,7 @@ import (
 // Day8 : Solutions
 func Day8() {
 	fmt.Println("Part 1 result:", part1())
+	fmt.Println("Part 2 result:", part2())
 }
 
 func part1() int {
@@ -17,15 +18,25 @@ func part1() int {
 
 	delta := 0
 	for _, line := range lines {
-		fmt.Println(line, "->", unescape(line), "(", sizeDelta(line), ")")
-		delta += sizeDelta(line)
+		delta += sizeDelta(line, unescape)
 	}
 
 	return delta
 }
 
-func sizeDelta(str string) int {
-	return len(str) - len(unescape(str))
+func part2() int {
+	lines := common.GetLines(common.ReadFile("day8/input.txt"))
+
+	delta := 0
+	for _, line := range lines {
+		delta += sizeDelta(line, escape)
+	}
+
+	return -delta
+}
+
+func sizeDelta(str string, f func(string) string) int {
+	return len(str) - len(f(str))
 }
 
 func unescape(str string) string {
@@ -36,7 +47,7 @@ func unescape(str string) string {
 		if s[i] == '\\' && i < len(s)-1 {
 			if s[i+1] == '\\' || s[i+1] == '"' {
 				result += string(s[i+1])
-				i++
+				i += 1
 				continue
 			} else if s[i+1] == 'x' && i < len(s)-3 {
 				char, err := hex.DecodeString(s[i+2 : i+4])
@@ -51,4 +62,18 @@ func unescape(str string) string {
 	}
 
 	return result
+}
+
+func escape(str string) string {
+	result := ""
+
+	for _, ch := range str {
+		if ch == '\\' || ch == '"' {
+			result += ("\\" + string(ch))
+		} else {
+			result += string(ch)
+		}
+	}
+
+	return (`"` + result + `"`)
 }
