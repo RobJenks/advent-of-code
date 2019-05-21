@@ -11,10 +11,26 @@ import (
 // Day13 : Solutions
 func Day13() {
 	fmt.Println("Part 1 result:", part1())
+	fmt.Println("Part 2 result:", part2())
 }
 
 func part1() int {
 	people := parseInput(common.GetLines(common.ReadFile("day13/input.txt")))
+	return getBestCombination(people)
+}
+
+func part2() int {
+	people := parseInput(common.GetLines(common.ReadFile("day13/input.txt")))
+
+	const me string = "me"
+	people[me] = person{name: me, preference: map[string]int{}}
+	for k := range people {
+		if k != me {
+			people[me].preference[k] = 0
+			people[k].preference[me] = 0
+		}
+	}
+
 	return getBestCombination(people)
 }
 
