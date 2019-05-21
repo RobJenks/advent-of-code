@@ -9,10 +9,15 @@ const input string = "hxbxwxba"
 // Day11 : Solutions
 func Day11() {
 	fmt.Println("Part 1 result:", part1())
+	fmt.Println("Part 2 result:", part2())
 }
 
 func part1() string {
 	return nextPassword(input)
+}
+
+func part2() string {
+	return nextPassword(nextPassword(input))
 }
 
 func nextPassword(str string) string {
