@@ -28,3 +28,19 @@ func Permutations(arr []int) [][]int {
 	helper(arr, len(arr))
 	return res
 }
+
+// IntMin : Convenience function
+func IntMin(a, b int) int {
+	if a > b {
+		return b
+	}
+	return a
+}
+
+// IntMax : Convenience function
+func IntMax(a, b int) int {
+	if a < b {
+		return b
+	}
+	return a
+}

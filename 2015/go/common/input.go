@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -36,7 +37,18 @@ func GetLines(data string) []string {
 	return strings.Split(data, "\n")
 }
 
-// GetChars: Split a text block into component UTF-8 chars
+// GetChars : Split a text block into component UTF-8 chars
 func GetChars(data string) []string {
 	return strings.Split(data, "")
+}
+
+// ParseInt : Convenience function to parse and return an int, without any testing of
+// error state.  Panics on error.  Used for known valid numeric input
+func ParseInt(str string) int {
+	val, err := strconv.ParseInt(str, 10, 0)
+	if err != nil {
+		panic("Cannot parse integer value")
+	}
+
+	return int(val)
 }
