@@ -1,0 +1,6 @@
+# Haskell intermediate files
+*.hi
+*.o
+
+
+
