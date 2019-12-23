@@ -1,0 +1,17 @@
+# Baseline: ignore all files (required since compiled binaries have no extension by default)
+*
+
+# Un-ignore all files with extensions
+!*.*
+
+# Un-ignore all directories
+!*/
+
+# Un-ignore special case files without extensions
+!**/input
+!**/problem-description
+
+# Haskell intermediate files
+*.hi
+*.o
+
