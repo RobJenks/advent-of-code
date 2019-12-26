@@ -13,6 +13,7 @@ import Control.Exception
 
 
 type Tape = Seq Int
+maxCycles = 10000 :: Int
 
 part1 :: String -> String
 part1 x = show $ head $ toList $ execute $ primeTape $ parseInput x
@@ -23,17 +24,24 @@ part2 x = do
 
 
 execute :: Tape -> Tape
-execute tape = step tape 0
+execute tape = step tape 0 maxCycles
 
-step :: Tape -> Int -> Tape
-step tape ip = result
+executeFor :: Tape -> Int -> Tape
+executeFor tape cpuCycles = step tape 0 cpuCycles
+
+step :: Tape -> Int -> Int -> Tape
+step tape ip cpuTime = result
   where 
-    op = Seq.index tape ip
+    op 
+      | cpuTime > 0 = Seq.index tape ip
+      | otherwise   = -1
     result = case op of
-      1 -> step (opAdd tape (get 3 tape (ip+1))) (ip+4)
-      2 -> step (opMult tape (get 3 tape (ip+1))) (ip+4)
+      1 -> step (opAdd tape (get 3 tape (ip+1))) (ip+4) (cpuTime-1)
+      2 -> step (opMult tape (get 3 tape (ip+1))) (ip+4) (cpuTime-1)
            
       99 -> tape
+      -1 -> error "Out of CPU cycles"
+
       _ -> error ("Unknown opcode " ++ show op)
 
 

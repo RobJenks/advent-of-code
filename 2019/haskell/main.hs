@@ -13,7 +13,7 @@ data Solution = Solution { day :: Int
 
 main :: IO()
 main = do
-  let solutions = [ Solution { day=1, part1=(io.Day1.part1), part2=(io.Day1.part2), tests=Day1.tests }
+  let solutions = [ Solution { day=1, part1=io.Day1.part1, part2=io.Day1.part2, tests=Day1.tests }
                   , Solution { day=2, part1=io.Day2.part1, part2=Day2.part2, tests=Day2.tests } ]
   
   runSolutions solutions 
@@ -33,7 +33,7 @@ runSolution solution = do
   p2 <- (part2 solution $ input)
   putStrLn ("Day " ++ (show $ day $ solution) ++ ", Tests : " ++ (runTests solution input))
   putStrLn ("Day " ++ (show $ day $ solution) ++ ", Part 1: " ++ p1)
-  putStrLn ("Day " ++ (show $ day $ solution) ++ ", Part 2: " ++ p2)
+  putStrLn ("Day " ++ (show $ day $ solution) ++ ", Part 2: " ++ p2 ++ "\n")
 
 
 runTests :: Solution -> String -> String
