@@ -24,8 +24,7 @@ part1 x = case execute $ primeTape [(1,12),(2,2)] $ parseInput x of
 
 part2 :: String -> String
 part2 x = show 
-           (((map (\p -> ((show p) ++ " -> " ++ show (100*(fst p) + (snd p))))) . 
-             (map fst) .
+           (((map (\(p,res) -> ((show p) ++ " -> " ++ show (100*(fst p) + (snd p))))) . 
              (filter (\(p,res) -> either (\_ -> False) (\t -> ((Seq.index t 0) == 19690720)) res)) .
              (map (\p -> (p, execute $ primeTape [(1,fst p),(2,snd p)] (parseInput x)))))
              (nounVerbPairs 0 99))
