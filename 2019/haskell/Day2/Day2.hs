@@ -6,6 +6,7 @@ module Day2.Day2
 where
 
 import Data.Foldable
+import Data.Either
 import Data.List
 import Data.Sequence (Seq(..))
 import qualified Data.Sequence as Seq
@@ -13,36 +14,44 @@ import Control.Exception
 
 
 type Tape = Seq Int
+type State = Either String Tape
 maxCycles = 10000 :: Int
 
 part1 :: String -> String
-part1 x = show $ head $ toList $ execute $ primeTape $ parseInput x
+part1 x = case execute $ primeTape $ parseInput x of
+  Left e -> error ("Execution failed: " ++ e)
+  Right tape -> show $ head $ toList tape
 
 part2 :: String -> IO String
 part2 x = do
  return "Not complete"
 
 
-execute :: Tape -> Tape
-execute tape = step tape 0 maxCycles
+execute :: Tape -> State
+execute tape = step (ok tape) 0 maxCycles
 
-executeFor :: Tape -> Int -> Tape
-executeFor tape cpuCycles = step tape 0 cpuCycles
+executeFor :: Tape -> Int -> State
+executeFor tape cpuCycles = step (ok tape) 0 cpuCycles
 
-step :: Tape -> Int -> Int -> Tape
-step tape ip cpuTime = result
+step :: State -> Int -> Int -> State
+step state ip cpuTime = result
   where 
-    op 
-      | cpuTime > 0 = Seq.index tape ip
-      | otherwise   = -1
-    result = case op of
-      1 -> step (opAdd tape (get 3 tape (ip+1))) (ip+4) (cpuTime-1)
-      2 -> step (opMult tape (get 3 tape (ip+1))) (ip+4) (cpuTime-1)
+    result = case state of 
+      Left e -> err e
+      Right tape -> cycleResult
+        where 
+          op 
+            | cpuTime > 0 = Seq.index tape ip
+            | otherwise   = -1
+          cycleResult =
+            case op of
+              1 -> step (ok $ opAdd tape (get 3 tape (ip+1))) (ip+4) (cpuTime-1)
+              2 -> step (ok $ opMult tape (get 3 tape (ip+1))) (ip+4) (cpuTime-1)
            
-      99 -> tape
-      -1 -> error "Out of CPU cycles"
+              99 -> ok tape
+              -1 -> err "Out of CPU cycles"
 
-      _ -> error ("Unknown opcode " ++ show op)
+              _ -> err ("Unknown opcode " ++ show op)
 
 
 get :: Int -> Tape -> Int -> [Int]
@@ -63,6 +72,12 @@ binaryIndexedOp tape arg f = set
                   (arg !! 2)
                   (f (map (Seq.index tape) (take 2 arg)))
                   
+ok :: Tape -> State
+ok tape = Right tape
+
+err :: String -> State
+err e = Left e
+
 primeTape :: Tape -> Tape
 primeTape tape = set (set tape 1 12) 2 2
   
@@ -89,7 +104,9 @@ test4 _ = runTest [1,1,1,4,99,5,6,0,99] [30,1,1,4,2,5,6,0,99]
 
 
 runTest :: [Int] -> [Int] -> ()
-runTest input exp = assertEqual (execute $ Seq.fromList input) (Seq.fromList exp)
+runTest input exp = case (execute $ Seq.fromList input) of 
+  Left e -> error ("Test failed: " ++ e)
+  Right tape -> assertEqual tape (Seq.fromList exp)
 
 
 assertEqual x exp = if (x == exp) then () else error ("Error: " ++ show x ++ " != " ++ show exp)
