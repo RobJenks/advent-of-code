@@ -18,17 +18,21 @@ type State = Either String Tape
 maxCycles = 10000 :: Int
 
 part1 :: String -> String
-part1 x = case execute $ primeTape $ parseInput x of
+part1 x = case execute $ primeTape [(1,12),(2,2)] $ parseInput x of
   Left e -> error ("Execution failed: " ++ e)
   Right tape -> show $ head $ toList tape
 
-part2 :: String -> IO String
-part2 x = do
- return "Not complete"
+part2 :: String -> String
+part2 x = show 
+           (((map (\p -> ((show p) ++ " -> " ++ show (100*(fst p) + (snd p))))) . 
+             (map fst) .
+             (filter (\(p,res) -> either (\_ -> False) (\t -> ((Seq.index t 0) == 19690720)) res)) .
+             (map (\p -> (p, execute $ primeTape [(1,fst p),(2,snd p)] (parseInput x)))))
+             (nounVerbPairs 0 99))
 
 
 execute :: Tape -> State
-execute tape = step (ok tape) 0 maxCycles
+execute tape = executeFor tape maxCycles
 
 executeFor :: Tape -> Int -> State
 executeFor tape cpuCycles = step (ok tape) 0 cpuCycles
@@ -51,7 +55,7 @@ step state ip cpuTime = result
               99 -> ok tape
               -1 -> err "Out of CPU cycles"
 
-              _ -> err ("Unknown opcode " ++ show op)
+              _ -> error ("Unknown opcode " ++ show op)
 
 
 get :: Int -> Tape -> Int -> [Int]
@@ -78,19 +82,20 @@ ok tape = Right tape
 err :: String -> State
 err e = Left e
 
-primeTape :: Tape -> Tape
-primeTape tape = set (set tape 1 12) 2 2
+primeTape :: [(Int, Int)] -> Tape -> Tape
+primeTape vals tape = foldl (\t x -> (set t (fst x) (snd x))) tape vals
   
-parseInput :: String -> Seq Int
+parseInput :: String -> Tape
 parseInput input = Seq.fromList $ map read (wordsWhen (== ',') input)
 
- 
-  
 wordsWhen :: (Char -> Bool) -> String -> [String]
 wordsWhen p s = case dropWhile p s of
                   "" -> []
                   s' -> w : wordsWhen p s''
                     where (w, s'') = break p s'
+                    
+nounVerbPairs :: Int -> Int -> [(Int, Int)]
+nounVerbPairs l h = [ (x,y) | x <- [l..h], y <- [l..h] ]
 
 
 
@@ -110,3 +115,4 @@ runTest input exp = case (execute $ Seq.fromList input) of
 
 
 assertEqual x exp = if (x == exp) then () else error ("Error: " ++ show x ++ " != " ++ show exp)
+
