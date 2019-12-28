@@ -1,5 +1,6 @@
 import qualified Day1.Day1 as Day1
 import qualified Day2.Day2 as Day2
+import qualified Day3.Day3 as Day3
 
 -- Unit test state for all modules
 skipTests = False
@@ -14,7 +15,8 @@ data Solution = Solution { day :: Int
 main :: IO()
 main = do
   let solutions = [ Solution { day=1, part1=io.Day1.part1, part2=io.Day1.part2, tests=Day1.tests }
-                  , Solution { day=2, part1=io.Day2.part1, part2=io.Day2.part2, tests=Day2.tests } ]
+                  , Solution { day=2, part1=io.Day2.part1, part2=io.Day2.part2, tests=Day2.tests }
+                  , Solution { day=3, part1=io.Day3.part1, part2=io.Day3.part2, tests=Day3.tests } ]
   
   runSolutions solutions 
 
