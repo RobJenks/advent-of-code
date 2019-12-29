@@ -7,6 +7,7 @@ where
 
 import Data.List
 import Control.Exception
+import Common.Util
 
 part1 :: String -> String
 part1 x = show $ applyToModules fuelReq x
@@ -39,4 +40,3 @@ test3 _ = fullReqTest 100756 50346
 
 fullReqTest x exp = assertEqual (reqAccountingForFuel x) exp
 
-assertEqual x exp = if (x == exp) then () else error ("Error: " ++ show x ++ " != " ++ show exp)

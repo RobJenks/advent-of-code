@@ -12,6 +12,8 @@ import qualified Data.Set as Set
 import Data.Map (Map,(!))
 import qualified Data.Map as Map
 
+import Common.Util
+
 type Coord = (Int, Int)
 origin = (0,0) :: Coord 
 
@@ -73,19 +75,6 @@ dir c = case c of
   'L' -> (-1,0)
   'R' -> (1, 0)
   _   -> error "Invalid direction"
-
-
-zipPadded :: a -> b -> [a] -> [b] -> [(a,b)]
-zipPadded a b (x:xs) (y:ys) = (x,y) : zipPadded a b xs ys
-zipPadded a _ [] ys = zip (repeat a) ys
-zipPadded _ b xs [] = zip xs (repeat b)
-
-
-wordsWhen :: (Char -> Bool) -> String -> [String]
-wordsWhen p s = case dropWhile p s of
-                  "" -> []
-                  s' -> w : wordsWhen p s''
-                    where (w, s'') = break p s'
 
 
 -- Tests
