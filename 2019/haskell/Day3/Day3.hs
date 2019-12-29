@@ -89,10 +89,5 @@ wordsWhen p s = case dropWhile p s of
 
 
 -- Tests
-tests = [test1]
-
-test1 _ = assertEqual 4 4
-
-
-assertEqual x exp = if (x == exp) then () else error ("Error: " ++ show x ++ " != " ++ show exp)
+tests = []
 
