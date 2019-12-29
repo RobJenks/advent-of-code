@@ -7,11 +7,14 @@ where
 
 import Data.List
 import Data.Ord
-import Data.Set (Set(..))
+import Data.Set (Set)
 import qualified Data.Set as Set
+import Data.Map (Map,(!))
+import qualified Data.Map as Map
 
 type Coord = (Int, Int)
 origin = (0,0) :: Coord 
+
 
 part1 :: String -> String
 part1 x = show best ++ " -> " ++ (show $ mdist best)
@@ -21,12 +24,17 @@ part1 x = show best ++ " -> " ++ (show $ mdist best)
 
 
 part2 :: String -> String
-part2 x = "Not completed"
+part2 x = show $ shortest intersect (snd $ cv !! 0) (snd $ cv !! 1)
+  where
+    cv = map distCoverage (parseInput x)
+    intersect = intersections (fst $ cv !! 0) (fst $ cv !! 1)
 
 
-closest :: [(Int, Int)] -> (Int, Int)
+closest :: [Coord] -> Coord
 closest ps = head $ sortBy (comparing mdist) ps
 
+shortest :: [Coord] -> Map Coord Int -> Map Coord Int -> Int
+shortest ps d0 d1 = head $ sort $ map (\p -> (d0!p) + (d1!p)) ps
 
 intersections :: Set Coord -> Set Coord -> [(Int, Int)]
 intersections x0 x1 = filter (\x -> x /= (0,0)) 
@@ -34,6 +42,11 @@ intersections x0 x1 = filter (\x -> x /= (0,0))
 
 coverage :: [Coord] -> Set Coord
 coverage ps = Set.fromList (scanl move origin ps)
+
+distCoverage :: [Coord] -> (Set Coord, Map Coord Int)
+distCoverage ps = (Set.fromList (map fst path), Map.fromListWith min path)
+  where
+    path = (scanl (\(p,i) d -> ((move p d), i+1)) (origin, 0) ps) :: [(Coord, Int)]
                   
 move :: Coord -> Coord -> Coord
 move (px,py) (dx,dy) = (px + dx, py + dy)
