@@ -20,12 +20,12 @@ import Common.Util
 part1 :: String -> String
 part1 x = case Cpu.execute $ Cpu.primeTape [(1,12),(2,2)] $ Cpu.parseInput x of
   Left e -> error ("Execution failed: " ++ e)
-  Right tape -> show $ head $ toList tape
+  Right state -> show $ head $ toList $ Cpu.tapeState $ state
 
 part2 :: String -> String
 part2 x = show 
            (((map (\(p,res) -> ((show p) ++ " -> " ++ show (100*(fst p) + (snd p))))) . 
-             (filter (\(p,res) -> either (\_ -> False) (\t -> ((Seq.index t 0) == 19690720)) res)) .
+             (filter (\(p,res) -> either (\_ -> False) (\t -> ((Seq.index (Cpu.tapeState t) 0) == 19690720)) res)) .
              (map (\p -> (p, Cpu.execute $ Cpu.primeTape [(1,fst p),(2,snd p)] (Cpu.parseInput x)))))
              (nounVerbPairs 0 99))
 
@@ -48,5 +48,5 @@ test4 _ = runTest [1,1,1,4,99,5,6,0,99] [30,1,1,4,2,5,6,0,99]
 runTest :: [Int] -> [Int] -> ()
 runTest input exp = case (Cpu.execute $ Seq.fromList input) of 
   Left e -> error ("Test failed: " ++ e)
-  Right tape -> assertEqual tape (Seq.fromList exp)
+  Right state -> assertEqual (Cpu.tapeState state) (Seq.fromList exp)
 

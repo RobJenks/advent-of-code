@@ -2,6 +2,7 @@ import qualified Day1.Day1 as Day1
 import qualified Day2.Day2 as Day2
 import qualified Day3.Day3 as Day3
 import qualified Day4.Day4 as Day4
+import qualified Day5.Day5 as Day5
 
 import Control.Exception
 
@@ -20,7 +21,8 @@ main = do
   let solutions = [ Solution { day=1, part1=io.Day1.part1, part2=io.Day1.part2, tests=Day1.tests }
                   , Solution { day=2, part1=io.Day2.part1, part2=io.Day2.part2, tests=Day2.tests }
                   , Solution { day=3, part1=io.Day3.part1, part2=io.Day3.part2, tests=Day3.tests } 
-                  , Solution { day=4, part1=io.Day4.part1, part2=io.Day4.part2, tests=Day4.tests } ]
+                  , Solution { day=4, part1=io.Day4.part1, part2=io.Day4.part2, tests=Day4.tests }
+                  , Solution { day=5, part1=io.Day5.part1, part2=io.Day5.part2, tests=Day5.tests } ]
   
   runSolutions solutions 
 

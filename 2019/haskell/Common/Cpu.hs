@@ -3,6 +3,8 @@ module Common.Cpu
 , executeFor
 , primeTape
 , parseInput
+, tapeState
+, outputState
 
 , Tape
 , State
@@ -16,46 +18,40 @@ import Data.Sequence (Seq(..))
 import qualified Data.Sequence as Seq
 import Control.Exception
 
-
 type Tape = Seq Int
-type State = Either String Tape
+data State = State { tapeState    :: Tape
+                   , outputState  :: [Int] 
+                   }
+type Result = Either String State
+
 maxCycles = 10000 :: Int
 
-part1 :: String -> String
-part1 x = case execute $ primeTape [(1,12),(2,2)] $ parseInput x of
-  Left e -> error ("Execution failed: " ++ e)
-  Right tape -> show $ head $ toList tape
 
-part2 :: String -> String
-part2 x = show 
-           (((map (\(p,res) -> ((show p) ++ " -> " ++ show (100*(fst p) + (snd p))))) . 
-             (filter (\(p,res) -> either (\_ -> False) (\t -> ((Seq.index t 0) == 19690720)) res)) .
-             (map (\p -> (p, execute $ primeTape [(1,fst p),(2,snd p)] (parseInput x)))))
-             (nounVerbPairs 0 99))
-
-
-execute :: Tape -> State
+execute :: Tape -> Result
 execute tape = executeFor tape maxCycles
 
-executeFor :: Tape -> Int -> State
-executeFor tape cpuCycles = step (ok tape) 0 cpuCycles
+executeFor :: Tape -> Int -> Result
+executeFor tape cpuCycles = step (ok tape []) 0 cpuCycles
 
-step :: State -> Int -> Int -> State
-step state ip cpuTime = result
+step :: Result -> Int -> Int -> Result
+step input ip cpuTime = result
   where 
-    result = case state of 
+    result = case input of 
       Left e -> err e
-      Right tape -> cycleResult
+      Right state -> cycleResult
         where 
+          tape = tapeState state
+          output = outputState state
           op 
             | cpuTime > 0 = Seq.index tape ip
             | otherwise   = -1
+          proceed = (\f narg -> step (ok (f tape (get narg tape (ip+1))) output) (ip+narg+1) (cpuTime-1))
           cycleResult =
             case op of
-              1 -> step (ok $ opAdd tape (get 3 tape (ip+1))) (ip+4) (cpuTime-1)
-              2 -> step (ok $ opMult tape (get 3 tape (ip+1))) (ip+4) (cpuTime-1)
+              1 -> proceed opAdd 3
+              2 -> proceed opMult 3 
            
-              99 -> ok tape
+              99 -> ok tape output
               -1 -> err "Out of CPU cycles"
 
               _ -> error ("Unknown opcode " ++ show op)
@@ -79,10 +75,13 @@ binaryIndexedOp tape arg f = set
                   (arg !! 2)
                   (f (map (Seq.index tape) (take 2 arg)))
                   
-ok :: Tape -> State
-ok tape = Right tape
+newState :: Tape -> [Int] -> State
+newState tape output = State { tapeState=tape, outputState=output }
 
-err :: String -> State
+ok :: Tape -> [Int] -> Result
+ok tape output = Right $ newState tape output
+
+err :: String -> Result
 err e = Left e
 
 primeTape :: [(Int, Int)] -> Tape -> Tape
@@ -100,22 +99,4 @@ wordsWhen p s = case dropWhile p s of
 nounVerbPairs :: Int -> Int -> [(Int, Int)]
 nounVerbPairs l h = [ (x,y) | x <- [l..h], y <- [l..h] ]
 
-
-
--- Tests
-tests = [test1, test2, test3, test4]
-
-test1 _ = runTest [1,0,0,0,99] [2,0,0,0,99]
-test2 _ = runTest [2,3,0,3,99] [2,3,0,6,99]
-test3 _ = runTest [2,4,4,5,99,0] [2,4,4,5,99,9801]
-test4 _ = runTest [1,1,1,4,99,5,6,0,99] [30,1,1,4,2,5,6,0,99]
-
-
-runTest :: [Int] -> [Int] -> ()
-runTest input exp = case (execute $ Seq.fromList input) of 
-  Left e -> error ("Test failed: " ++ e)
-  Right tape -> assertEqual tape (Seq.fromList exp)
-
-
-assertEqual x exp = if (x == exp) then () else error ("Error: " ++ show x ++ " != " ++ show exp)
 
