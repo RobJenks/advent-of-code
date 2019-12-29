@@ -48,7 +48,7 @@ runSolution solution = do
 runTests :: Solution -> String -> String
 runTests sln input
   | skipTests = "Tests skipped"
-  | otherwise = (show $ sum $ (map (\x -> if x == () then 1 else 0) (map ($ input) (tests sln)))) ++ " passed"
+  | otherwise = (show $ sum $ (map (\x -> if x == () then 1 else 0) (map ($ input) (tests sln)))) ++ " executed"
 
 io :: a -> IO a
 io x = do

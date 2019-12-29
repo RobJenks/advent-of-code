@@ -1,6 +1,7 @@
 module Common.Cpu
 ( execute
 , executeFor
+, executeNoInput
 , primeTape
 , parseInput
 , tapeState
@@ -27,16 +28,19 @@ type Result = Either String State
 maxCycles = 10000 :: Int
 
 
-execute :: Tape -> Result
-execute tape = executeFor tape maxCycles
+execute :: Tape -> Int -> Result
+execute tape input = executeFor tape input maxCycles
 
-executeFor :: Tape -> Int -> Result
-executeFor tape cpuCycles = step (ok tape []) 0 cpuCycles
+executeFor :: Tape -> Int -> Int -> Result
+executeFor tape input cpuCycles = step (ok tape []) input 0 cpuCycles
 
-step :: Result -> Int -> Int -> Result
-step input ip cpuTime = result
+executeNoInput :: Tape -> Result
+executeNoInput tape = execute tape 0
+
+step :: Result -> Int -> Int -> Int -> Result
+step inputState input ip cpuTime = result
   where 
-    result = case input of 
+    result = case inputState of 
       Left e -> err e
       Right state -> cycleResult
         where 
@@ -45,12 +49,20 @@ step input ip cpuTime = result
           op 
             | cpuTime > 0 = Seq.index tape ip
             | otherwise   = -1
-          proceed = (\f narg -> step (ok (f tape (get narg tape (ip+1))) output) (ip+narg+1) (cpuTime-1))
+          
+          proceedWithAuxInput = \f narg aux -> 
+            let (opTape, opOutput) = (f tape ((get narg tape (ip+1)) ++ aux))
+            in step (ok opTape (output ++ opOutput)) input (ip+narg+1) (cpuTime-1)
+          
+          proceed f narg = proceedWithAuxInput f narg []
+
           cycleResult =
             case op of
               1 -> proceed opAdd 3
               2 -> proceed opMult 3 
-           
+              3 -> proceedWithAuxInput opStore 1 [input]          
+              4 -> proceed opOutput 1 
+ 
               99 -> ok tape output
               -1 -> err "Out of CPU cycles"
 
@@ -60,20 +72,30 @@ step input ip cpuTime = result
 get :: Int -> Tape -> Int -> [Int]
 get n tape ip = map (Seq.index tape) (map (+ ip) [0..(n-1)])
 
+getOne :: Tape -> Int -> Int
+getOne tape ip = head $ get 1 tape ip
+
 set :: Tape -> Int -> Int -> Tape
 set tape ix val = Seq.update ix val tape
 
-opAdd :: Tape -> [Int] -> Tape
-opAdd tape arg = binaryIndexedOp tape arg sum
+opAdd :: Tape -> [Int] -> (Tape, [Int])
+opAdd tape arg = (naryIndexedOp 2 tape arg sum, [])
 
-opMult :: Tape -> [Int] -> Tape
-opMult tape arg = binaryIndexedOp tape arg product
-                   
-binaryIndexedOp :: Tape -> [Int] -> ([Int] -> Int) -> Tape
-binaryIndexedOp tape arg f = set 
+opMult :: Tape -> [Int] -> (Tape, [Int])
+opMult tape arg = (naryIndexedOp 2 tape arg product, [])
+                  
+opStore :: Tape -> [Int] -> (Tape, [Int])
+opStore tape arg = (set tape (head arg) (head $ tail arg), [])
+ 
+opOutput :: Tape -> [Int] -> (Tape, [Int])
+opOutput tape arg = (tape, [getOne tape (arg !! 0)])
+
+-- Accepts (n+1) args [0..n] for an n-ary function, storing result in the nth arg
+naryIndexedOp :: Int -> Tape -> [Int] -> ([Int] -> Int) -> Tape
+naryIndexedOp n tape arg f = set 
                   tape
-                  (arg !! 2)
-                  (f (map (Seq.index tape) (take 2 arg)))
+                  (arg !! n)
+                  (f (map (Seq.index tape) (take n arg)))
                   
 newState :: Tape -> [Int] -> State
 newState tape output = State { tapeState=tape, outputState=output }
