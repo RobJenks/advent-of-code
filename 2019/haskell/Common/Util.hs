@@ -16,8 +16,13 @@ wordsWhen p s = case dropWhile p s of
                     where (w, s'') = break p s'
 
 -- Zip two lists with specified padding when unequal lengths
+zipWithPadded :: (a -> b -> c) -> a -> b -> [a] -> [b] -> [c]
+zipWithPadded f a b (x:xs) (y:ys) = (f a b) : zipWithPadded f a b xs ys
+zipWithPadded f a _ [] ys = zipWith f (repeat a) ys
+zipWithPadded f _ b xs [] = zipWith f xs (repeat b)
+
 zipPadded :: a -> b -> [a] -> [b] -> [(a,b)]
-zipPadded a b (x:xs) (y:ys) = (x,y) : zipPadded a b xs ys
-zipPadded a _ [] ys = zip (repeat a) ys
-zipPadded _ b xs [] = zip xs (repeat b)
+zipPadded a b xa xb = zipWithPadded (\a b -> (a,b)) a b xa xb
+
+
 

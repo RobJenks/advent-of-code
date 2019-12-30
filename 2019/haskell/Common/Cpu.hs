@@ -29,6 +29,7 @@ data State = State { tapeState    :: Tape
                    , outputState  :: [Int] 
                    }
 type Result = Either String State
+data Param = Positional Int | Immediate Int  deriving Show
 
 maxCycles = 10000 :: Int
 
@@ -52,11 +53,11 @@ step inputState input ip cpuTime = result
           tape = tapeState state
           output = outputState state
           op 
-            | cpuTime > 0 = Seq.index tape ip
+            | cpuTime > 0 = getOp $ getOne tape ip
             | otherwise   = -1
           
           proceedWithAuxInput = \f narg aux -> 
-            let (opTape, opOutput) = (f tape ((get narg tape (ip+1)) ++ aux))
+            let (opTape, opOutput) = f tape (getParams narg tape ip aux)
             in step (ok opTape (output ++ opOutput)) input (ip+narg+1) (cpuTime-1)
           
           proceed f narg = proceedWithAuxInput f narg []
@@ -83,24 +84,57 @@ getOne tape ip = head $ get 1 tape ip
 set :: Tape -> Int -> Int -> Tape
 set tape ix val = Seq.update ix val tape
 
-opAdd :: Tape -> [Int] -> (Tape, [Int])
+getParams :: Int -> Tape -> Int -> [Int] -> [Param]
+getParams n tape ip aux = zipWith newParam modes vals
+  where
+    vals = (get n tape (ip+1)) ++ aux
+    modes = getModes (n + (length aux)) $ getOne tape ip
+
+getOp :: Int -> Int
+getOp instr
+  | instr < 10 = instr
+  | otherwise  = read $ take 2 (show instr)
+ 
+getModes :: Int -> Int -> [Int]
+getModes n instr = map (read . (:[])) $ take n modeString
+  where
+    modeString = drop 2 $ ((reverse $ show instr) ++ (repeat '0'))
+
+newParam :: Int -> Int -> Param
+newParam mode val = case mode of 
+  0 -> Positional val
+  1 -> Immediate val
+  _   -> error ("Unknown parameter mode: " ++ (show mode))
+
+resolveParam :: Tape -> Param -> Int
+resolveParam tape param = case param of 
+  Positional x -> getOne tape x
+  Immediate  x -> x
+
+paramValue :: Param -> Int
+paramValue p = case p of 
+  Positional x -> x
+  Immediate x -> x
+
+opAdd :: Tape -> [Param] -> (Tape, [Int])
 opAdd tape arg = (naryIndexedOp 2 tape arg sum, [])
 
-opMult :: Tape -> [Int] -> (Tape, [Int])
+opMult :: Tape -> [Param] -> (Tape, [Int])
 opMult tape arg = (naryIndexedOp 2 tape arg product, [])
                   
-opStore :: Tape -> [Int] -> (Tape, [Int])
-opStore tape arg = (set tape (head arg) (head $ tail arg), [])
+opStore :: Tape -> [Param] -> (Tape, [Int])
+opStore tape arg = (set tape (paramValue $ head arg) 
+                             (paramValue $ head $ drop 1 arg), [])
  
-opOutput :: Tape -> [Int] -> (Tape, [Int])
-opOutput tape arg = (tape, [getOne tape (arg !! 0)])
+opOutput :: Tape -> [Param] -> (Tape, [Int])
+opOutput tape arg = (tape, [getOne tape (resolveParam tape $ head arg)])
 
 -- Accepts (n+1) args [0..n] for an n-ary function, storing result in the nth arg
-naryIndexedOp :: Int -> Tape -> [Int] -> ([Int] -> Int) -> Tape
+naryIndexedOp :: Int -> Tape -> [Param] -> ([Int] -> Int) -> Tape
 naryIndexedOp n tape arg f = set 
                   tape
-                  (arg !! n)
-                  (f (map (Seq.index tape) (take n arg)))
+                  (paramValue $ arg !! n)
+                  (f (map (resolveParam tape) (take n arg)))
                   
 newState :: Tape -> [Int] -> State
 newState tape output = State { tapeState=tape, outputState=output }
