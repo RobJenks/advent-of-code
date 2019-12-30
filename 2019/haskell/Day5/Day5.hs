@@ -13,25 +13,31 @@ import Common.Util
 
 
 part1 :: String -> String
-part1 x = case result of 
-  Left e -> error ("Execution failed: " ++ e)
-  Right state -> show $ Cpu.outputState $ state
-  where
-    result = Cpu.execute (Cpu.parseInput x) 1
+part1 x = show $ head $ reverse $ Cpu.outputState $ executeDiagnostics x
+
 
 part2 :: String -> String
 part2 _ = "Not completed" 
 
 
+executeDiagnostics :: String -> State
+executeDiagnostics x = case result of 
+  Left e -> error ("Execution failed: " ++ e)
+  Right state -> state
+  where 
+    result = Cpu.execute (Cpu.parseInput x) 1
+
+
+
 
 -- Tests
-tests = [testInOut, testPositional]
+tests = [performDiagnosticTests]
 
-testInOut :: String -> ()
-testInOut _ = Cpu.testProgram [3,0,4,0,99] 12 [12,0,4,0,99] [12] 
-
-testPositional :: String -> ()
-testPositional _ = Cpu.testProgram [2,0,2,5,99,0] 0 [2,0,1,5,99,4] []
+performDiagnosticTests x = head [
+  assertEqual (head reversedOutput) 16225258,
+  assertEqual (filter (/=0) $ drop 1 reversedOutput) [] ]
+  where
+    reversedOutput = reverse $ Cpu.outputState $ executeDiagnostics x
 
 
 

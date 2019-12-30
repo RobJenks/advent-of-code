@@ -35,16 +35,6 @@ nounVerbPairs :: Int -> Int -> [(Int, Int)]
 nounVerbPairs l h = [ (x,y) | x <- [l..h], y <- [l..h] ]
 
 
-
--- Tests
-tests = [test1, test2, test3, test4]
-
-test1 _ = tapeOnlyTest [1,0,0,0,99] [2,0,0,0,99]
-test2 _ = tapeOnlyTest [2,3,0,3,99] [2,3,0,6,99]
-test3 _ = tapeOnlyTest [2,4,4,5,99,0] [2,4,4,5,99,9801]
-test4 _ = tapeOnlyTest [1,1,1,4,99,5,6,0,99] [30,1,1,4,2,5,6,0,99]
-
-
-tapeOnlyTest :: [Int] -> [Int] -> ()
-tapeOnlyTest input exp = Cpu.testProgram input 0 exp []
+-- Tests included in Common.Cpu
+tests = []
 
