@@ -30,7 +30,7 @@ executeDiagnostics x = case result of
 
 
 
--- Tests
+-- Tests (primarily in Common.Cpu)
 tests = [performDiagnosticTests]
 
 performDiagnosticTests x = head [

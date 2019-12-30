@@ -22,7 +22,6 @@ import Data.List
 import Data.Sequence (Seq(..))
 import qualified Data.Sequence as Seq
 import Control.Exception
-import Debug.Trace
 
 import Common.Util (assertEqual, wordsWhen)
 
@@ -65,7 +64,8 @@ step inputState input ip cpuTime = result
           
           proceed f narg = proceedWithAuxInput f narg []
 
-          cycleResult = case op of
+          cycleResult = 
+            case op of
               1 -> proceed opAdd 3
               2 -> proceed opMult 3 
               3 -> proceedWithAuxInput opStore 1 [input]          
