@@ -21,5 +21,9 @@ part2 _ = "Not completed"
 
 
 -- Tests
-tests = []
+tests = [test1]
+
+test1 :: String -> ()
+test1 _ = Cpu.testProgram [3,0,4,0,99] 12 [12,0,4,0,99] [12] 
+
 

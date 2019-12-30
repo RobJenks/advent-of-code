@@ -3,9 +3,11 @@ module Common.Cpu
 , executeFor
 , executeNoInput
 , primeTape
+, newTape
 , parseInput
 , tapeState
 , outputState
+, testProgram
 
 , Tape
 , State
@@ -18,6 +20,9 @@ import Data.List
 import Data.Sequence (Seq(..))
 import qualified Data.Sequence as Seq
 import Control.Exception
+
+import Common.Util
+
 
 type Tape = Seq Int
 data State = State { tapeState    :: Tape
@@ -108,17 +113,25 @@ err e = Left e
 
 primeTape :: [(Int, Int)] -> Tape -> Tape
 primeTape vals tape = foldl (\t x -> (set t (fst x) (snd x))) tape vals
-  
-parseInput :: String -> Tape
-parseInput input = Seq.fromList $ map read (wordsWhen (== ',') input)
 
-wordsWhen :: (Char -> Bool) -> String -> [String]
-wordsWhen p s = case dropWhile p s of
-                  "" -> []
-                  s' -> w : wordsWhen p s''
-                    where (w, s'') = break p s'
-                    
-nounVerbPairs :: Int -> Int -> [(Int, Int)]
-nounVerbPairs l h = [ (x,y) | x <- [l..h], y <- [l..h] ]
+newTape :: [Int] -> Tape
+newTape = Seq.fromList
+ 
+parseInput :: String -> Tape
+parseInput input = newTape $ map read (wordsWhen (== ',') input)
+
+                   
+testProgram :: [Int] -> Int -> [Int] -> [Int] -> ()
+testProgram prog input expTape expOutput = case result of 
+  Left e -> error ("Test failed: " ++ e)
+  Right state -> head [
+    assertEqual (tapeState state) (newTape expTape),
+    assertEqual (outputState state) expOutput]
+  
+  where result = execute (newTape prog) input
+
+
+
+
 
 
