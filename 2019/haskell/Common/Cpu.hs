@@ -71,7 +71,9 @@ step inputState input ip cpuTime = result
               1 -> proceed opAdd 3
               2 -> proceed opMult 3 
               3 -> proceedWithAuxInput opStore 1 [input]          
-              4 -> proceed opOutput 1 
+              4 -> proceed opOutput 1
+              5 -> proceed opJumpIfTrue 2 
+              6 -> proceed opJumpIfFalse 2 
  
               99 -> ok tape output
               -1 -> err "Out of CPU cycles"
@@ -138,6 +140,20 @@ opStore tape arg = (set tape (paramValue $ head arg)
 opOutput :: Tape -> [Param] -> OpResult
 opOutput tape arg = (tape, [resolveParam tape $ head arg], Nothing)
 
+opJumpIf :: (Int -> Bool) -> Tape -> [Param] -> OpResult
+opJumpIf test tape arg
+  | testResult = (tape, [], Just (resolveParam tape $ head $ drop 1 arg))
+  | otherwise  = (tape, [], Nothing)
+  where
+    testResult = test (resolveParam tape $ head arg)
+
+opJumpIfTrue :: Tape -> [Param] -> OpResult
+opJumpIfTrue = opJumpIf (/= 0)
+
+opJumpIfFalse :: Tape -> [Param] -> OpResult
+opJumpIfFalse = opJumpIf (== 0)
+
+
 -- Accepts (n+1) args [0..n] for an n-ary function, storing result in the nth arg
 naryIndexedOp :: Int -> Tape -> [Param] -> ([Int] -> Int) -> Tape
 naryIndexedOp n tape arg f = set 
@@ -178,6 +194,7 @@ testProgram prog input expTape expOutput = case result of
 
 cpuTests = [ basicTapeTest1, basicTapeTest2, basicTapeTest3, basicTapeTest4, primeTest
            , testAdd, testMult, testStore, testOutput1, testOutput2, testInputOutput
+           , testPositionalJumps1, testPositionalJumps2, testImmediateJumps1, testImmediateJumps2
            , testModeDerivation, testOpcodeDeriv1, testOpcodeDeriv2, testOpcodeDeriv3, testOpcodeDeriv4
            , testPositional, testImmediate, testNegativeValues ]
 
@@ -204,6 +221,11 @@ testOutput1 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Positional 1]) (newTa
 testOutput2 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Immediate 1]) (newTape [1,2,3,4], [1], Nothing)
 
 testInputOutput _ = testProgram [3,0,4,0,99] 12 [12,0,4,0,99] [12]
+
+testPositionalJumps1 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 0 [3,12,6,12,15,1,13,14,13,4,13,99,0,0,1,9] [0]
+testPositionalJumps2 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 12 [3,12,6,12,15,1,13,14,13,4,13,99,12,1,1,9] [1]
+testImmediateJumps1 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] 0 [3,3,1105,0,9,1101,0,0,12,4,12,99,0] [0]
+testImmediateJumps2 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] (-12) [3,3,1105,-12,9,1101,0,0,12,4,12,99,1] [1]
 
 -- Instruction parsing
 
