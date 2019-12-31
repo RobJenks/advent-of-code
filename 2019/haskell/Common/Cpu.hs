@@ -33,6 +33,8 @@ data State = State { tapeState    :: Tape
 type Result = Either String State
 data Param = Positional Int | Immediate Int  deriving Show
 
+type OpResult = (Tape, [Int], Maybe Int)
+
 maxCycles = 10000 :: Int
 
 
@@ -59,8 +61,8 @@ step inputState input ip cpuTime = result
             | otherwise   = -1
           
           proceedWithAuxInput = \f narg aux -> 
-            let (opTape, opOutput) = f tape (getParams narg tape ip aux)
-            in step (ok opTape (output ++ opOutput)) input (advance ip (narg+1)) (cpuTime-1)
+            let (opTape, opOutput, opIp) = f tape (getParams narg tape ip aux)
+            in step (ok opTape (output ++ opOutput)) input (advance ip (narg+1) opIp) (cpuTime-1)
           
           proceed f narg = proceedWithAuxInput f narg []
 
@@ -86,8 +88,10 @@ getOne tape ip = head $ get 1 tape ip
 set :: Tape -> Int -> Int -> Tape
 set tape ix val = Seq.update ix val tape
 
-advance :: Int -> Int -> Int
-advance ip n = ip + n
+advance :: Int -> Int -> Maybe Int -> Int
+advance ip n override = case override of 
+  Just x  -> x
+  Nothing -> ip + n
 
 getParams :: Int -> Tape -> Int -> [Int] -> [Param]
 getParams n tape ip aux = zipWith newParam modes vals
@@ -121,18 +125,18 @@ paramValue p = case p of
   Positional x -> x
   Immediate x -> x
 
-opAdd :: Tape -> [Param] -> (Tape, [Int])
-opAdd tape arg = (naryIndexedOp 2 tape arg sum, [])
+opAdd :: Tape -> [Param] -> OpResult
+opAdd tape arg = (naryIndexedOp 2 tape arg sum, [], Nothing)
 
-opMult :: Tape -> [Param] -> (Tape, [Int])
-opMult tape arg = (naryIndexedOp 2 tape arg product, [])
+opMult :: Tape -> [Param] -> OpResult
+opMult tape arg = (naryIndexedOp 2 tape arg product, [], Nothing)
                   
-opStore :: Tape -> [Param] -> (Tape, [Int])
+opStore :: Tape -> [Param] -> OpResult
 opStore tape arg = (set tape (paramValue $ head arg) 
-                             (paramValue $ head $ drop 1 arg), [])
+                             (paramValue $ head $ drop 1 arg), [], Nothing)
  
-opOutput :: Tape -> [Param] -> (Tape, [Int])
-opOutput tape arg = (tape, [resolveParam tape $ head arg])
+opOutput :: Tape -> [Param] -> OpResult
+opOutput tape arg = (tape, [resolveParam tape $ head arg], Nothing)
 
 -- Accepts (n+1) args [0..n] for an n-ary function, storing result in the nth arg
 naryIndexedOp :: Int -> Tape -> [Param] -> ([Int] -> Int) -> Tape
@@ -189,15 +193,15 @@ primeTest _ = assertEqual (primeTape [(1,2),(3,4),(5,6)] (newTape [0,0,0,0,0,0,0
 
 -- Opcodes
 
-testAdd _ = assertEqual (opAdd (newTape [1,0,0,0]) [Positional 0, Positional 0, Positional 0]) (newTape [2,0,0,0], [])
+testAdd _ = assertEqual (opAdd (newTape [1,0,0,0]) [Positional 0, Positional 0, Positional 0]) (newTape [2,0,0,0], [], Nothing)
 
-testMult _ = assertEqual (opMult (newTape [2,0,0,0]) [Positional 0, Positional 0, Positional 2]) (newTape [2,0,4,0], [])
+testMult _ = assertEqual (opMult (newTape [2,0,0,0]) [Positional 0, Positional 0, Positional 2]) (newTape [2,0,4,0], [], Nothing)
 
-testStore _ = assertEqual (opStore (newTape [0,0,0,0]) [Positional 3, Positional 12]) (newTape [0,0,0,12], [])
+testStore _ = assertEqual (opStore (newTape [0,0,0,0]) [Positional 3, Positional 12]) (newTape [0,0,0,12], [], Nothing)
 
-testOutput1 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Positional 1]) (newTape [1,2,3,4], [2])
+testOutput1 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Positional 1]) (newTape [1,2,3,4], [2], Nothing)
 
-testOutput2 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Immediate 1]) (newTape [1,2,3,4], [1])
+testOutput2 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Immediate 1]) (newTape [1,2,3,4], [1], Nothing)
 
 testInputOutput _ = testProgram [3,0,4,0,99] 12 [12,0,4,0,99] [12]
 
