@@ -194,10 +194,10 @@ testProgram prog input expTape expOutput = case result of
 
 cpuTests = [ basicTapeTest1, basicTapeTest2, basicTapeTest3, basicTapeTest4, primeTest
            , testAdd, testMult, testStore, testOutput1, testOutput2, testInputOutput
-           , testPositionalJumps1, testPositionalJumps2, testImmediateJumps1, testImmediateJumps2
+           , testJumpIfTrue1, testJumpIfTrue2, testJumpIfFalse1, testJumpIfFalse2
            , testModeDerivation, testOpcodeDeriv1, testOpcodeDeriv2, testOpcodeDeriv3, testOpcodeDeriv4
-           , testPositional, testImmediate, testNegativeValues ]
-
+           , testPositional, testImmediate, testNegativeValues
+           , testPositionalJumps1, testPositionalJumps2, testImmediateJumps1, testImmediateJumps2 ]
 
 -- Basic
 
@@ -222,10 +222,11 @@ testOutput2 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Immediate 1]) (newTap
 
 testInputOutput _ = testProgram [3,0,4,0,99] 12 [12,0,4,0,99] [12]
 
-testPositionalJumps1 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 0 [3,12,6,12,15,1,13,14,13,4,13,99,0,0,1,9] [0]
-testPositionalJumps2 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 12 [3,12,6,12,15,1,13,14,13,4,13,99,12,1,1,9] [1]
-testImmediateJumps1 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] 0 [3,3,1105,0,9,1101,0,0,12,4,12,99,0] [0]
-testImmediateJumps2 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] (-12) [3,3,1105,-12,9,1101,0,0,12,4,12,99,1] [1]
+testJumpIfTrue1 _ = assertEqual (opJumpIfTrue (newTape [5,2,1,99]) [Positional 2, Positional 1]) (newTape [5,2,1,99], [], Just 2)
+testJumpIfTrue2 _ = assertEqual (opJumpIfTrue (newTape [5,2,1,99]) [Immediate 0, Positional 1]) (newTape [5,2,1,99], [], Nothing)
+
+testJumpIfFalse1 _ = assertEqual (opJumpIfFalse (newTape [5,2,0,99]) [Immediate 2, Positional 1]) (newTape [5,2,0,99], [], Nothing)
+testJumpIfFalse2 _ = assertEqual (opJumpIfFalse (newTape [5,2,0,99]) [Positional 2, Positional 3]) (newTape [5,2,0,99], [], Just 99)
 
 -- Instruction parsing
 
@@ -245,3 +246,9 @@ testNegativeValues _ = testProgram [1101,100,-1,4,0] 0 [1101,100,-1,4,99] []
 tapeOnlyTest :: [Int] -> [Int] -> ()
 tapeOnlyTest input exp = testProgram input 0 exp []
 
+-- Conditional jumps
+
+testPositionalJumps1 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 0 [3,12,6,12,15,1,13,14,13,4,13,99,0,0,1,9] [0]
+testPositionalJumps2 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 12 [3,12,6,12,15,1,13,14,13,4,13,99,12,1,1,9] [1]
+testImmediateJumps1 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] 0 [3,3,1105,0,9,1101,0,0,12,4,12,99,0] [0]
+testImmediateJumps2 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] (-12) [3,3,1105,-12,9,1101,0,0,12,4,12,99,1] [1]
