@@ -5,6 +5,7 @@ module Common.Util
 , zipPadded
 , ioTrace
 , ioTraceDirect
+, stack
 
 , utilTests
 )
@@ -13,7 +14,7 @@ where
 import Data.List
 import Control.Exception
 import System.IO.Unsafe (unsafePerformIO)
-
+import Debug.Trace (traceStack)
 
 -- Test assertions
 assertEqual x exp = if (x == exp) then () else error ("Error: " ++ show x ++ " != " ++ show exp)
@@ -48,7 +49,9 @@ ioTrace m x = unsafePerformIO $ do
   print m
   pure x
 
-
+-- Debug output with a stack trace (reuires ghc -prof -prof-auto)
+stack :: String -> a -> a
+stack = traceStack
 
 
 -- Tests

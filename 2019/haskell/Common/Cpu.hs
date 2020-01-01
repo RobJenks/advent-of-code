@@ -74,6 +74,8 @@ step inputState input ip cpuTime = result
               4 -> proceed opOutput 1
               5 -> proceed opJumpIfTrue 2 
               6 -> proceed opJumpIfFalse 2 
+              7 -> proceed opLessThan 3
+              8 -> proceed opEqual 3
  
               99 -> ok tape output
               -1 -> err "Out of CPU cycles"
@@ -153,6 +155,14 @@ opJumpIfTrue = opJumpIf (/= 0)
 opJumpIfFalse :: Tape -> [Param] -> OpResult
 opJumpIfFalse = opJumpIf (== 0)
 
+opTest :: ([Int] -> Int) -> Tape -> [Param] -> OpResult
+opTest test tape arg = (naryIndexedOp 2 tape arg test, [], Nothing)
+
+opLessThan :: Tape -> [Param] -> OpResult
+opLessThan = opTest (\(x:y:xs) -> if x < y then 1 else 0)
+
+opEqual :: Tape -> [Param] -> OpResult
+opEqual = opTest (\(x:y:xs) -> if x == y then 1 else 0)
 
 -- Accepts (n+1) args [0..n] for an n-ary function, storing result in the nth arg
 naryIndexedOp :: Int -> Tape -> [Param] -> ([Int] -> Int) -> Tape
@@ -189,6 +199,12 @@ testProgram prog input expTape expOutput = case result of
   
   where result = execute (newTape prog) input
 
+testProgramOutput :: [Int] -> Int -> [Int] -> ()
+testProgramOutput prog input expOutput = case result of 
+  Left e -> error ("Test failed: " ++ e)
+  Right state -> assertEqual (outputState state) expOutput
+  
+  where result = execute (newTape prog) input
 
 -- == Tests == --
 
@@ -197,7 +213,10 @@ cpuTests = [ basicTapeTest1, basicTapeTest2, basicTapeTest3, basicTapeTest4, pri
            , testJumpIfTrue1, testJumpIfTrue2, testJumpIfFalse1, testJumpIfFalse2
            , testModeDerivation, testOpcodeDeriv1, testOpcodeDeriv2, testOpcodeDeriv3, testOpcodeDeriv4
            , testPositional, testImmediate, testNegativeValues
-           , testPositionalJumps1, testPositionalJumps2, testImmediateJumps1, testImmediateJumps2 ]
+           , testPositionalJumps1, testPositionalJumps2, testImmediateJumps1, testImmediateJumps2
+           , testLessThanPositional1, testLessThanPositional2, testLessThanImmediate1, testLessThanImmediate2
+           , testEqualityPositional1, testEqualityPositional2, testEqualityImmediate1, testEqualityImmediate2
+           , testBranchJumps1, testBranchJumps2, testBranchJumps3 ]
 
 -- Basic
 
@@ -252,3 +271,24 @@ testPositionalJumps1 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 
 testPositionalJumps2 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 12 [3,12,6,12,15,1,13,14,13,4,13,99,12,1,1,9] [1]
 testImmediateJumps1 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] 0 [3,3,1105,0,9,1101,0,0,12,4,12,99,0] [0]
 testImmediateJumps2 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] (-12) [3,3,1105,-12,9,1101,0,0,12,4,12,99,1] [1]
+
+-- Branch conditions
+
+testLessThanPositional1 _ = testProgram [3,9,7,9,10,9,4,9,99,-1,8] 4 [3,9,7,9,10,9,4,9,99,1,8] [1]
+testLessThanPositional2 _ = testProgram [3,9,7,9,10,9,4,9,99,-1,8] 9 [3,9,7,9,10,9,4,9,99,0,8] [0]
+
+testLessThanImmediate1 _ = testProgram [3,3,1107,-1,8,3,4,3,99] 4 [3,3,1107,1,8,3,4,3,99] [1]
+testLessThanImmediate2 _ = testProgram [3,3,1107,-1,8,3,4,3,99] 9 [3,3,1107,0,8,3,4,3,99] [0]
+
+testEqualityPositional1 _ = testProgram [3,9,8,9,10,9,4,9,99,-1,8] 8 [3,9,8,9,10,9,4,9,99,1,8] [1]
+testEqualityPositional2 _ = testProgram [3,9,8,9,10,9,4,9,99,-1,8] 6 [3,9,8,9,10,9,4,9,99,0,8] [0]
+
+testEqualityImmediate1 _ = testProgram [3,3,1108,-1,8,3,4,3,99] 8 [3,3,1108,1,8,3,4,3,99] [1]
+testEqualityImmediate2 _ = testProgram [3,3,1108,-1,8,3,4,3,99] 2 [3,3,1108,0,8,3,4,3,99] [1]
+
+-- Multi-operation tests
+
+testBranchJumps1 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] 7 [999]
+testBranchJumps2 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] 8 [1000]
+testBranchJumps3 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] 9 [1001]
+
