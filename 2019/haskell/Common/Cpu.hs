@@ -28,8 +28,12 @@ import Common.Util (assertEqual, wordsWhen)
 
 
 type Tape = Seq Int
-data State = State { tapeState    :: Tape
-                   , outputState  :: [Int] 
+data ExecState = Running | Halt | Suspended
+data State = State { execState    :: ExecState
+                   , tapeState    :: Tape
+                   , outputState  :: [Int]
+                   , ipState      :: Int
+                   , inputState   :: [Int] 
                    }
 type Result = Either String State
 data Param = Positional Int | Immediate Int  deriving Show
@@ -43,29 +47,36 @@ execute :: Tape -> [Int] -> Result
 execute tape input = executeFor tape input maxCycles
 
 executeFor :: Tape -> [Int] -> Int -> Result
-executeFor tape input cpuCycles = step (ok tape []) input 0 cpuCycles
+executeFor tape input cpuCycles = step (ok tape [] 0 input) cpuCycles
 
 executeNoInput :: Tape -> Result
 executeNoInput tape = execute tape []
 
-step :: Result -> [Int] -> Int -> Int -> Result
-step inputState input ip cpuTime = result
+step :: Result -> Int -> Result
+step initialState cpuTime = result
   where 
-    result = case inputState of 
+    result = case initialState of 
       Left e -> err e
       Right state -> cycleResult
         where 
           tape = tapeState state
           output = outputState state
+          ip = ipState state
+          input = inputState state
           op 
             | cpuTime > 0 = getOp $ getOne tape ip
             | otherwise   = -1
           
           proceedWithAuxInput = \f narg aux consumedInputs -> 
             let (opTape, opOutput, opIp) = f tape (getParams narg tape ip aux)
-            in step (ok opTape (output ++ opOutput)) 
-                    (drop consumedInputs input) 
-                    (advance ip (narg+1) opIp) (cpuTime-1)
+            in step (ok opTape (output ++ opOutput) 
+                    (advance ip (narg+1) opIp)
+                    (drop consumedInputs input)) (cpuTime-1) 
+
+          proceedWithAuxInputOrSuspend = \f narg aux consumedInputs ->
+            if (consumedInputs <= (length input)) 
+                then proceedWithAuxInput f narg aux consumedInputs
+                else suspend tape output ip input
           
           proceed f narg = proceedWithAuxInput f narg [] 0
 
@@ -73,14 +84,14 @@ step inputState input ip cpuTime = result
             case op of
               1 -> proceed opAdd 3
               2 -> proceed opMult 3 
-              3 -> proceedWithAuxInput opStore 1 (take 1 input) 1
+              3 -> proceedWithAuxInputOrSuspend opStore 1 (take 1 input) 1
               4 -> proceed opOutput 1
               5 -> proceed opJumpIfTrue 2 
               6 -> proceed opJumpIfFalse 2 
               7 -> proceed opLessThan 3
               8 -> proceed opEqual 3
  
-              99 -> ok tape output
+              99 -> halt tape output ip input
               -1 -> err "Out of CPU cycles"
 
               _ -> error ("Unknown opcode " ++ show op)
@@ -174,11 +185,20 @@ naryIndexedOp n tape arg f = set
                   (paramValue $ arg !! n)
                   (f (map (resolveParam tape) (take n arg)))
                   
-newState :: Tape -> [Int] -> State
-newState tape output = State { tapeState=tape, outputState=output }
+newState :: ExecState -> Tape -> [Int] -> Int -> [Int] -> State
+newState exec tape output ip input = State { execState=exec, tapeState=tape, outputState=output, ipState=ip, inputState=input }
 
-ok :: Tape -> [Int] -> Result
-ok tape output = Right $ newState tape output
+ok :: Tape -> [Int] -> Int -> [Int] -> Result
+ok = validState Running 
+
+halt :: Tape -> [Int] -> Int -> [Int] -> Result
+halt = validState Halt 
+
+suspend :: Tape -> [Int] -> Int -> [Int] -> Result
+suspend = validState Suspended
+
+validState :: ExecState -> Tape -> [Int] -> Int -> [Int] -> Result
+validState exec tape output ip input = Right $ newState exec tape output ip input
 
 err :: String -> Result
 err e = Left e
