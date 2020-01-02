@@ -4,7 +4,9 @@ import qualified Day3.Day3 as Day3
 import qualified Day4.Day4 as Day4
 import qualified Day5.Day5 as Day5
 import qualified Day6.Day6 as Day6
+import qualified Day7.Day7 as Day7
 
+import Common.Util (io)
 import qualified Common.Util as Util
 import qualified Common.Cpu as Cpu
 
@@ -30,7 +32,8 @@ main = do
                   , Solution { day=3, part1=io.Day3.part1, part2=io.Day3.part2, tests=Day3.tests } 
                   , Solution { day=4, part1=io.Day4.part1, part2=io.Day4.part2, tests=Day4.tests }
                   , Solution { day=5, part1=io.Day5.part1, part2=io.Day5.part2, tests=Day5.tests } 
-                  , Solution { day=6, part1=io.Day6.part1, part2=io.Day6.part2, tests=Day6.tests } ]
+                  , Solution { day=6, part1=io.Day6.part1, part2=io.Day6.part2, tests=Day6.tests } 
+                  , Solution { day=7, part1=   Day7.part1, part2=io.Day7.part2, tests=Day7.tests } ]
   
   runCommonTests common []
   runSolutions solutions 
@@ -67,6 +70,3 @@ runTests ts input
   | skipTests = "Tests skipped"
   | otherwise = (show $ sum $ (map (\x -> if x == () then 1 else 0) (map ($ input) ts))) ++ " executed"
 
-io :: a -> IO a
-io x = do
- return x

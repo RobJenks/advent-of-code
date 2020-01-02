@@ -6,6 +6,7 @@ module Common.Util
 , ioTrace
 , ioTraceDirect
 , stack
+, io
 
 , utilTests
 )
@@ -52,6 +53,12 @@ ioTrace m x = unsafePerformIO $ do
 -- Debug output with a stack trace (reuires ghc -prof -prof-auto)
 stack :: String -> a -> a
 stack = traceStack
+
+-- Convert pure code to an IO operation
+io :: a -> IO a
+io x = do
+ return x
+
 
 
 -- Tests
