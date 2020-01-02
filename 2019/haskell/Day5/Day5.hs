@@ -25,7 +25,7 @@ executeDiagnostics prog input = case result of
   Left e -> error ("Execution failed: " ++ e)
   Right state -> state
   where 
-    result = Cpu.execute (Cpu.parseInput prog) input
+    result = Cpu.execute (Cpu.parseInput prog) [input]
 
 
 

@@ -11,6 +11,7 @@ module Common.Cpu
 
 , Tape
 , State
+, Result
 
 , cpuTests
 )
@@ -38,16 +39,16 @@ type OpResult = (Tape, [Int], Maybe Int)
 maxCycles = 10000 :: Int
 
 
-execute :: Tape -> Int -> Result
+execute :: Tape -> [Int] -> Result
 execute tape input = executeFor tape input maxCycles
 
-executeFor :: Tape -> Int -> Int -> Result
+executeFor :: Tape -> [Int] -> Int -> Result
 executeFor tape input cpuCycles = step (ok tape []) input 0 cpuCycles
 
 executeNoInput :: Tape -> Result
-executeNoInput tape = execute tape 0
+executeNoInput tape = execute tape []
 
-step :: Result -> Int -> Int -> Int -> Result
+step :: Result -> [Int] -> Int -> Int -> Result
 step inputState input ip cpuTime = result
   where 
     result = case inputState of 
@@ -60,17 +61,19 @@ step inputState input ip cpuTime = result
             | cpuTime > 0 = getOp $ getOne tape ip
             | otherwise   = -1
           
-          proceedWithAuxInput = \f narg aux -> 
+          proceedWithAuxInput = \f narg aux consumedInputs -> 
             let (opTape, opOutput, opIp) = f tape (getParams narg tape ip aux)
-            in step (ok opTape (output ++ opOutput)) input (advance ip (narg+1) opIp) (cpuTime-1)
+            in step (ok opTape (output ++ opOutput)) 
+                    (drop consumedInputs input) 
+                    (advance ip (narg+1) opIp) (cpuTime-1)
           
-          proceed f narg = proceedWithAuxInput f narg []
+          proceed f narg = proceedWithAuxInput f narg [] 0
 
           cycleResult = 
             case op of
               1 -> proceed opAdd 3
               2 -> proceed opMult 3 
-              3 -> proceedWithAuxInput opStore 1 [input]          
+              3 -> proceedWithAuxInput opStore 1 (take 1 input) 1
               4 -> proceed opOutput 1
               5 -> proceed opJumpIfTrue 2 
               6 -> proceed opJumpIfFalse 2 
@@ -190,7 +193,7 @@ parseInput :: String -> Tape
 parseInput input = newTape $ map read (wordsWhen (== ',') input)
 
                    
-testProgram :: [Int] -> Int -> [Int] -> [Int] -> ()
+testProgram :: [Int] -> [Int] -> [Int] -> [Int] -> ()
 testProgram prog input expTape expOutput = case result of 
   Left e -> error ("Test failed: " ++ e)
   Right state -> head [
@@ -199,7 +202,7 @@ testProgram prog input expTape expOutput = case result of
   
   where result = execute (newTape prog) input
 
-testProgramOutput :: [Int] -> Int -> [Int] -> ()
+testProgramOutput :: [Int] -> [Int] -> [Int] -> ()
 testProgramOutput prog input expOutput = case result of 
   Left e -> error ("Test failed: " ++ e)
   Right state -> assertEqual (outputState state) expOutput
@@ -239,7 +242,7 @@ testOutput1 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Positional 1]) (newTa
 
 testOutput2 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Immediate 1]) (newTape [1,2,3,4], [1], Nothing)
 
-testInputOutput _ = testProgram [3,0,4,0,99] 12 [12,0,4,0,99] [12]
+testInputOutput _ = testProgram [3,0,4,0,99] [12] [12,0,4,0,99] [12]
 
 testJumpIfTrue1 _ = assertEqual (opJumpIfTrue (newTape [5,2,1,99]) [Positional 2, Positional 1]) (newTape [5,2,1,99], [], Just 2)
 testJumpIfTrue2 _ = assertEqual (opJumpIfTrue (newTape [5,2,1,99]) [Immediate 0, Positional 1]) (newTape [5,2,1,99], [], Nothing)
@@ -256,39 +259,39 @@ testOpcodeDeriv2 _ = assertEqual (getOp 12) 12
 testOpcodeDeriv3 _ = assertEqual (getOp 1003) 3
 testOpcodeDeriv4 _ = assertEqual (getOp 101010021) 21
 
-testPositional _ = testProgram [2,0,2,5,99,0] 0 [2,0,2,5,99,4] []
-testImmediate _ = testProgram [1002,4,3,4,33] 0 [1002,4,3,4,99] []
+testPositional _ = testProgram [2,0,2,5,99,0] [] [2,0,2,5,99,4] []
+testImmediate _ = testProgram [1002,4,3,4,33] [] [1002,4,3,4,99] []
 
-testNegativeValues _ = testProgram [1101,100,-1,4,0] 0 [1101,100,-1,4,99] []
+testNegativeValues _ = testProgram [1101,100,-1,4,0] [] [1101,100,-1,4,99] []
 
 
 tapeOnlyTest :: [Int] -> [Int] -> ()
-tapeOnlyTest input exp = testProgram input 0 exp []
+tapeOnlyTest input exp = testProgram input [] exp []
 
 -- Conditional jumps
 
-testPositionalJumps1 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 0 [3,12,6,12,15,1,13,14,13,4,13,99,0,0,1,9] [0]
-testPositionalJumps2 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 12 [3,12,6,12,15,1,13,14,13,4,13,99,12,1,1,9] [1]
-testImmediateJumps1 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] 0 [3,3,1105,0,9,1101,0,0,12,4,12,99,0] [0]
-testImmediateJumps2 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] (-12) [3,3,1105,-12,9,1101,0,0,12,4,12,99,1] [1]
+testPositionalJumps1 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] [0] [3,12,6,12,15,1,13,14,13,4,13,99,0,0,1,9] [0]
+testPositionalJumps2 _ = testProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] [12] [3,12,6,12,15,1,13,14,13,4,13,99,12,1,1,9] [1]
+testImmediateJumps1 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] [0] [3,3,1105,0,9,1101,0,0,12,4,12,99,0] [0]
+testImmediateJumps2 _ = testProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] [(-12)] [3,3,1105,-12,9,1101,0,0,12,4,12,99,1] [1]
 
 -- Branch conditions
 
-testLessThanPositional1 _ = testProgram [3,9,7,9,10,9,4,9,99,-1,8] 4 [3,9,7,9,10,9,4,9,99,1,8] [1]
-testLessThanPositional2 _ = testProgram [3,9,7,9,10,9,4,9,99,-1,8] 9 [3,9,7,9,10,9,4,9,99,0,8] [0]
+testLessThanPositional1 _ = testProgram [3,9,7,9,10,9,4,9,99,-1,8] [4] [3,9,7,9,10,9,4,9,99,1,8] [1]
+testLessThanPositional2 _ = testProgram [3,9,7,9,10,9,4,9,99,-1,8] [9] [3,9,7,9,10,9,4,9,99,0,8] [0]
 
-testLessThanImmediate1 _ = testProgram [3,3,1107,-1,8,3,4,3,99] 4 [3,3,1107,1,8,3,4,3,99] [1]
-testLessThanImmediate2 _ = testProgram [3,3,1107,-1,8,3,4,3,99] 9 [3,3,1107,0,8,3,4,3,99] [0]
+testLessThanImmediate1 _ = testProgram [3,3,1107,-1,8,3,4,3,99] [4] [3,3,1107,1,8,3,4,3,99] [1]
+testLessThanImmediate2 _ = testProgram [3,3,1107,-1,8,3,4,3,99] [9] [3,3,1107,0,8,3,4,3,99] [0]
 
-testEqualityPositional1 _ = testProgram [3,9,8,9,10,9,4,9,99,-1,8] 8 [3,9,8,9,10,9,4,9,99,1,8] [1]
-testEqualityPositional2 _ = testProgram [3,9,8,9,10,9,4,9,99,-1,8] 6 [3,9,8,9,10,9,4,9,99,0,8] [0]
+testEqualityPositional1 _ = testProgram [3,9,8,9,10,9,4,9,99,-1,8] [8] [3,9,8,9,10,9,4,9,99,1,8] [1]
+testEqualityPositional2 _ = testProgram [3,9,8,9,10,9,4,9,99,-1,8] [6] [3,9,8,9,10,9,4,9,99,0,8] [0]
 
-testEqualityImmediate1 _ = testProgram [3,3,1108,-1,8,3,4,3,99] 8 [3,3,1108,1,8,3,4,3,99] [1]
-testEqualityImmediate2 _ = testProgram [3,3,1108,-1,8,3,4,3,99] 2 [3,3,1108,0,8,3,4,3,99] [1]
+testEqualityImmediate1 _ = testProgram [3,3,1108,-1,8,3,4,3,99] [8] [3,3,1108,1,8,3,4,3,99] [1]
+testEqualityImmediate2 _ = testProgram [3,3,1108,-1,8,3,4,3,99] [2] [3,3,1108,0,8,3,4,3,99] [1]
 
 -- Multi-operation tests
 
-testBranchJumps1 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] 7 [999]
-testBranchJumps2 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] 8 [1000]
-testBranchJumps3 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] 9 [1001]
+testBranchJumps1 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] [7] [999]
+testBranchJumps2 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] [8] [1000]
+testBranchJumps3 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] [9] [1001]
 
