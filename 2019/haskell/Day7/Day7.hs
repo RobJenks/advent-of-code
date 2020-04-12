@@ -41,10 +41,36 @@ runPipelineThreads tape phases
 runPipeline :: Tape -> [Int] -> Int
 runPipeline tape phases = foldl (\res p -> either (error) (head . Cpu.outputState) (Cpu.execute tape [p,res])) 0 phases
 
+runPipelineCyclic :: Tape -> [Int] -> Int
+runPipelineCyclic tape phases = head $ Cpu.outputState $ last result
+  where
+    result = runPipelineCyclicFromState $ prepareStates tape phases
+
+
+runPipelineCyclicFromState :: [Cpu.State] -> [Cpu.State]
+runPipelineCyclicFromState states = result
+  where
+    finalState = Cpu.execState $ last states
+    result = case finalState of  
+      Cpu.Halt  -> states
+      otherwise -> runPipelineCyclicFromState $ map (\x -> either error id (Cpu.executeFromState x)) states
+
+
+prepareStates :: Tape -> [Int] -> [Cpu.State]
+prepareStates tape phases = map (\x -> Cpu.newState Cpu.Running tape (snd x) 0 [fst x]) comps
+  where
+    prime = [[0]] ++ (repeat [])
+    comps = reverse $ zip (reverse phases) prime
+
+cycleStates :: [Cpu.State] -> [Cpu.State]
+cycleStates states = zipWith (\s input -> Cpu.newState (Cpu.execState s) (Cpu.tapeState s) [] (Cpu.ipState s) ((Cpu.inputState s) ++ input)) states inputs
+  where
+    inputs = map Cpu.outputState $ rotate 1 states
+    
+
 
 enumeratePhases :: [Int] -> [[Int]]
 enumeratePhases = permutations
-
 
 
 -- Tests 

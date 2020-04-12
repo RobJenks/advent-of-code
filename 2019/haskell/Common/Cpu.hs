@@ -2,14 +2,20 @@ module Common.Cpu
 ( execute
 , executeFor
 , executeNoInput
+, executeFromState
 , primeTape
 , newTape
+, newState
 , parseInput
+, execState
 , tapeState
 , outputState
+, ipState
+, inputState
 , testProgram
 
 , Tape
+, ExecState(..)
 , State
 , Result
 
@@ -51,6 +57,9 @@ executeFor tape input cpuCycles = step (ok tape [] 0 input) cpuCycles
 
 executeNoInput :: Tape -> Result
 executeNoInput tape = execute tape []
+
+executeFromState :: State -> Result
+executeFromState state = step (Right state) maxCycles
 
 step :: Result -> Int -> Result
 step initialState cpuTime = result
