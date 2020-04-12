@@ -53,7 +53,9 @@ runPipelineCyclicFromState states = result
     finalState = Cpu.execState $ last states
     result = case finalState of  
       Cpu.Halt  -> states
-      otherwise -> runPipelineCyclicFromState $ map (\x -> either error id (Cpu.executeFromState x)) states
+      otherwise -> runPipelineCyclicFromState $ map (\x -> either error id (Cpu.executeFromState x)) cycledStates
+      where
+        cycledStates = cycleStates states
 
 
 prepareStates :: Tape -> [Int] -> [Cpu.State]
@@ -74,7 +76,7 @@ enumeratePhases = permutations
 
 -- Tests 
 tests = [ testPhaseEnumeration, pipelineTest1, pipelineTest2, pipelineTest3,
-          testPrepareStates, testCycleStates ]
+          testPrepareStates, testCycleStates, testCyclicExecution1, testCyclicExecution2 ]
 
 testPhaseEnumeration _ = assertEqual (length $ enumeratePhases [0,1,2]) 6
 
@@ -93,9 +95,17 @@ testCycleStates _ = assertEqual (cycleStates states) expected
     states = [testState tape [] [1], testState tape [5,6] [2,3], testState tape [7] [4]]
     expected = [testState tape [] [1,7], testState tape [] [2,3], testState tape [] [4,5,6]]
 
+testCyclicExecution1 _ = assertEqual (testPipelineCyclic [3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5] [9,8,7,6,5]) 139629729
+
+testCyclicExecution2 _ = assertEqual (testPipelineCyclic [3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10] [9,7,8,5,6]) 18216 
+
+
 
 testPipeline :: [Int] -> [Int] -> Int
 testPipeline prog phases = runPipeline (Cpu.newTape prog) phases
+
+testPipelineCyclic :: [Int] -> [Int] -> Int
+testPipelineCyclic prog phases = runPipelineCyclic (Cpu.newTape prog) phases
 
 testState :: Tape -> [Int] -> [Int] -> Cpu.State
 testState tape output input = Cpu.newState Cpu.Running tape output 0 input
