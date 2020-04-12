@@ -23,7 +23,7 @@ part1 x = show $ ((countEl 1 best) * (countEl 2 best))
     best   = snd $ foldl (\acc x -> if (fst x) < (fst acc) then x else acc) (999, []) zeros
 
 part2 :: String -> String
-part2 x = "\n" ++ (unlines $ rendered)
+part2 x = "\n\n" ++ (unlines rendered)
   where
     decoded = decode $ layerData (parseInput x) (width * height)
     lines = layerData decoded width
@@ -48,7 +48,7 @@ countFn :: Eq a => (a -> Bool) -> [a] -> Int
 countFn f list = length $ filter f list
 
 countEl :: Eq a => a -> [a] -> Int
-countEl el list = countFn (== el) list
+countEl el = countFn (== el)
 
 parseInput :: String -> [Int]
 parseInput = map digitToInt . filter (/= '\n')  
