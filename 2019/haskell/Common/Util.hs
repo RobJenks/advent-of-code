@@ -3,6 +3,7 @@ module Common.Util
 , wordsWhen
 , zipWithPadded
 , zipPadded
+, rotate
 , ioTrace
 , ioTraceDirect
 , stack
@@ -36,6 +37,12 @@ zipWithPadded f _ b xs [] = zipWith f xs (repeat b)
 zipPadded :: a -> b -> [a] -> [b] -> [(a,b)]
 zipPadded a b xa xb = zipWithPadded (\a b -> (a,b)) a b xa xb
 
+-- Rotate a list either left or right
+rotate :: Int -> [a] -> [a]
+rotate n xs = take lxs . drop ((negate n) `mod` lxs) . cycle $ xs
+  where
+    lxs = length xs
+
 -- Force eager io trace operations for debugging purposes
 {-# NOINLINE ioTraceDirect #-}
 ioTraceDirect :: Show a => a -> a
@@ -62,11 +69,20 @@ io x = do
 
 
 -- Tests
-utilTests = [testWordsWhen, testZipPadded]
+utilTests = [testWordsWhen, testZipPadded, testRotateNeg, testRotateZero, testRotatePos]
 
 testWordsWhen :: String -> ()
 testWordsWhen _ = assertEqual (wordsWhen (=='.') "ab.c.de..f.g.") ["ab","c","de","f","g"]
 
 testZipPadded :: String -> ()
 testZipPadded _ = assertEqual (zipPadded 1 2 [3,3,3] [4,4]) [(3,4),(3,4),(3,2)]
+
+testRotateNeg :: String -> ()
+testRotateNeg _ = assertEqual (rotate (negate 2) [1,2,3,4,5]) [3,4,5,1,2]
+
+testRotateZero :: String -> ()
+testRotateZero _ = assertEqual (rotate 0 [1,2,3,4,5]) [1,2,3,4,5]
+
+testRotatePos :: String -> ()
+testRotatePos _ = assertEqual (rotate 2 [1,2,3,4,5]) [4,5,1,2,3]
 
