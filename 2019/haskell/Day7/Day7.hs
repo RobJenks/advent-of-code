@@ -59,8 +59,7 @@ runPipelineCyclicFromState states = result
 prepareStates :: Tape -> [Int] -> [Cpu.State]
 prepareStates tape phases = map (\x -> Cpu.newState Cpu.Running tape (snd x) 0 [fst x]) comps
   where
-    prime = [[0]] ++ (repeat [])
-    comps = reverse $ zip (reverse phases) prime
+    comps = reverse (zipPadded 999 [] (reverse phases) [[0]])
 
 cycleStates :: [Cpu.State] -> [Cpu.State]
 cycleStates states = zipWith (\s input -> Cpu.newState (Cpu.execState s) (Cpu.tapeState s) [] (Cpu.ipState s) ((Cpu.inputState s) ++ input)) states inputs
@@ -74,7 +73,8 @@ enumeratePhases = permutations
 
 
 -- Tests 
-tests = [ testPhaseEnumeration, pipelineTest1, pipelineTest2, pipelineTest3 ]
+tests = [ testPhaseEnumeration, pipelineTest1, pipelineTest2, pipelineTest3,
+          testPrepareStates, testCycleStates ]
 
 testPhaseEnumeration _ = assertEqual (length $ enumeratePhases [0,1,2]) 6
 
@@ -82,9 +82,21 @@ pipelineTest1 _ = assertEqual (testPipeline [3,15,3,16,1002,16,10,16,1,16,15,15,
 pipelineTest2 _ = assertEqual (testPipeline [3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0] [0,1,2,3,4]) 54321
 pipelineTest3 _ = assertEqual (testPipeline [3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0] [1,0,4,3,2]) 65210
 
+testPrepareStates _ = assertEqual (prepareStates tape [1,2,4]) expected
+  where
+    tape = Cpu.newTape [10,20,30,40]
+    expected = [testState tape [] [1], testState tape [] [2], testState tape [0] [4]]
+ 
+testCycleStates _ = assertEqual (cycleStates states) expected
+  where
+    tape = Cpu.newTape [10,20,30,40]
+    states = [testState tape [] [1], testState tape [5,6] [2,3], testState tape [7] [4]]
+    expected = [testState tape [] [1,7], testState tape [] [2,3], testState tape [] [4,5,6]]
 
 
 testPipeline :: [Int] -> [Int] -> Int
 testPipeline prog phases = runPipeline (Cpu.newTape prog) phases
 
+testState :: Tape -> [Int] -> [Int] -> Cpu.State
+testState tape output input = Cpu.newState Cpu.Running tape output 0 input
 

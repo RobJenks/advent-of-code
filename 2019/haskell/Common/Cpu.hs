@@ -33,14 +33,16 @@ import Control.Exception
 import Common.Util (assertEqual, wordsWhen)
 
 
-type Tape = Seq Int
-data ExecState = Running | Halt | Suspended
+type Tape = Seq Int 
+data ExecState = Running | Halt | Suspended 
+     deriving (Eq, Show)
 data State = State { execState    :: ExecState
                    , tapeState    :: Tape
                    , outputState  :: [Int]
                    , ipState      :: Int
                    , inputState   :: [Int] 
                    }
+                   deriving (Eq, Show)
 type Result = Either String State
 data Param = Positional Int | Immediate Int  deriving Show
 
