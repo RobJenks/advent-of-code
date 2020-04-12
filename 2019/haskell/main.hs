@@ -33,7 +33,7 @@ main = do
                   , Solution { day=4, part1=io.Day4.part1, part2=io.Day4.part2, tests=Day4.tests }
                   , Solution { day=5, part1=io.Day5.part1, part2=io.Day5.part2, tests=Day5.tests } 
                   , Solution { day=6, part1=io.Day6.part1, part2=io.Day6.part2, tests=Day6.tests } 
-                  , Solution { day=7, part1=   Day7.part1, part2=io.Day7.part2, tests=Day7.tests } ]
+                  , Solution { day=7, part1=   Day7.part1, part2=   Day7.part2, tests=Day7.tests } ]
   
   runCommonTests common []
   runSolutions solutions 
