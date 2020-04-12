@@ -18,21 +18,23 @@ maxWorkers = 16 :: Int
 
 part1 :: String -> IO String
 part1 x = do
-  res <- runPipelineThreads (Cpu.parseInput x) (enumeratePhases [0..4])
+  res <- runPipelineThreads runPipeline (Cpu.parseInput x) (enumeratePhases [0..4])
   return $ show $ foldl max 0 res
 
 
-part2 :: String -> String
-part2 x = "B"
+part2 :: String -> IO String
+part2 x = do
+  res <- runPipelineThreads runPipelineCyclic (Cpu.parseInput x) (enumeratePhases [5..9])
+  return $ show $ foldl max 0 res
 
 
 
-runPipelineThreads :: Tape -> [[Int]] -> IO [Int]
-runPipelineThreads tape phases
+runPipelineThreads :: (Tape -> [Int] -> Int) -> Tape -> [[Int]] -> IO [Int]
+runPipelineThreads fn tape phases
   | (null phases) = do return []
   | otherwise     = do
-      res <- mapConcurrently (io.runPipeline tape) (take maxWorkers phases)
-      next <- runPipelineThreads tape $ drop maxWorkers phases
+      res <- mapConcurrently (io.fn tape) (take maxWorkers phases)
+      next <- runPipelineThreads fn tape $ drop maxWorkers phases
       return (res ++ next)
 
       where work = take maxWorkers phases
