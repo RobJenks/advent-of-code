@@ -170,17 +170,23 @@ newParam mode val = case mode of
   2 -> Relative val
   _   -> error ("Unknown parameter mode: " ++ (show mode))
 
+resolveParamAddress :: Tape -> Param -> Int
+resolveParamAddress tape param = case param of
+  Positional x -> x
+  Immediate  x -> error ("Cannot resolve address of immediate parameter (" ++ show x ++ ")")
+  Relative   x -> x + baseOffset tape
+
 resolveParam :: Tape -> Param -> Int
 resolveParam tape param = case param of 
-  Positional x -> getOne tape x
+  Positional _ -> getOne tape $ resolveParamAddress tape param
+  Relative   _ -> getOne tape $ resolveParamAddress tape param
   Immediate  x -> x
-  Relative x -> getOne tape (x + baseOffset tape)
 
 paramValue :: Param -> Int
-paramValue p = case p of 
+paramValue param = case param of 
   Positional x -> x
-  Immediate x -> x
-  Relative x -> x
+  Immediate  x -> x
+  Relative   x -> x
 
 opAdd :: Tape -> [Param] -> OpResult
 opAdd tape arg = res (naryIndexedOp 2 tape arg sum) [] Nothing
@@ -189,7 +195,7 @@ opMult :: Tape -> [Param] -> OpResult
 opMult tape arg = res (naryIndexedOp 2 tape arg product) [] Nothing
                   
 opStore :: Tape -> [Param] -> OpResult
-opStore tape arg = res (set tape (paramValue $ head arg) 
+opStore tape arg = res (set tape (resolveParamAddress tape $ head arg) 
                                  (paramValue $ head $ drop 1 arg)) [] Nothing
  
 opOutput :: Tape -> [Param] -> OpResult
@@ -229,7 +235,7 @@ res tape outputs newIp = (tape, outputs, newIp)
 naryIndexedOp :: Int -> Tape -> [Param] -> ([Int] -> Int) -> Tape
 naryIndexedOp n tape arg f = set 
                   tape
-                  (paramValue $ arg !! n)
+                  (resolveParamAddress tape $ arg !! n)
                   (f (map (resolveParam tape) (take n arg)))
                   
 newState :: ExecState -> Tape -> [Int] -> Int -> [Int] -> State
@@ -299,7 +305,7 @@ cpuTests = [ basicTapeTest1, basicTapeTest2, basicTapeTest3, basicTapeTest4, pri
            , testLessThanPositional1, testLessThanPositional2, testLessThanImmediate1, testLessThanImmediate2
            , testEqualityPositional1, testEqualityPositional2, testEqualityImmediate1, testEqualityImmediate2
            , testBranchJumps1, testBranchJumps2, testBranchJumps3, testModifyBase1, testModifyBase2 
-           , testExtendedMemory1, testExtendedMemory2, testExtendedMemory3
+           , testExtendedMemory1, testExtendedMemory2, testExtendedMemory3, testExtendedMemory4, testExtendedMemory5
            , testMemoryExtensions1, testMemoryExtensions2, testMemoryExtensions3 ]
 
 -- Basic
@@ -335,6 +341,8 @@ testModifyBase1 _ = assertEqual (opModifyBase (newTape [109,24,99]) [Immediate 2
                                               (newTapeFull (Seq.fromList [109,24,99]) Map.empty 24) [] Nothing
 testModifyBase2 _ = assertEqual (opModifyBase (newTapeFull (Seq.fromList [9,4,99,4,8,12]) Map.empty 16) [Positional 4]) $ res
                                               (newTapeFull (Seq.fromList [9,4,99,4,8,12]) Map.empty 24) [] Nothing 
+testModifyBase3 _ = assertEqual (opModifyBase (newTapeFull (Seq.fromList [9,4,99,4,8,12]) Map.empty 16) [Positional 4]) $ res
+                                              (newTapeFull (Seq.fromList [9,4,99,4,8,12]) Map.empty 24) [] Nothing 
 
 -- Instruction parsing
 
@@ -362,6 +370,12 @@ testExtendedMemory2 _ = testProgramExt (newTapeFull (Seq.fromList [4,36,99,2,3])
                                        (newTapeFull (Seq.fromList [4,36,99,2,3]) (Map.fromList [(36,16)]) 0) [16]
 
 testExtendedMemory3 _ = testProgramExt (newTapeFull (Seq.fromList [1102]) (Map.fromList [(1,4),(2,2),(3,0),(4,99)]) 0) []
+                                       (newTapeFull (Seq.fromList [8]) (Map.fromList [(1,4),(2,2),(3,0),(4,99)]) 0) []
+
+testExtendedMemory4 _ = testProgramExt (newTapeFull (Seq.fromList [109,1000,203,0,99]) Map.empty 0) [1]
+                                       (newTapeFull (Seq.fromList [109,1000,203,0,99]) (Map.fromList [(1000,1)]) 1000) []
+
+testExtendedMemory5 _ = testProgramExt (newTapeFull (Seq.fromList [1102]) (Map.fromList [(1,4),(2,2),(3,0),(4,99)]) 0) []
                                        (newTapeFull (Seq.fromList [8]) (Map.fromList [(1,4),(2,2),(3,0),(4,99)]) 0) []
 
 -- Conditional jumps

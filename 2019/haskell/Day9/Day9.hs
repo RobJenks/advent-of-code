@@ -12,7 +12,7 @@ import qualified Common.Cpu as Cpu
 import Common.Util
 
 part1 :: String -> String
-part1 x = "A"
+part1 x = show $ head $ Cpu.outputState $ execute x [1]
 
 part2 :: String -> String
 part2 x = "B"
@@ -27,5 +27,7 @@ execute prog input = case result of
 
 
 -- Tests 
-tests = []
+tests = [ runDiagnosticTests ]
+
+runDiagnosticTests x = assertEqual (Cpu.outputState $ execute x [1]) [2518058886]
 
