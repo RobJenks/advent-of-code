@@ -12,6 +12,7 @@ module Common.Cpu
 , outputState
 , ipState
 , inputState
+, mem
 , testProgram
 
 , Tape
@@ -28,14 +29,21 @@ import Data.Either
 import Data.List
 import Data.Sequence (Seq(..))
 import qualified Data.Sequence as Seq
+import Data.Map (Map)
+import qualified Data.Map as Map
 import Control.Exception
 
 import Common.Util (assertEqual, wordsWhen)
 
 
-type Tape = Seq Int 
+data Tape = Tape { mem        :: Seq Int 
+                 , extMem     :: Map Int Int
+                 , capacity   :: Int
+                 , baseOffset :: Int
+                 }
+                 deriving (Eq, Show)
 data ExecState = Running | Halt | Suspended 
-     deriving (Eq, Show)
+                 deriving (Eq, Show)
 data State = State { execState    :: ExecState
                    , tapeState    :: Tape
                    , outputState  :: [Int]
@@ -109,13 +117,25 @@ step initialState cpuTime = result
 
 
 get :: Int -> Tape -> Int -> [Int]
-get n tape ip = map (Seq.index tape) (map (+ ip) [0..(n-1)])
+get n tape ip = map retrieve (map (+ ip) [0..(n-1)])
+  where 
+    retrieve
+      | ip < capacity tape = Seq.index $ mem tape
+      | otherwise          = (Map.!) $ extMem tape
 
 getOne :: Tape -> Int -> Int
 getOne tape ip = head $ get 1 tape ip
 
 set :: Tape -> Int -> Int -> Tape
-set tape ix val = Seq.update ix val tape
+set tape ix val 
+  | ix < capacity tape  = Tape { mem=updateMem (mem tape) ix val, capacity=capacity tape, extMem=extMem tape, baseOffset=baseOffset tape }
+  | otherwise           = Tape { mem=mem tape, capacity=capacity tape, extMem=updateExtMem (extMem tape) ix val, baseOffset=baseOffset tape }
+
+updateMem :: Seq Int -> Int -> Int -> Seq Int
+updateMem mem ix val = Seq.update ix val mem
+
+updateExtMem :: Map Int Int -> Int -> Int -> Map Int Int
+updateExtMem extMem ix val = Map.insert ix val extMem
 
 advance :: Int -> Int -> Maybe Int -> Int
 advance ip n override = case override of 
@@ -218,8 +238,8 @@ primeTape :: [(Int, Int)] -> Tape -> Tape
 primeTape vals tape = foldl (\t x -> (set t (fst x) (snd x))) tape vals
 
 newTape :: [Int] -> Tape
-newTape = Seq.fromList
- 
+newTape x = Tape { mem=Seq.fromList x, capacity=length x, extMem=Map.empty, baseOffset=0 }
+
 parseInput :: String -> Tape
 parseInput input = newTape $ map read (wordsWhen (== ',') input)
 

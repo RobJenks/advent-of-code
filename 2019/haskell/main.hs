@@ -6,6 +6,7 @@ import qualified Day5.Day5 as Day5
 import qualified Day6.Day6 as Day6
 import qualified Day7.Day7 as Day7
 import qualified Day8.Day8 as Day8
+import qualified Day9.Day9 as Day9
 
 import Common.Util (io)
 import qualified Common.Util as Util
@@ -35,7 +36,8 @@ main = do
                   , Solution { day=5, part1=io.Day5.part1, part2=io.Day5.part2, tests=Day5.tests } 
                   , Solution { day=6, part1=io.Day6.part1, part2=io.Day6.part2, tests=Day6.tests } 
                   , Solution { day=7, part1=   Day7.part1, part2=   Day7.part2, tests=Day7.tests }
-                  , Solution { day=8, part1=io.Day8.part1, part2=io.Day8.part2, tests=Day8.tests } ]
+                  , Solution { day=8, part1=io.Day8.part1, part2=io.Day8.part2, tests=Day8.tests } 
+                  , Solution { day=9, part1=io.Day9.part1, part2=io.Day9.part2, tests=Day9.tests } ]
   
   runCommonTests common []
   runSolutions solutions 
