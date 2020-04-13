@@ -15,7 +15,7 @@ part1 :: String -> String
 part1 x = show $ head $ Cpu.outputState $ execute x [1]
 
 part2 :: String -> String
-part2 x = "B"
+part2 x = show $ head $ Cpu.outputState $ execute x [2]
 
 
 execute :: String -> [Int] -> State

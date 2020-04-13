@@ -60,7 +60,7 @@ data Param = Positional Int
 type OpResult = (Tape, [Int], Maybe Int) -- (tape, outputs, ?new-ip)
 
 enableTrace = False :: Bool
-maxCycles = 10000 :: Int
+maxCycles = 10000000 :: Int
 
 
 execute :: Tape -> [Int] -> Result
