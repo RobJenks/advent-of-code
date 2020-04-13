@@ -33,7 +33,7 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Control.Exception
 
-import Common.Util (assertEqual, wordsWhen)
+import Common.Util (assertEqual, wordsWhen, ioTrace, ioTraceDirect)
 
 
 data Tape = Tape { mem        :: Seq Int 
@@ -52,10 +52,14 @@ data State = State { execState    :: ExecState
                    }
                    deriving (Eq, Show)
 type Result = Either String State
-data Param = Positional Int | Immediate Int  deriving Show
+data Param = Positional Int 
+           | Immediate Int
+           | Relative Int
+           deriving Show
 
-type OpResult = (Tape, [Int], Maybe Int)
+type OpResult = (Tape, [Int], Maybe Int) -- (tape, outputs, ?new-ip)
 
+enableTrace = False :: Bool
 maxCycles = 10000 :: Int
 
 
@@ -78,7 +82,7 @@ step initialState cpuTime = result
       Left e -> err e
       Right state -> cycleResult
         where 
-          tape = tapeState state
+          tape = tapeState (traceable state)
           output = outputState state
           ip = ipState state
           input = inputState state
@@ -109,6 +113,7 @@ step initialState cpuTime = result
               6 -> proceed opJumpIfFalse 2 
               7 -> proceed opLessThan 3
               8 -> proceed opEqual 3
+              9 -> proceed opModifyBase 1
  
               99 -> halt tape output ip input
               -1 -> err "Out of CPU cycles"
@@ -117,19 +122,19 @@ step initialState cpuTime = result
 
 
 get :: Int -> Tape -> Int -> [Int]
-get n tape ip = map retrieve (map (+ ip) [0..(n-1)])
+get n tape ip = traceable ( map retrieve (map (+ ip) [0..(n-1)]) )
   where 
     retrieve
       | ip < capacity tape = Seq.index $ mem tape
-      | otherwise          = (Map.!) $ extMem tape
+      | otherwise          = \x -> Map.findWithDefault 0 x $ extMem tape
 
 getOne :: Tape -> Int -> Int
 getOne tape ip = head $ get 1 tape ip
 
 set :: Tape -> Int -> Int -> Tape
 set tape ix val 
-  | ix < capacity tape  = Tape { mem=updateMem (mem tape) ix val, capacity=capacity tape, extMem=extMem tape, baseOffset=baseOffset tape }
-  | otherwise           = Tape { mem=mem tape, capacity=capacity tape, extMem=updateExtMem (extMem tape) ix val, baseOffset=baseOffset tape }
+  | ix < capacity tape  = newTapeFull (updateMem (mem tape) ix val) (extMem tape) (baseOffset tape)
+  | otherwise           = newTapeFull (mem tape) (updateExtMem (extMem tape) ix val) (baseOffset tape)
 
 updateMem :: Seq Int -> Int -> Int -> Seq Int
 updateMem mem ix val = Seq.update ix val mem
@@ -162,35 +167,38 @@ newParam :: Int -> Int -> Param
 newParam mode val = case mode of 
   0 -> Positional val
   1 -> Immediate val
+  2 -> Relative val
   _   -> error ("Unknown parameter mode: " ++ (show mode))
 
 resolveParam :: Tape -> Param -> Int
 resolveParam tape param = case param of 
   Positional x -> getOne tape x
   Immediate  x -> x
+  Relative x -> getOne tape (x + baseOffset tape)
 
 paramValue :: Param -> Int
 paramValue p = case p of 
   Positional x -> x
   Immediate x -> x
+  Relative x -> x
 
 opAdd :: Tape -> [Param] -> OpResult
-opAdd tape arg = (naryIndexedOp 2 tape arg sum, [], Nothing)
+opAdd tape arg = res (naryIndexedOp 2 tape arg sum) [] Nothing
 
 opMult :: Tape -> [Param] -> OpResult
-opMult tape arg = (naryIndexedOp 2 tape arg product, [], Nothing)
+opMult tape arg = res (naryIndexedOp 2 tape arg product) [] Nothing
                   
 opStore :: Tape -> [Param] -> OpResult
-opStore tape arg = (set tape (paramValue $ head arg) 
-                             (paramValue $ head $ drop 1 arg), [], Nothing)
+opStore tape arg = res (set tape (paramValue $ head arg) 
+                                 (paramValue $ head $ drop 1 arg)) [] Nothing
  
 opOutput :: Tape -> [Param] -> OpResult
-opOutput tape arg = (tape, [resolveParam tape $ head arg], Nothing)
+opOutput tape arg = res tape [resolveParam tape $ head arg] Nothing
 
 opJumpIf :: (Int -> Bool) -> Tape -> [Param] -> OpResult
 opJumpIf test tape arg
-  | testResult = (tape, [], Just (resolveParam tape $ head $ drop 1 arg))
-  | otherwise  = (tape, [], Nothing)
+  | testResult = res tape [] $ Just (resolveParam tape $ head $ drop 1 arg)
+  | otherwise  = res tape [] Nothing
   where
     testResult = test (resolveParam tape $ head arg)
 
@@ -201,13 +209,21 @@ opJumpIfFalse :: Tape -> [Param] -> OpResult
 opJumpIfFalse = opJumpIf (== 0)
 
 opTest :: ([Int] -> Int) -> Tape -> [Param] -> OpResult
-opTest test tape arg = (naryIndexedOp 2 tape arg test, [], Nothing)
+opTest test tape arg = res (naryIndexedOp 2 tape arg test) [] Nothing
 
 opLessThan :: Tape -> [Param] -> OpResult
 opLessThan = opTest (\(x:y:xs) -> if x < y then 1 else 0)
 
 opEqual :: Tape -> [Param] -> OpResult
 opEqual = opTest (\(x:y:xs) -> if x == y then 1 else 0)
+
+opModifyBase :: Tape -> [Param] -> OpResult
+opModifyBase tape arg = res (newTapeFull (mem tape) (extMem tape) (baseOffset tape + offset)) [] Nothing
+  where
+    offset = resolveParam tape $ head arg
+
+res :: Tape -> [Int] -> Maybe Int -> OpResult
+res tape outputs newIp = (tape, outputs, newIp)
 
 -- Accepts (n+1) args [0..n] for an n-ary function, storing result in the nth arg
 naryIndexedOp :: Int -> Tape -> [Param] -> ([Int] -> Int) -> Tape
@@ -238,20 +254,32 @@ primeTape :: [(Int, Int)] -> Tape -> Tape
 primeTape vals tape = foldl (\t x -> (set t (fst x) (snd x))) tape vals
 
 newTape :: [Int] -> Tape
-newTape x = Tape { mem=Seq.fromList x, capacity=length x, extMem=Map.empty, baseOffset=0 }
+newTape x = newTapeFull (Seq.fromList x) Map.empty 0
+
+newTapeFull :: Seq Int -> Map Int Int -> Int -> Tape
+newTapeFull mem extMem baseOffset = Tape { mem=mem, capacity=length mem, extMem=extMem, baseOffset=baseOffset }
+
+
+traceable :: Show a => a -> a
+traceable x
+  | enableTrace = ioTraceDirect x
+  | otherwise   = x
 
 parseInput :: String -> Tape
 parseInput input = newTape $ map read (wordsWhen (== ',') input)
 
                    
 testProgram :: [Int] -> [Int] -> [Int] -> [Int] -> ()
-testProgram prog input expTape expOutput = case result of 
+testProgram prog input expTape expOutput = testProgramExt (newTape prog) input (newTape expTape) expOutput
+
+testProgramExt :: Tape -> [Int] -> Tape -> [Int] -> ()
+testProgramExt tape input expTape expOutput = case result of 
   Left e -> error ("Test failed: " ++ e)
   Right state -> head [
-    assertEqual (tapeState state) (newTape expTape),
+    assertEqual (tapeState state) expTape,
     assertEqual (outputState state) expOutput]
   
-  where result = execute (newTape prog) input
+  where result = execute tape input
 
 testProgramOutput :: [Int] -> [Int] -> [Int] -> ()
 testProgramOutput prog input expOutput = case result of 
@@ -270,7 +298,9 @@ cpuTests = [ basicTapeTest1, basicTapeTest2, basicTapeTest3, basicTapeTest4, pri
            , testPositionalJumps1, testPositionalJumps2, testImmediateJumps1, testImmediateJumps2
            , testLessThanPositional1, testLessThanPositional2, testLessThanImmediate1, testLessThanImmediate2
            , testEqualityPositional1, testEqualityPositional2, testEqualityImmediate1, testEqualityImmediate2
-           , testBranchJumps1, testBranchJumps2, testBranchJumps3 ]
+           , testBranchJumps1, testBranchJumps2, testBranchJumps3, testModifyBase1, testModifyBase2 
+           , testExtendedMemory1, testExtendedMemory2, testExtendedMemory3
+           , testMemoryExtensions1, testMemoryExtensions2, testMemoryExtensions3 ]
 
 -- Basic
 
@@ -283,23 +313,28 @@ primeTest _ = assertEqual (primeTape [(1,2),(3,4),(5,6)] (newTape [0,0,0,0,0,0,0
 
 -- Opcodes
 
-testAdd _ = assertEqual (opAdd (newTape [1,0,0,0]) [Positional 0, Positional 0, Positional 0]) (newTape [2,0,0,0], [], Nothing)
+testAdd _ = assertEqual (opAdd (newTape [1,0,0,0]) [Positional 0, Positional 0, Positional 0]) $ res (newTape [2,0,0,0]) [] Nothing
 
-testMult _ = assertEqual (opMult (newTape [2,0,0,0]) [Positional 0, Positional 0, Positional 2]) (newTape [2,0,4,0], [], Nothing)
+testMult _ = assertEqual (opMult (newTape [2,0,0,0]) [Positional 0, Positional 0, Positional 2]) $ res (newTape [2,0,4,0]) [] Nothing
 
-testStore _ = assertEqual (opStore (newTape [0,0,0,0]) [Positional 3, Positional 12]) (newTape [0,0,0,12], [], Nothing)
+testStore _ = assertEqual (opStore (newTape [0,0,0,0]) [Positional 3, Positional 12]) $ res (newTape [0,0,0,12]) [] Nothing
 
-testOutput1 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Positional 1]) (newTape [1,2,3,4], [2], Nothing)
+testOutput1 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Positional 1]) $ res (newTape [1,2,3,4]) [2] Nothing
 
-testOutput2 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Immediate 1]) (newTape [1,2,3,4], [1], Nothing)
+testOutput2 _ = assertEqual (opOutput (newTape [1,2,3,4]) [Immediate 1]) $ res (newTape [1,2,3,4]) [1] Nothing
 
 testInputOutput _ = testProgram [3,0,4,0,99] [12] [12,0,4,0,99] [12]
 
-testJumpIfTrue1 _ = assertEqual (opJumpIfTrue (newTape [5,2,1,99]) [Positional 2, Positional 1]) (newTape [5,2,1,99], [], Just 2)
-testJumpIfTrue2 _ = assertEqual (opJumpIfTrue (newTape [5,2,1,99]) [Immediate 0, Positional 1]) (newTape [5,2,1,99], [], Nothing)
+testJumpIfTrue1 _ = assertEqual (opJumpIfTrue (newTape [5,2,1,99]) [Positional 2, Positional 1]) $ res (newTape [5,2,1,99]) [] (Just 2)
+testJumpIfTrue2 _ = assertEqual (opJumpIfTrue (newTape [5,2,1,99]) [Immediate 0, Positional 1]) $ res (newTape [5,2,1,99]) [] Nothing
 
-testJumpIfFalse1 _ = assertEqual (opJumpIfFalse (newTape [5,2,0,99]) [Immediate 2, Positional 1]) (newTape [5,2,0,99], [], Nothing)
-testJumpIfFalse2 _ = assertEqual (opJumpIfFalse (newTape [5,2,0,99]) [Positional 2, Positional 3]) (newTape [5,2,0,99], [], Just 99)
+testJumpIfFalse1 _ = assertEqual (opJumpIfFalse (newTape [5,2,0,99]) [Immediate 2, Positional 1]) $ res (newTape [5,2,0,99]) [] Nothing
+testJumpIfFalse2 _ = assertEqual (opJumpIfFalse (newTape [5,2,0,99]) [Positional 2, Positional 3]) $ res (newTape [5,2,0,99]) [] (Just 99)
+
+testModifyBase1 _ = assertEqual (opModifyBase (newTape [109,24,99]) [Immediate 24]) $ res 
+                                              (newTapeFull (Seq.fromList [109,24,99]) Map.empty 24) [] Nothing
+testModifyBase2 _ = assertEqual (opModifyBase (newTapeFull (Seq.fromList [9,4,99,4,8,12]) Map.empty 16) [Positional 4]) $ res
+                                              (newTapeFull (Seq.fromList [9,4,99,4,8,12]) Map.empty 24) [] Nothing 
 
 -- Instruction parsing
 
@@ -318,6 +353,16 @@ testNegativeValues _ = testProgram [1101,100,-1,4,0] [] [1101,100,-1,4,99] []
 
 tapeOnlyTest :: [Int] -> [Int] -> ()
 tapeOnlyTest input exp = testProgram input [] exp []
+
+-- Extended memory space
+testExtendedMemory1 _ = testProgramExt (newTapeFull (Seq.fromList [1101,2,4,1,1102,2,4,1024,99]) Map.empty 0) []
+                                       (newTapeFull (Seq.fromList [1101,6,4,1,1102,2,4,1024,99]) (Map.fromList [(1024,8)]) 0) []
+
+testExtendedMemory2 _ = testProgramExt (newTapeFull (Seq.fromList [4,36,99,2,3]) (Map.fromList [(36,16)]) 0) []
+                                       (newTapeFull (Seq.fromList [4,36,99,2,3]) (Map.fromList [(36,16)]) 0) [16]
+
+testExtendedMemory3 _ = testProgramExt (newTapeFull (Seq.fromList [1102]) (Map.fromList [(1,4),(2,2),(3,0),(4,99)]) 0) []
+                                       (newTapeFull (Seq.fromList [8]) (Map.fromList [(1,4),(2,2),(3,0),(4,99)]) 0) []
 
 -- Conditional jumps
 
@@ -345,4 +390,9 @@ testEqualityImmediate2 _ = testProgram [3,3,1108,-1,8,3,4,3,99] [2] [3,3,1108,0,
 testBranchJumps1 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] [7] [999]
 testBranchJumps2 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] [8] [1000]
 testBranchJumps3 _ = testProgramOutput [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99] [9] [1001]
+
+-- Multi-operation tests of memory & offset extension
+testMemoryExtensions1 _ = testProgramOutput [109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99] [] [109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99]
+testMemoryExtensions2 _ = testProgramOutput [1102,34915192,34915192,7,4,7,99,0] [] [1219070632396864]
+testMemoryExtensions3 _ = testProgramOutput [104,1125899906842624,99] [] [1125899906842624]
 
