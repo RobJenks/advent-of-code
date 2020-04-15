@@ -4,6 +4,8 @@ module Common.Util
 , zipWithPadded
 , zipPadded
 , rotate
+, roundTo
+, i2d
 , ioTrace
 , ioTraceDirect
 , stack
@@ -42,6 +44,17 @@ rotate :: Int -> [a] -> [a]
 rotate n xs = take lxs . drop ((negate n) `mod` lxs) . cycle $ xs
   where
     lxs = length xs
+
+-- Round to the specified number of decimal places
+roundTo :: Int -> Double -> Double
+roundTo dp x = (i2d $ round (x * factor)) / factor
+  where
+    factor = i2d (10 ^ dp) :: Double
+
+-- Convert integral to double
+i2d :: Int -> Double
+i2d = fromIntegral
+
 
 -- Force eager io trace operations for debugging purposes
 {-# NOINLINE ioTraceDirect #-}
