@@ -23,22 +23,45 @@ eps = 1.0 / i2d (10 ^ precision) :: Double
 
 
 part1 :: String -> String
-part1 = show . snd . bestVisibility . parseInput
+part1 x = (show pt) ++ ", " ++ (show count) ++ " visible"
+  where
+    (pt, count) = bestVisibility $ parseInput x
 
 part2 :: String -> String
-part2 x = show $ nearestAngularObservers (parseInput x) (0,3) 
+part2 x = "B" 
 
 
 bestVisibility :: Grid -> (Point, Int)
-bestVisibility grid = ((0,0),0)
+bestVisibility = highestVisibilityCount . visibleCount . reverseVisibility . gridVisibility
+
+highestVisibilityCount :: [(Point, Int)] -> (Point, Int)
+highestVisibilityCount vc = foldl1 (\(rp,rc) (p,c) -> if c > rc then (p,c) else (rp,rc)) vc
+
+visibleCount :: [(Point, [Point])] -> [(Point, Int)]
+visibleCount visibility = map (\(x,vs) -> (x, length vs)) visibility
 
 dist :: Point -> Point -> Double
 dist from to = sqrt $ sum $ map (**2) ab
   where
     ab = map (\f -> fromIntegral (f to - f from)) [fst,snd]
 
-gridVisibility :: Grid -> Map Point Vis
-gridVisibility grid = Map.empty --Map.fromList $ map (\p -> (p, nearestAngularObservers grid p)) grid
+reverseVisibility :: [(Point, [Point])] -> [(Point, [Point])]
+reverseVisibility v = Map.toList reverseKeyed
+  where
+    pairs = foldl1 (++)
+              (map (\(subject,visible) -> 
+                (map (\pt -> (pt, subject)) visible)) v) 
+    reverseKeyed = foldl (\m (x0,x1) -> Map.insertWith (++) x0 [x1] m) Map.empty pairs 
+
+getViewers :: (Point, [(Double, Vis)]) -> (Point, [Point])
+getViewers (tgt, visibility) = (tgt, extractViewers visibility)
+  where
+    extractViewers = map (source . snd)
+
+gridVisibility :: Grid -> [(Point, [Point])]
+gridVisibility grid = map getViewers byTarget
+  where
+    byTarget = map (\x -> (x, Map.toList $ nearestAngularObservers grid x)) grid    
 
 nearestAngularObservers :: Grid -> Point -> Map Double Vis
 nearestAngularObservers grid tgt = resultMap 
