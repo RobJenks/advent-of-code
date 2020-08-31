@@ -8,6 +8,7 @@ import qualified Day7.Day7 as Day7
 import qualified Day8.Day8 as Day8
 import qualified Day9.Day9 as Day9
 import qualified Day10.Day10 as Day10
+import qualified Day12.Day12 as Day12
 
 import Common.Util (io)
 import qualified Common.Util as Util
@@ -39,10 +40,11 @@ main = do
                   , Solution { day=7, part1=   Day7.part1, part2=   Day7.part2, tests=Day7.tests }
                   , Solution { day=8, part1=io.Day8.part1, part2=io.Day8.part2, tests=Day8.tests } 
                   , Solution { day=9, part1=io.Day9.part1, part2=io.Day9.part2, tests=Day9.tests } 
-                  , Solution { day=10, part1=io.Day10.part1, part2=io.Day10.part2, tests=Day10.tests } ]
+                  , Solution { day=10, part1=io.Day10.part1, part2=io.Day10.part2, tests=Day10.tests }
+                  , Solution { day=12, part1=io.Day12.part1, part2=io.Day12.part2, tests=Day12.tests } ]
   
   runCommonTests common []
-  runSolutions solutions 
+  runSolutions $ drop 10 solutions 
 
 
 runSolutions :: [Solution] -> IO()
