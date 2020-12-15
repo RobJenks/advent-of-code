@@ -5,4 +5,3 @@ authors = ["Rob Jenks <robjenks@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-day1 = { path = "day1" }
