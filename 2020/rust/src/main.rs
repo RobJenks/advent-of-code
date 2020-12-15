@@ -1,3 +1,6 @@
+mod common;
+mod day1;
+
 fn main() {
     let solutions = [
         day1::run
