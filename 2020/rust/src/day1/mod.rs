@@ -38,7 +38,7 @@ fn part2() -> u64 {
 
 // Return sorted input set
 fn sorted_input() -> Vec<u32> {
-    let mut input = common::read_file("src/day1/input.txt")
+    let mut input = common::read_file("src/day1/problem-input.txt")
         .lines()
         .map(|x| x.parse::<u32>().unwrap())
         .collect::<Vec<_>>();
@@ -76,8 +76,6 @@ mod tests {
 
     #[test]
     fn test_ensure_all_input_elements_are_unique() {
-        let x = sorted_input();
-
         assert_eq!(None, sorted_input().iter().zip(
                          sorted_input().iter().skip(1))
             .find(|(&x,&y)| x == y));
