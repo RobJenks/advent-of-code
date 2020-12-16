@@ -1,6 +1,4 @@
 use super::common;
-use std::ops::DerefMut;
-use itertools::Itertools;
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
@@ -43,6 +41,11 @@ mod tests {
     #[test]
     fn test_part1() {
         assert_eq!(205, part1());
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(3952146825, part2());
     }
 
 }
