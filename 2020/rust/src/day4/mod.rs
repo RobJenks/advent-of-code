@@ -134,16 +134,23 @@ impl Passport {
 #[cfg(test)]
 mod tests {
     use super::common;
-    use super::{ part1, get_valid_passport_count };
+    use super::{ part1, part2, Passport, get_valid_passport_count };
 
     #[test]
     fn test_basic_validity() {
-        assert_eq!(2, get_valid_passport_count(common::read_file("src/day4/test-input-1.txt")));
+        assert_eq!(2, get_valid_passport_count(
+            common::read_file("src/day4/test-input-1.txt"),
+            &Passport::has_fields));
     }
 
     #[test]
     fn test_part1() {
         assert_eq!(202, part1());
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(137, part2());
     }
 
 }
