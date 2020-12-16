@@ -26,7 +26,7 @@ fn part2() -> u32 {
 
     ids.iter().zip(ids.iter().skip(1))
         .filter(|(&x,&y)| x+1 != y)
-        .map(|(x,y)| x+1)
+        .map(|(x,_)| x+1)
         .next()
         .unwrap_or_else(|| panic!("No result found"))
 }
@@ -77,7 +77,6 @@ impl Range {
 
 #[cfg(test)]
 mod tests {
-    use super::common;
     use super::{ part1, part2, evaluate };
 
     #[test]
