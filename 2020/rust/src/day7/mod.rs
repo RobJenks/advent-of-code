@@ -4,6 +4,7 @@ use itertools::Itertools;
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> u32 {
@@ -11,6 +12,11 @@ fn part1() -> u32 {
     get_all_indirect_parents("shiny gold", &mut items, &index_map).iter()
         .unique()
         .count() as u32
+}
+
+fn part2() -> u32 {
+    let (mut items, index_map) = parse_input(common::read_file("src/day7/problem-input.txt").as_str());
+    count_required_children("shiny gold", &mut items, &index_map) as u32
 }
 
 fn get_all_indirect_parents(name: &str, items: &Vec<Item>, index_map: &IndexMap) -> Vec<usize> {
@@ -25,6 +31,18 @@ fn follow_parents(item: usize, items: &Vec<Item>) -> Vec<usize> {
             [acc.as_slice(), vec![x.0].as_slice(), x.1.as_slice()].concat()
         })
 }
+
+fn count_required_children(item: &str, items: &Vec<Item>, index_map: &IndexMap) -> u32 {
+    aggregate_child_instances(*index_map.get(item).unwrap_or_else(|| panic!("Cannot find item to count children ({})", item)), items)
+}
+
+fn aggregate_child_instances(item: usize, items: &Vec<Item>) -> u32 {
+    items.get(item).unwrap_or_else(|| panic!("Cannot follow invalid child pointer to {}", item))
+        .get_contains().iter()
+        .map(|rel| (1 + aggregate_child_instances(*rel.get_target(), items)) * rel.get_count())
+        .sum()
+}
+
 
 fn parse_input(s: &str) -> (Vec<Item>, IndexMap) {
     let mut items = vec![];
@@ -108,7 +126,7 @@ impl Item {
         Self { name: name.to_string(), contains: vec![], contained_by: vec![] }
     }
 
-    pub fn _get_contains(&self) -> &Vec<Relation> { &self.contains }
+    pub fn get_contains(&self) -> &Vec<Relation> { &self.contains }
     pub fn get_contained_by(&self) -> &Vec<Relation> { &self.contained_by }
 
     pub fn add_contains_relation(&mut self, contained: usize, count: u32) {
@@ -127,4 +145,19 @@ impl <T> RelationT<T> {
 
     pub fn get_target(&self) -> &T { &self.target }
     pub fn get_count(&self) -> u32 { self.count }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ part1, part2 };
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(337, part1());
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(50100, part2());
+    }
 }
