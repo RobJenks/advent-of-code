@@ -37,6 +37,9 @@ impl Cpu {
         }
     }
 
+    pub fn get_state(&self) -> &CpuState { &self.state }
+    pub fn get_state_mut(&mut self) -> &mut CpuState { &mut self.state }
+
     pub fn execute(&mut self) {
         self.state.set_active(true);
         while self.state.is_active() {
@@ -154,7 +157,7 @@ impl Cpu {
     fn should_halt(&self) -> bool {
         self.hooks.halt_trigger.1.try_recv()
             .map(|_| true)
-            .unwrap_or_else(|e| false)
+            .unwrap_or_else(|_| false)
     }
 
     #[allow(dead_code)]
@@ -187,15 +190,15 @@ impl CpuState {
         self.active = active;
     }
 
-    fn get_next_instr(&self) -> &Instr {
+    pub fn get_next_instr(&self) -> &Instr {
         self.get_instr(self.ip)
     }
 
-    fn get_last_instr(&self) -> Option<&Instr> {
+    pub fn get_last_instr(&self) -> Option<&Instr> {
         self.last_ip.map(|ip| self.get_instr(ip))
     }
 
-    fn get_instr(&self, ip: usize) -> &Instr {
+    pub fn get_instr(&self, ip: usize) -> &Instr {
         self.prog.get(ip)
             .unwrap_or_else(|| panic!("Invalid instruction pointer ({})", ip))
     }
@@ -233,8 +236,6 @@ impl CpuHooks {
 mod tests {
     use std::thread;
     use std::time::Duration;
-    use std::sync::mpsc;
-    use std::sync::mpsc::{Sender, Receiver};
     use super::Cpu;
     use super::instr::{Op, Instr, Instructions};
     use crate::cpu::CpuState;
@@ -297,9 +298,9 @@ mod tests {
         cpu.set_pre_exec_hook(move |_| thread::sleep(Duration::from_micros(100)));
 
         let halt_tx = cpu.create_halt_trigger();
-        let halt_thread = thread::spawn(move || {
+        thread::spawn(move || {
             thread::sleep(Duration::from_millis(500));
-            halt_tx.send(());
+            halt_tx.send(()).unwrap_or_else(|e| panic!("Failed to send halt signal ({})", e));
         });
 
         cpu.execute();
