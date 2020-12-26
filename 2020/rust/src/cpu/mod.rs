@@ -1,7 +1,9 @@
 pub mod common;
 pub mod instr;
+pub mod halt;
 use common::*;
 use instr::{Instr, Op};
+use halt::HaltCode;
 use std::sync::mpsc;
 use std::sync::mpsc::{Sender, Receiver};
 
@@ -17,6 +19,7 @@ pub struct CpuState {
     last_ip: Option<usize>,
     ip_adj: i64,                // End-of-cycle IP adjustment; allows JMP prior to 0 as long as IP increment will return to valid 0+ range at cycle end
     acc: Num,
+    halt_code: HaltCode,
 
     executed: usize,
     log_exec: bool,
@@ -41,17 +44,18 @@ impl Cpu {
     pub fn get_state_mut(&mut self) -> &mut CpuState { &mut self.state }
 
     pub fn execute(&mut self) {
+        self.state.reset_halt_code();
         self.state.set_active(true);
+
         while self.state.is_active() {
             self.exec_next_instr();
 
-            // Check for external halt trigger
-            if self.should_halt() { self.halt(); }
+            self.test_halt_conditions();
         }
     }
 
     pub fn halt(&mut self) {
-        self.state.set_active(false);
+        self.halt_normal(halt::HALT_REASON_DIRECT.to_string());
     }
 
     pub fn set_pre_exec_hook(&mut self, f: impl Fn(&mut CpuState) + 'static) {
@@ -85,7 +89,7 @@ impl Cpu {
     fn exec_instr(&mut self, ip: usize) {
         // Pre-execution hook
         (self.hooks.pre_exec)(&mut self.state);
-        if !self.state.active { return; }   // Recheck in case hook fn results in program halt
+        if !self.state.active { return; }   // Check in case hook fn results in program halt
 
         // Execute instruction
         self.exec_instr_op(ip);
@@ -107,7 +111,7 @@ impl Cpu {
             Op::NOP => (),
             Op::ACC(n) => self.acc(*n),
             Op::JMP(n) => self.jmp(*n),
-            op => panic!("Unsupported opcode '{:?}'", op)
+            op => self.halt_fault(format!("Unsupported opcode '{:?}'", op))
         }
 
         self.inc_exec_count();
@@ -154,10 +158,29 @@ impl Cpu {
         self.hooks.create_halt_trigger()
     }
 
-    fn should_halt(&self) -> bool {
+    fn halt_requested(&self) -> bool {
         self.hooks.halt_trigger.1.try_recv()
             .map(|_| true)
             .unwrap_or_else(|_| false)
+    }
+
+    fn test_halt_conditions(&mut self) {
+        if self.halt_requested() {
+            self.halt_normal(halt::HALT_REASON_SIGNAL.to_string());
+        }
+        else if self.state.is_at_end_of_program() {
+            self.halt_normal(halt::HALT_REASON_END_OF_PROG.to_string());
+        }
+    }
+
+    pub fn halt_normal(&mut self, reason: String) {
+        self.state.set_active(false);
+        self.state.halt_code = HaltCode::Normal(reason);
+    }
+
+    pub fn halt_fault(&mut self, reason: String) {
+        self.state.set_active(false);
+        self.state.halt_code = HaltCode::Fault(reason);
     }
 
     #[allow(dead_code)]
@@ -175,6 +198,7 @@ impl CpuState {
             last_ip: None,
             ip_adj: 0,
             acc: 0,
+            halt_code: HaltCode::None,
 
             executed: 0,
             log_exec: false
@@ -185,6 +209,7 @@ impl CpuState {
     pub fn get_ip(&self) -> usize { self.ip }
     pub fn get_acc(&self) -> Num { self.acc }
     pub fn get_exec_count(&self) -> usize { self.executed }
+    pub fn get_halt_code(&self) -> &HaltCode { &self.halt_code }
 
     pub fn set_active(&mut self, active: bool) {
         self.active = active;
@@ -215,6 +240,14 @@ impl CpuState {
     fn set_eoc_ip_adj(&mut self, n: i64) {
         self.ip_adj = n;
     }
+
+    fn reset_halt_code(&mut self) {
+        self.halt_code = HaltCode::None;
+    }
+
+    fn is_at_end_of_program(&self) -> bool {
+        self.ip == self.prog.len()
+    }
 }
 
 impl CpuHooks {
@@ -239,6 +272,7 @@ mod tests {
     use super::Cpu;
     use super::instr::{Op, Instr, Instructions};
     use crate::cpu::CpuState;
+    use crate::cpu::halt::{HaltCode, HALT_REASON_END_OF_PROG, HALT_REASON_SIGNAL};
 
     #[test]
     fn test_basic_pre_exec_hook_loop_termination() {
@@ -307,6 +341,24 @@ mod tests {
 
         // Test will only successfully reach this point if the halt trigger was correctly processed at the start of a cpu cycle
         assert!(!cpu.state.active);
+        assert_eq!(&HaltCode::Normal(HALT_REASON_SIGNAL.to_string()), cpu.state.get_halt_code());
+    }
+
+    #[test]
+    fn test_halt_at_end_of_program() {
+        let prog = Instructions::from_input("acc +1\nacc +2\nacc +3\nacc +4");
+        let mut cpu = Cpu::new(prog);
+
+        cpu.execute();
+        assert_eq!(&HaltCode::Normal(HALT_REASON_END_OF_PROG.to_string()), cpu.state.get_halt_code());
+        assert_eq!(4, cpu.get_state().get_ip());
+        assert_eq!(10, cpu.state.get_acc());
+    }
+
+    #[test]
+    fn test_halt_in_fault_condition() {
+        let prog = Instructions::from_input("acc +1\nacc +2\nacc +3\nacc +4");
+
     }
 
     #[test]
@@ -316,11 +368,16 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Unsupported opcode 'UNK'")]
     fn test_handle_unsupported_opcode() {
-        let prog = vec![Instr::new(Op::UNK)];
+        let prog = vec![Instr::new(Op::ACC(1)), Instr::new(Op::UNK), Instr::new(Op::ACC(2))];
         let mut cpu = Cpu::new(prog);
 
         cpu.execute();
+
+        assert!(!cpu.state.is_active());
+        assert_eq!(&HaltCode::Fault("Unsupported opcode 'UNK'".to_string()), cpu.state.get_halt_code());
+
+        assert_eq!(Some(&Instr::new_with_executions(Op::UNK, 1)), cpu.get_last_instr());
+        assert_eq!(2, cpu.state.get_ip());
     }
 }
