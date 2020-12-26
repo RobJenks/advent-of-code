@@ -41,7 +41,7 @@ impl Cpu {
     }
 
     pub fn get_state(&self) -> &CpuState { &self.state }
-    pub fn get_state_mut(&mut self) -> &mut CpuState { &mut self.state }
+    pub fn _get_state_mut(&mut self) -> &mut CpuState { &mut self.state }
 
     pub fn execute(&mut self) {
         self.state.reset_halt_code();
@@ -355,15 +355,21 @@ mod tests {
     }
 
     #[test]
-    fn test_halt_in_fault_condition() {
-        let prog = Instructions::from_input("acc +1\nacc +2\nacc +3\nacc +4");
-
-    }
-
-    #[test]
     #[should_panic(expected = "Cannot parse invalid opcode 'abc'")]
     fn test_handle_unknown_opcode() {
         Instructions::from_input("abc +0");
+    }
+
+    #[test]
+    fn test_direct_halt() {
+        let prog = Instructions::from_input("acc +1\nacc +2\nacc +3\nacc +4");
+        let mut cpu = Cpu::new(prog);
+
+        cpu.state.active = true;
+        cpu.halt();
+
+        assert!(!cpu.state.is_active());
+        assert_eq!(&HaltCode::Normal(NormalHalt::Direct, HALT_REASON_DIRECT.to_string()), cpu.state.get_halt_code());
     }
 
     #[test]

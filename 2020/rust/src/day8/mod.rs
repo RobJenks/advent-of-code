@@ -30,7 +30,7 @@ fn part2() -> i64 {
             cpu.execute();
 
             match cpu.get_state().get_halt_code() {
-                HaltCode::Normal(NormalHaltReason, _) => Some(cpu.get_state().get_acc()),
+                HaltCode::Normal(NormalHalt::EndOfProgram, _) => Some(cpu.get_state().get_acc()),
                 _ => None
             }
         })
