@@ -2,8 +2,8 @@ pub mod common;
 pub mod instr;
 pub mod halt;
 use common::*;
-use instr::{Instr, Op};
-use halt::HaltCode;
+use instr::{Instr, Op, Prog};
+use halt::*;
 use std::sync::mpsc;
 use std::sync::mpsc::{Sender, Receiver};
 
@@ -13,7 +13,7 @@ pub struct Cpu {
 }
 
 pub struct CpuState {
-    prog: Vec<Instr>,
+    prog: Prog,
     active: bool,
     ip: usize,
     last_ip: Option<usize>,
@@ -33,7 +33,7 @@ struct CpuHooks {
 }
 
 impl Cpu {
-    pub fn new(prog: Vec<Instr>) -> Self {
+    pub fn new(prog: Prog) -> Self {
         Self {
             state: CpuState::new(prog),
             hooks: CpuHooks::new()
@@ -55,7 +55,7 @@ impl Cpu {
     }
 
     pub fn halt(&mut self) {
-        self.halt_normal(halt::HALT_REASON_DIRECT.to_string());
+        self.halt_normal(NormalHalt::Direct,HALT_REASON_DIRECT.to_string());
     }
 
     pub fn set_pre_exec_hook(&mut self, f: impl Fn(&mut CpuState) + 'static) {
@@ -108,10 +108,10 @@ impl Cpu {
         }
 
         match instr.get_op() {
-            Op::NOP => (),
+            Op::NOP(_) => (),
             Op::ACC(n) => self.acc(*n),
             Op::JMP(n) => self.jmp(*n),
-            op => self.halt_fault(format!("Unsupported opcode '{:?}'", op))
+            op => self.halt_fault(FaultCondition::UnsupportedOpcode, format!("Unsupported opcode '{:?}'", op))
         }
 
         self.inc_exec_count();
@@ -166,21 +166,21 @@ impl Cpu {
 
     fn test_halt_conditions(&mut self) {
         if self.halt_requested() {
-            self.halt_normal(halt::HALT_REASON_SIGNAL.to_string());
+            self.halt_normal(NormalHalt::Signal, HALT_REASON_SIGNAL.to_string());
         }
         else if self.state.is_at_end_of_program() {
-            self.halt_normal(halt::HALT_REASON_END_OF_PROG.to_string());
+            self.halt_normal(NormalHalt::EndOfProgram,HALT_REASON_END_OF_PROG.to_string());
         }
     }
 
-    pub fn halt_normal(&mut self, reason: String) {
+    pub fn halt_normal(&mut self, reason: NormalHalt, desc: String) {
         self.state.set_active(false);
-        self.state.halt_code = HaltCode::Normal(reason);
+        self.state.halt_code = HaltCode::Normal(reason, desc);
     }
 
-    pub fn halt_fault(&mut self, reason: String) {
+    pub fn halt_fault(&mut self, reason: FaultCondition, desc: String) {
         self.state.set_active(false);
-        self.state.halt_code = HaltCode::Fault(reason);
+        self.state.halt_code = HaltCode::Fault(reason, desc);
     }
 
     #[allow(dead_code)]
@@ -190,7 +190,7 @@ impl Cpu {
 }
 
 impl CpuState {
-    pub fn new(prog: Vec<Instr>) -> Self {
+    pub fn new(prog: Prog) -> Self {
         Self {
             prog,
             active: false,
@@ -269,10 +269,9 @@ impl CpuHooks {
 mod tests {
     use std::thread;
     use std::time::Duration;
-    use super::Cpu;
+    use super::{Cpu, CpuState};
     use super::instr::{Op, Instr, Instructions};
-    use crate::cpu::CpuState;
-    use crate::cpu::halt::{HaltCode, HALT_REASON_END_OF_PROG, HALT_REASON_SIGNAL};
+    use super::halt::*;
 
     #[test]
     fn test_basic_pre_exec_hook_loop_termination() {
@@ -341,7 +340,7 @@ mod tests {
 
         // Test will only successfully reach this point if the halt trigger was correctly processed at the start of a cpu cycle
         assert!(!cpu.state.active);
-        assert_eq!(&HaltCode::Normal(HALT_REASON_SIGNAL.to_string()), cpu.state.get_halt_code());
+        assert_eq!(&HaltCode::Normal(NormalHalt::Signal, HALT_REASON_SIGNAL.to_string()), cpu.state.get_halt_code());
     }
 
     #[test]
@@ -350,7 +349,7 @@ mod tests {
         let mut cpu = Cpu::new(prog);
 
         cpu.execute();
-        assert_eq!(&HaltCode::Normal(HALT_REASON_END_OF_PROG.to_string()), cpu.state.get_halt_code());
+        assert_eq!(&HaltCode::Normal(NormalHalt::EndOfProgram, HALT_REASON_END_OF_PROG.to_string()), cpu.state.get_halt_code());
         assert_eq!(4, cpu.get_state().get_ip());
         assert_eq!(10, cpu.state.get_acc());
     }
@@ -375,7 +374,7 @@ mod tests {
         cpu.execute();
 
         assert!(!cpu.state.is_active());
-        assert_eq!(&HaltCode::Fault("Unsupported opcode 'UNK'".to_string()), cpu.state.get_halt_code());
+        assert_eq!(&HaltCode::Fault(FaultCondition::UnsupportedOpcode, "Unsupported opcode 'UNK'".to_string()), cpu.state.get_halt_code());
 
         assert_eq!(Some(&Instr::new_with_executions(Op::UNK, 1)), cpu.get_last_instr());
         assert_eq!(2, cpu.state.get_ip());

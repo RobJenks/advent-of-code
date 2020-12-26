@@ -5,6 +5,18 @@ pub const HALT_REASON_END_OF_PROG: &str = "End of program";
 #[derive(Debug, PartialEq)]
 pub enum HaltCode {
     None,
-    Normal(String),
-    Fault(String)
+    Normal(NormalHalt, String),
+    Fault(FaultCondition, String)
+}
+
+#[derive(Debug, PartialEq)]
+pub enum NormalHalt {
+    Direct,
+    Signal,
+    EndOfProgram
+}
+
+#[derive(Debug, PartialEq)]
+pub enum FaultCondition {
+    UnsupportedOpcode
 }

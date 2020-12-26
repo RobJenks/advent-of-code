@@ -3,17 +3,19 @@ use std::str::FromStr;
 use std::fmt::Display;
 use super::common::*;
 
+pub type Prog = Vec<Instr>;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Op {
     UNK,
-    NOP,
+    NOP(Num),
     ACC(Num),
     JMP(Addr)
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Instr {
-    op: Op,
+    pub op: Op,
     exec_count: u32
 }
 
@@ -34,13 +36,13 @@ impl Instr {
 
 pub struct Instructions { }
 impl Instructions {
-    pub fn from_input(input: &str) -> Vec<Instr> {
+    pub fn from_input(input: &str) -> Prog {
         Self::from_lines(&input.lines()
             .map(|x| x.to_string())
             .collect())
     }
 
-    pub fn from_lines(input: &Vec<String>) -> Vec<Instr> {
+    pub fn from_lines(input: &Vec<String>) -> Prog {
         input.iter()
             .map(|x| Self::parse_instr(x))
             .collect()
@@ -49,7 +51,7 @@ impl Instructions {
     pub fn parse_instr(s: &str) -> Instr {
         s.split_whitespace().collect_tuple::<(&str,&str)>()
             .map(|x| match x {
-                ("nop", _) => Op::NOP,
+                ("nop", n) => Op::NOP(Self::parse_valid(n)),
                 ("acc", n) => Op::ACC(Self::parse_valid(n)),
                 ("jmp", n) => Op::JMP(Self::parse_valid(n)),
                 (op, _) => panic!("Cannot parse invalid opcode '{}'", op)
