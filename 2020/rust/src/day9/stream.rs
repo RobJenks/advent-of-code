@@ -17,6 +17,21 @@ impl<'a> DataStream {
     pub fn iter(&'a self) -> DataStreamIterator<'a> {
         self.into_iter()
     }
+
+    pub fn contiguous_range_with_sum(&'a self, target: Val) -> &'a[Val] {
+        let mut have_result = false;
+        let (mut begin, mut end) = (0, 0);
+
+        while !have_result {
+            let sum: Val = *&self.data[begin..=end].iter().sum();
+
+            if sum == target     { have_result = true; }
+            else if sum > target { begin += 1; }
+            else                 { end += 1 }
+        }
+
+        &self.data[begin..=end]
+    }
 }
 
 impl<'a> IntoIterator for &'a DataStream {
