@@ -17,7 +17,7 @@ pub struct CpuState {
     active: bool,
     ip: usize,
     last_ip: Option<usize>,
-    ip_adj: i64,                // End-of-cycle IP adjustment; allows JMP prior to 0 as long as IP increment will return to valid 0+ range at cycle end
+    ip_adj: Addr,                // End-of-cycle IP adjustment; allows JMP prior to 0 as long as IP increment will return to valid 0+ range at cycle end
     acc: Num,
     halt_code: HaltCode,
 
@@ -140,7 +140,7 @@ impl Cpu {
         self.state.ip = new_ip as usize;
     }
 
-    fn set_eoc_ip_adj(&mut self, n: i64) {
+    fn set_eoc_ip_adj(&mut self, n: Addr) {
         self.state.set_eoc_ip_adj(n);
     }
 
@@ -237,7 +237,7 @@ impl CpuState {
         self.log_exec = active;
     }
 
-    fn set_eoc_ip_adj(&mut self, n: i64) {
+    fn set_eoc_ip_adj(&mut self, n: Addr) {
         self.ip_adj = n;
     }
 
