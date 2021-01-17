@@ -177,6 +177,13 @@ impl <T> Grid<T>
             .collect()
     }
 
+    pub fn try_get_neighbour_coord(&self, coord: &Vec2<usize>, dir: GridDir) -> Option<Vec2<usize>> {
+        let off : &(isize,isize) = &COORD_OFFSETS[dir as usize];
+        let (nx, ny) = (coord.x as isize + off.0, coord.y as isize + off.1);
+
+        if self.valid_signed_coords(nx, ny) { Some(Vec2::new(nx as usize, ny as usize)) } else { None }
+    }
+
     pub fn get_edge_indices(&self) -> Vec<usize> {
         (0..self.count).filter(|&i| self.is_edge_index(i)).collect()
     }
@@ -193,7 +200,7 @@ impl <T> Grid<T>
 }
 
 enum_from_primitive! {
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum GridDir {
     Up = 0,
     UpRight = 1,
@@ -215,6 +222,13 @@ impl From<usize> for GridDir {
 impl From<GridDir> for usize {
     fn from(dir: GridDir) -> Self {
         dir as usize
+    }
+}
+
+impl GridDir {
+    pub fn all() -> [GridDir; 8] {
+        [GridDir::Up, GridDir::UpRight, GridDir::Right, GridDir::DownRight,
+         GridDir::Down, GridDir::DownLeft, GridDir::Left, GridDir::UpLeft]
     }
 }
 
