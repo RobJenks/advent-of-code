@@ -17,6 +17,13 @@ impl <T> Vec2<T>
     }
 }
 
+impl Vec2<i32> {
+    pub fn manhattan_dist(&self, to: &Self) -> i32 {
+        (self.x - to.x).abs() +
+        (self.y - to.y).abs()
+    }
+}
+
 impl <T> Add for Vec2<T>
     where T: BasicArith + Copy {
     type Output = Self;

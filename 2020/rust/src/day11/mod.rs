@@ -8,7 +8,7 @@ type States = Grid<State>;
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
-    println!("Part 1 result: {}", part2());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> usize {
@@ -54,7 +54,7 @@ fn step(grid: &States, ix_inner: &Vec<usize>, ix_outer: &Vec<usize>) -> States {
     let mut new = grid.clone();
 
     // Not very DRY, but process edges and interior separately for efficiency; can do entire interior region
-    //  without bounds checks and this helps a lot for very large datasets & where system converges slowly
+    // without bounds checks and this helps a lot for very large datasets & where system converges slowly
     ix_inner.iter().for_each(|&ix|
         match grid.get(ix) {
             State::Empty => if !grid.get_all_neighbours_unchecked(ix).contains(&&State::Occupied) { new.set(ix, State::Occupied ); },
