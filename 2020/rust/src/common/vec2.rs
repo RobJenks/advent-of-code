@@ -15,6 +15,10 @@ impl <T> Vec2<T>
     pub fn new(x: T, y: T) -> Self {
         Self { x, y }
     }
+
+    pub fn scalar_mul(self, scalar: T) -> Self {
+        self * Self::new(scalar, scalar)
+    }
 }
 
 impl Vec2<i32> {
