@@ -32,3 +32,20 @@ fn parse_input(input: String) -> Vec<Command> {
         .map(|s| Command::new(s))
         .collect()
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::common;
+    use crate::day12::{part1, part2};
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(1457, part1());
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(106860, part2());
+    }
+}

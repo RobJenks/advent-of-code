@@ -156,7 +156,17 @@ fn state_from_char(c: char) -> State {
 #[cfg(test)]
 mod tests {
     use super::common;
-    use crate::day11::{parse_input, evaluate_to_convergence, State, evaluate_steps, step};
+    use crate::day11::{parse_input, evaluate_to_convergence, State, evaluate_steps, step, part1, part2};
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(2386, part1());
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(2091, part2());
+    }
 
 
     #[test]
