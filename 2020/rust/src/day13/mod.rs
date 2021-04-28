@@ -26,7 +26,7 @@ fn get_best_departure(input: &Input) -> Option<Connection> {
 fn calculate_best_sequence_start(input: &Input) -> usize {
     let indexed = input.departures.iter()
         .enumerate()
-        .filter(|(i, x)| x.is_some())
+        .filter(|(_, x)| x.is_some())
         .map(|(i, x)| (i, x.unwrap()))
         .sorted_by(|x, y| x.0.partial_cmp(&y.0).unwrap())
         .collect::<Vec<_>>();
