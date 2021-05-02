@@ -1,31 +1,41 @@
 mod nodes;
 mod space;
 use crate::common;
-use crate::common::nvec::Vec3;
-use crate::day17::nodes::{Coord3, Cube};
+use crate::common::nvec::{Vec3, Vec4};
+use crate::day17::nodes::{Coord3, Cube, HyperCube};
 use crate::day17::space::{Space, SpatialNode};
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> usize {
-    parse_input(common::read_file("src/day17/problem-input.txt"))
+    parse_input::<Cube>(common::read_file("src/day17/problem-input.txt"), |x, y| Vec3::new([x, y, 0]))
+        .execute_n(6)
+        .get_active()
+        .len()
+}
+
+fn part2() -> usize {
+    parse_input::<HyperCube>(common::read_file("src/day17/problem-input.txt"), |x, y| Vec4::new([x, y, 0, 0]))
         .execute_n(6)
         .get_active()
         .len()
 }
 
 
-fn parse_input(input: String) -> Space<Cube> {
+fn parse_input<T>(input: String, f: fn(isize, isize) -> T::Coord) -> Space<T>
+    where T: SpatialNode {
+
     Space::new(
         input.lines().enumerate()
             .map(|(y,xs)| xs.chars().enumerate()
                 .filter(|(_, c)| *c == '#')
-                .map(|(x, _)| Vec3::new([x as isize, y as isize, 0]))
+                .map(|(x, _)| f(x as isize, y as isize))
                 .collect::<Vec<_>>())
             .flatten()
-            .map(|pos| Cube::new(pos))
+            .map(|pos| T::new(pos))
             .collect::<Vec<_>>())
 }
 
@@ -39,8 +49,13 @@ mod tests {
     use crate::day17::space::{Space, SpatialNode};
     use crate::day17::nodes::{Cube, Coord3};
     use crate::common::nvec::Vec3;
-    use crate::day17::nodes_for;
+    use crate::day17::{nodes_for, part1};
     use itertools::Itertools;
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(301, part1());
+    }
 
     #[test]
     fn test_basic_evolution() {
