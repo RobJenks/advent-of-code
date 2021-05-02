@@ -1,5 +1,6 @@
 mod num;
 pub mod vec2;
+pub mod nvec;
 pub mod grid;
 
 pub fn read_file(path : &str) -> String {

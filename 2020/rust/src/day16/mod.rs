@@ -56,16 +56,13 @@ fn determine_field_names(criteria: &Criteria, tickets: Vec<Ticket>) -> Vec<(Stri
     while let Some(sol) = find_single_solution_field(&mappings) {
         if let Err(e) = check_for_dead_end_solution_result(&mappings) { panic!("{}", e); }
 
-        let field = mappings.get(sol).unwrap_or_else(|| panic!("Invalid partial solution result: {}"));
+        let field = mappings.get(sol).unwrap_or_else(|| panic!("Invalid partial solution result: {}", sol));
 
         assert_eq!(1, field.1.len());
         let ix = field.1.get(0).unwrap_or_else(|| panic!("Invalid partial solution index"));
 
-        println!("Recording single possible solution for field '{}' at {}", field.0.get_name(), ix);
         solution.push((field.0.get_name().to_string(), *ix));
-        let new_mappings = remove_confirmed_solution(&mappings, field.0.get_name(), *ix);
-
-        mappings = new_mappings;
+        mappings = remove_confirmed_solution(&mappings, field.0.get_name(), *ix);
     }
 
     if !mappings.is_empty() {
@@ -155,8 +152,18 @@ fn parse_tickets(input: String) -> Vec<Ticket> {
 #[cfg(test)]
 mod tests {
     use crate::common;
-    use crate::day16::{determine_field_names, parse_input_criteria, parse_tickets};
+    use crate::day16::{determine_field_names, parse_input_criteria, parse_tickets, part1, part2};
     use itertools::Itertools;
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(19070, part1());
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(161926544831, part2());
+    }
 
     #[test]
     fn test_mapping_solver() {
