@@ -5,6 +5,7 @@ use crate::day16::criteria::{Criteria, FieldCriteria, InclusiveRange};
 use itertools::Itertools;
 use crate::day16::ticket::Ticket;
 use std::collections::HashSet;
+use crate::common::nvec::Vec3;
 
 pub fn run() {
     println!("Part 1 result: {}", part1());

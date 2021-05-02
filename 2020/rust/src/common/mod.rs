@@ -1,4 +1,4 @@
-mod num;
+pub mod num;
 pub mod vec2;
 pub mod nvec;
 pub mod grid;

@@ -10,7 +10,7 @@ pub type Vec6<T> = VecN<T, 6>;
 pub type Vec7<T> = VecN<T, 7>;
 pub type Vec8<T> = VecN<T, 8>;
 
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[derive(Clone, Debug, PartialOrd, PartialEq, Eq, Hash)]
 pub struct VecN<T, const N: usize>
     where T: BasicArith + Copy {
 
@@ -90,21 +90,21 @@ impl <T, const N: usize> Display for VecN<T, {N}>
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use crate::common::nvec::{Vec3, Vec5};
+    use std::ops::{Add, Sub, Mul, Div};
 
     #[test]
     fn test_basic_operations() {
         let a = Vec3::<f32>::new([1.,2.,3.]);
         let b = Vec3::<f32>::new([4.,5.,6.]);
 
-        assert_eq!(Vec3::new([5.,7.,9.]), a+b);
-        assert_eq!(Vec3::new([-3.,-3.,-3.]), a-b);
-        assert_eq!(Vec3::new([4.,10.,18.]), a*b);
-        assert_eq!(Vec3::new([0.25,0.4,0.5]), a/b);
-        assert_eq!(Vec3::new([12.,24.,36.]),a.scalar_mul(12.));
+        assert_eq!(Vec3::new([5.,7.,9.]), a.clone().add(b.clone()));
+        assert_eq!(Vec3::new([-3.,-3.,-3.]), a.clone().sub(b.clone()));
+        assert_eq!(Vec3::new([4.,10.,18.]), a.clone().mul(b.clone()));
+        assert_eq!(Vec3::new([0.25,0.4,0.5]), a.clone().div(b.clone()));
+        assert_eq!(Vec3::new([12.,24.,36.]),a.clone().scalar_mul(12.));
     }
 
     #[test]
