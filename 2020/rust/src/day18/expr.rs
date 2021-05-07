@@ -1,3 +1,6 @@
+use std::borrow::Borrow;
+use std::panic::resume_unwind;
+
 type Val = isize;
 
 #[derive(Copy, Clone, Debug)]
@@ -25,6 +28,13 @@ impl Op {
             '+' => Op::Add,
             '*' => Op::Mul,
             _ => panic!("Unrecognised operator '{}'", ch)
+        }
+    }
+
+    fn str(&self) -> char {
+        match self {
+            Op::Add => '+',
+            Op::Mul => '*'
         }
     }
 }
@@ -115,6 +125,84 @@ impl Expr {
 
         Expr::Compound(Box::new(Expr::Primitive(0)), ops)
     }
+
+    pub fn insert_precedence(expr_str: &str) -> String {
+        let mut started = 0usize;
+        let mut nest_level = 0usize;
+        let mut next_op = Op::Add;
+        let mut state = ParseState::InExpr;
+        let mut result: Vec<String> = vec![];
+
+        let str = format!("{} ", expr_str);
+        for (i, ch) in str.chars().enumerate() {
+            match (i, ch) {
+                (i, '(') => {
+                    nest_level += 1;
+                    if nest_level == 1 {
+                        state = ParseState::InNested;
+                        started = i;
+                    }
+                },
+                (i, ')') => {
+                    assert_eq!(state, ParseState::InNested);
+                    assert!(nest_level > 0);
+                    nest_level -= 1;
+                },
+                (i, ' ') => {
+                    match state {
+                        ParseState::InOp => {
+                            next_op = Op::parse(str.chars().nth(started).unwrap_or_else(|| panic!("Failed to get operator at {}", started)));
+                            state = ParseState::InExpr;
+                            started = i + 1;
+                        },
+                        ParseState::InExpr => {
+                            let prior_term = result.last().map(String::to_string);
+                            if let Some(prior) = prior_term {
+                                Self::insert_terms(&mut result, &Self::with_precedence(prior.as_str(), next_op, &str[started..i]));
+                            }
+                            else {
+                                result.push(str[started..i].to_string());
+                            }
+                            state = ParseState::InOp;
+                            started = i + 1;
+                        },
+                        ParseState::InNested if nest_level == 0 => {
+                            let subst = if started == 0 && i == str.len() - 1 {     // If this is the full expression, avoid infinite expansion
+                                format!("({})", Self::insert_precedence(&str[started+1..i-1]))
+                            }
+                            else { Self::insert_precedence(&str[started..i]) };
+
+                            let prior_term = result.last().map(String::to_string);
+                            if let Some(prior) = prior_term {
+                                Self::insert_terms(&mut result, &Self::with_precedence(prior.as_str(), next_op, subst.as_str()));
+                            }
+                            else {
+                                result.push(subst.clone());
+                            }
+                            state = ParseState::InOp;
+                            started = i + 1;
+                        },
+                        _ => {}
+                    }
+                },
+                _ => {}
+            }
+        }
+
+        result.join(" ")
+    }
+
+    fn with_precedence(pre: &str, op: Op, post: &str) -> Vec<String> {
+        match op {
+            Op::Add => vec!(format!("({} {} {})", pre, op.str(), post)),
+            Op::Mul => vec!(pre.to_string(), op.str().to_string(), post.to_string())
+        }
+    }
+
+    fn insert_terms(terms: &mut Vec<String>, tail: &Vec<String>) {
+        terms.pop();
+        tail.iter().for_each(|x| terms.push(x.clone()));
+    }
 }
 
 #[cfg(test)]
@@ -149,5 +237,23 @@ mod tests {
     fn test_multiple_nested_expr_parsing() {
         assert_eq!(60, Expr::parse("1 + (2 * (3 + 4)) * 4").eval());
         assert_eq!(113, Expr::parse("1 + ((2 * 2) * (3 + 4) * 4)").eval());
+    }
+
+    #[test]
+    fn test_basic_precedence_generation() {
+        assert_eq!("1", Expr::insert_precedence("1"));
+        assert_eq!("1 * 2 * 3", Expr::insert_precedence("1 * 2 * 3"));
+        assert_eq!("1 * (2 + 3) * 4", Expr::insert_precedence("1 * 2 + 3 * 4"));
+        assert_eq!("((((1 + 2) + 3) + 4) + 5)", Expr::insert_precedence("1 + 2 + 3 + 4 + 5"));
+    }
+
+    #[test]
+    fn test_nested_precedence_generation() {
+        assert_eq!("(1 * 2)", Expr::insert_precedence("(1 * 2)"));
+        assert_eq!("((1 + 2))", Expr::insert_precedence("(1 + 2)"));
+        assert_eq!("((1 * 2) + 3)", Expr::insert_precedence("(1 * 2) + 3"));
+        assert_eq!("((1 * 2) + (3 * 4))", Expr::insert_precedence("(1 * 2) + (3 * 4)"));
+        assert_eq!("1 * (((2 + 3)) + 4)", Expr::insert_precedence("1 * (2 + 3) + 4"));
+        assert_eq!("(1 + ((2 + (3 * 4)) * (5 + (6 * 7))))", Expr::insert_precedence("1 + (2 + (3 * 4) * 5 + (6 * 7))"));
     }
 }
