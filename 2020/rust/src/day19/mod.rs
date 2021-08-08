@@ -5,19 +5,45 @@ use itertools::Itertools;
 use crate::common;
 
 pub fn run() {
-    println!("Part 1 result: {}", part1());
+    //    println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> usize {
     let (rules, data) = parse_input(common::read_file("src/day19/problem-input.txt"));
-    let valid = generate_valid(&rules);
+    let valid = generate_valid(&rules, None);
 
     data.iter().filter(|&x| valid.contains(x)).count()
 }
 
-fn generate_valid(rules: &Vec<Rule>) -> HashSet<String> {
+fn part2() -> usize {
+    let (mut rules, data) = parse_input(common::read_file("src/day19/problem-input.txt"));
+
+    let v42 = generate_valid(&rules, Some(42));
+    let v31 = generate_valid(&rules, Some(31));
+
+    // *** Generate regex and then use equivalent of "<42>{2,5}<31>{1,4}" to allow reasonable level
+    // of repeats ***
+
+    12
+
+    //    let prefix = (2..5).map(|n| vec![42usize; n]);
+    //    let suffix = (1..4).map(|n| vec![31usize; n]);
+
+    //    let combinations = prefix
+    //        .cartesian_product(suffix)
+    //        .into_iter()
+    //        .map(|(pr, sf)| [&pr[..], &sf[..]].concat())
+    //        .collect::<Vec<Vec<usize>>>();
+
+    //    rules[0] = Rule::Or(combinations);
+    //    let valid = generate_valid(&rules);
+    //    println!("Rules: {}", valid.len());
+}
+
+fn generate_valid(rules: &Vec<Rule>, root: Option<usize>) -> HashSet<String> {
     let mut cache = vec![None; rules.len()];
-    eval_rule(0, rules, &mut cache)
+    eval_rule(root.unwrap_or_else(|| 0), rules, &mut cache)
         .into_iter()
         .collect::<HashSet<_>>()
 }
@@ -83,7 +109,7 @@ fn parse_input(input: String) -> (Vec<Rule>, Vec<String>) {
         .map(&str::trim)
         .filter(|s| !s.is_empty())
         .collect_tuple::<(&str, &str)>()
-        .expect("Malformed input");
+        .expect("Malformea input");
 
     (parse_rules(parts.0), parse_data(parts.1))
 }
