@@ -15,7 +15,6 @@ func Day15() {
 }
 
 func part1() int {
-	//rand.Seed(time.Now().UnixNano())
 	ing := parseInput(common.GetLines(common.ReadFile("day15/input.txt")))
 
 	return findBestScore(ing)
