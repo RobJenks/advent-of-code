@@ -16,13 +16,22 @@ fn part1() -> usize {
 }
 
 fn generate_valid(rules: &Vec<Rule>) -> HashSet<String> {
-    eval_rule(0, rules)
+    let mut cache = vec![None; rules.len()];
+    eval_rule(0, rules, &mut cache)
         .into_iter()
         .collect::<HashSet<_>>()
 }
 
-fn eval_rule(id: usize, rules: &Vec<Rule>) -> Vec<String> {
-    vec!["eval", "results", "here"]
+fn eval_rule(id: usize, rules: &Vec<Rule>, cache: &mut Vec<Option<Vec<String>>>) -> Vec<String> {
+    if let Some(cached) = cache[id].as_ref() {
+        cached.clone()
+    } else {
+        let rule = &rules[id];
+        let valid = match rule {
+            Rule::Constant(c) => vec![c.clone()],
+            _ => panic!("Not yet supported"),
+        }
+    }
 }
 
 fn parse_input(input: String) -> (Vec<Rule>, Vec<String>) {
