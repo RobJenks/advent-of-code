@@ -10,8 +10,19 @@ pub fn run() {
 
 fn part1() -> usize {
     let (rules, data) = parse_input(common::read_file("src/day19/problem-input.txt"));
+    let valid = generate_valid(&rules);
 
-    12
+    data.iter().filter(|&x| valid.contains(x)).count()
+}
+
+fn generate_valid(rules: &Vec<Rule>) -> HashSet<String> {
+    eval_rule(0, rules)
+        .into_iter()
+        .collect::<HashSet<_>>()
+}
+
+fn eval_rule(id: usize, rules: &Vec<Rule>) -> Vec<String> {
+    vec!["eval", "results", "here"]
 }
 
 fn parse_input(input: String) -> (Vec<Rule>, Vec<String>) {
