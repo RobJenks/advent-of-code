@@ -51,32 +51,6 @@ fn eval_rule(id: usize, rules: &Vec<Rule>, cache: &mut Vec<Option<Vec<String>>>)
     }
 }
 
-// fn match_rule(s: &str, rules: &Vec<Rule>) -> Option<usize> {
-//     rules
-//         .iter()
-//         .enumerate()
-//         .filter(|(i, _)| matches_rule(s, *i, rules))
-//         .map(|(i, _)| i)
-//         .next()
-// }
-//
-// fn matches_rule(s: &str, rule_id: usize, rules: &Vec<Rule>) -> bool {
-//     let rule = &rules[rule_id];
-//     match rule {
-//         Rule::Invalid => panic!("Invalid rule (id: {})", rule_id),
-//         Rule::Constant(c) => (s == c),
-//         Rule::Or(groups) if groups.len() != 1 =>
-//             groups.iter().any(|g| matches_rule_group(s, g, rules)),
-//
-//         Rule::Or(groups) if groups.len == 1 =>
-//
-//     }
-// }
-//
-// fn matches_rule_group(s: &str, group: &Vec<usize>, rules: &Vec<Rule>) -> bool {
-//     false
-// }
-
 fn parse_input(input: String) -> (Vec<Rule>, Vec<String>) {
     let parts = input
         .split("---")
@@ -139,5 +113,5 @@ enum Rule {
 
 #[cfg(test)]
 mod tests {
-    use crate::day18::*;
+    use crate::day19::*;
 }
