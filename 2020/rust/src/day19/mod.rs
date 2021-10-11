@@ -28,9 +28,26 @@ fn eval_rule(id: usize, rules: &Vec<Rule>, cache: &mut Vec<Option<Vec<String>>>)
     } else {
         let rule = &rules[id];
         let valid = match rule {
+            Rule::Invalid => panic!("Invalid rule (id: {})", id),
             Rule::Constant(c) => vec![c.clone()],
-            _ => panic!("Not yet supported"),
-        }
+            Rule::Or(groups) => groups
+                .iter()
+                .map(|grp| {
+                    grp.iter()
+                        .map(|r| eval_rule(*r, rules, cache))
+                        .multi_cartesian_product()
+                        .map(|vs| vs.join(""))
+                        .collect::<Vec<_>>()
+                })
+                .map(|x| x)
+                .flatten()
+                .collect(),
+        };
+
+        assert!(cache[id].is_none());
+        cache[id] = Some(valid.clone());
+
+        valid
     }
 }
 
@@ -94,3 +111,7 @@ enum Rule {
     Or(Vec<Vec<usize>>),
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::day19::*;
+}
