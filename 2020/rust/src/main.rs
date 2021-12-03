@@ -1,4 +1,5 @@
-#![feature(const_generics)]
+#![feature(adt_const_params)]
+#![feature(generic_const_exprs)]
 #[macro_use] extern crate scan_fmt;
 #[macro_use] extern crate enum_primitive;
 mod common;
@@ -22,13 +23,14 @@ mod day16;
 mod day17;
 mod day18;
 mod day19;
+mod day20;
 
 fn main() {
     let solutions = [
         day1::run, day2::run, day3::run, day4::run, day5::run,
         day6::run, day7::run, day8::run, day9::run, day10::run,
         day11::run, day12::run, day13::run, day14::run, day15::run,
-        day16::run, day17::run, day18::run, day19::run
+        day16::run, day17::run, day18::run, day19::run, day20::run
     ];
 
     solutions.iter().enumerate()

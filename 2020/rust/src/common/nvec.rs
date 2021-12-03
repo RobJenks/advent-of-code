@@ -83,9 +83,8 @@ impl <T, const N: usize> Div for VecN<T, {N}>
 impl <T, const N: usize> Display for VecN<T, {N}>
     where T: BasicArith + Copy + std::fmt::Display {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[{}]", self.comp.iter()
-            .map(|x| format!("{}", x))
-            .intersperse(",".to_string())
+        write!(f, "[{}]", Iterator::intersperse(self.comp.iter()
+            .map(|x| format!("{}", x)), ",".to_string())
             .collect::<String>())
     }
 }
