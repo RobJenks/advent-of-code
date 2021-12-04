@@ -5,15 +5,21 @@ use crate::common::vec2::Vec2;
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> i32 {
-    evaluate_cmd_list(
+    evaluate_cmd_list(CommandMode::Standard,
         &parse_input(common::read_file("src/day2/problem-input.txt").as_str()))
 }
 
-fn evaluate_cmd_list(commands: &Commands) -> i32 {
-    commands.into_iter()
+fn part2() -> i32 {
+    evaluate_cmd_list(CommandMode::Advanced,
+        &parse_input(common::read_file("src/day2/problem-input.txt").as_str()))
+}
+
+fn evaluate_cmd_list(mode: CommandMode, commands: &Commands) -> i32 {
+    commands.eval_iter(mode)
         .last()
         .map(|loc| loc.x * loc.y)
         .expect("Failed to evaluate command list")
@@ -32,12 +38,29 @@ struct Commands {
 
 impl Commands {
     pub fn new(data: Vec<Command>) -> Self { Self { data } }
+
+    pub fn eval_iter(&self, mode: CommandMode) -> CommandsIterator {
+        CommandsIterator {
+            commands: self,
+            index: 0,
+            location: Vec2::<i32>::zero(),
+            aim: 0,
+            mode
+        }
+    }
 }
 
 struct CommandsIterator<'a> {
     commands: &'a Commands,
     index: usize,
-    location: Vec2<i32>
+    location: Vec2<i32>,
+    aim: i32,
+    mode: CommandMode
+}
+
+enum CommandMode {
+    Standard,
+    Advanced
 }
 
 impl <'a> IntoIterator for &'a Commands {
@@ -48,7 +71,9 @@ impl <'a> IntoIterator for &'a Commands {
         CommandsIterator {
             commands: self,
             index: 0,
-            location: Vec2::<i32>::zero()
+            location: Vec2::<i32>::zero(),
+            aim: 0,
+            mode: CommandMode::Standard
         }
     }
 }
@@ -59,18 +84,37 @@ impl <'a> Iterator for CommandsIterator<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.index {
             x if x == self.commands.data.len() => None,
-            _ => {
-                let delta = match &self.commands.data[self.index] {
-                    Command::Forward(n) => Vec2::new(*n, 0),
-                    Command::Up(n) => Vec2::new(0, -*n),
-                    Command::Down(n) => Vec2::new(0, *n),
-                };
-                self.location += delta;
-                self.index += 1;
-
-                Some(self.location)
+            _ => match self.mode {
+                CommandMode::Standard => self.eval_standard(),
+                CommandMode::Advanced => self.eval_advanced()
             }
         }
+    }
+
+}
+
+impl <'a> CommandsIterator<'a> {
+    fn eval_standard(&mut self) -> Option<Vec2<i32>> {
+        let delta = match &self.commands.data[self.index] {
+            Command::Forward(n) => Vec2::new(*n, 0),
+            Command::Up(n) => Vec2::new(0, -*n),
+            Command::Down(n) => Vec2::new(0, *n),
+        };
+        self.location += delta;
+        self.index += 1;
+
+        Some(self.location)
+    }
+
+    fn eval_advanced(&mut self) -> Option<Vec2<i32>> {
+        match &self.commands.data[self.index] {
+            Command::Up(n) => self.aim -= n,
+            Command::Down(n) => self.aim += n,
+            Command::Forward(n) => self.location += Vec2::new(*n, *n * self.aim)
+        };
+        self.index += 1;
+
+        Some(self.location)
     }
 }
 
@@ -98,7 +142,7 @@ fn parse_command(d: &str, n: i32) -> Command {
 
 #[cfg(test)]
 mod test {
-    use crate::day2::{evaluate_cmd_list, parse_input};
+    use crate::day2::{CommandMode, evaluate_cmd_list, parse_input};
 
     fn sample_cmd_string() -> String {
         "forward 5\ndown 5\nforward 8\nup 3\ndown 8\nforward 2".to_string()
@@ -106,7 +150,12 @@ mod test {
 
     #[test]
     fn test_cmd_eval() {
-        assert_eq!(evaluate_cmd_list(&parse_input(sample_cmd_string().as_str())), 150);
+        assert_eq!(evaluate_cmd_list(CommandMode::Standard, &parse_input(sample_cmd_string().as_str())), 150);
+    }
+
+    #[test]
+    fn test_adv_eval() {
+        assert_eq!(evaluate_cmd_list(CommandMode::Advanced, &parse_input(sample_cmd_string().as_str())), 900);
     }
 
 }
