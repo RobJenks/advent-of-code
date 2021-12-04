@@ -18,7 +18,7 @@ fn part2() -> usize {
 
 fn count_inc(values: &Vec<u32>) -> usize {
     values.windows(2)
-        .map(|w| w.iter().collect_tuple::<(&u32, &u32)>().unwrap_or_else(|| panic!("Invalid input")))
+        .map(|w| w.iter().collect_tuple::<(&u32, &u32)>().expect("Invalid input"))
         .filter(|(&x, &y)| y > x)
         .count()
 }
@@ -35,7 +35,7 @@ fn sliding_window(values: &Vec<u32>) -> usize {
 
 fn parse_input(str: &str) -> Vec<u32> {
     str.lines()
-        .map(|s| s.parse::<u32>().unwrap_or_else(|_| panic!("Invalid input")))
+        .map(|s| s.parse::<u32>().expect("Invalid input"))
         .collect()
 }
 
