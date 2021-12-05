@@ -142,7 +142,7 @@ fn parse_command(d: &str, n: i32) -> Command {
 
 #[cfg(test)]
 mod test {
-    use crate::day2::{CommandMode, evaluate_cmd_list, parse_input};
+    use crate::day2::{CommandMode, evaluate_cmd_list, parse_input, part1, part2};
 
     fn sample_cmd_string() -> String {
         "forward 5\ndown 5\nforward 8\nup 3\ndown 8\nforward 2".to_string()
@@ -158,4 +158,13 @@ mod test {
         assert_eq!(evaluate_cmd_list(CommandMode::Advanced, &parse_input(sample_cmd_string().as_str())), 900);
     }
 
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(), 1480518);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(), 1282809906);
+    }
 }

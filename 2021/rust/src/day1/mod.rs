@@ -44,6 +44,16 @@ mod tests {
     use crate::day1::{ part1, part2, parse_input, count_inc, sliding_window };
 
     #[test]
+    fn test_count_inc() {
+        assert_eq!(count_inc(&parse_input("199\n200\n208\n210\n200\n207\n240\n269\n260\n263")), 7);
+    }
+
+    #[test]
+    fn test_sliding_window() {
+        assert_eq!(sliding_window(&parse_input("199\n200\n208\n210\n200\n207\n240\n269\n260\n263")), 5);
+    }
+
+    #[test]
     fn test_part1() {
         assert_eq!(part1(), 1791);
     }
@@ -53,13 +63,4 @@ mod tests {
         assert_eq!(part2(), 1822);
     }
 
-    #[test]
-    fn test_count_inc() {
-        assert_eq!(count_inc(&parse_input("199\n200\n208\n210\n200\n207\n240\n269\n260\n263")), 7);
-    }
-
-    #[test]
-    fn test_sliding_window() {
-        assert_eq!(sliding_window(&parse_input("199\n200\n208\n210\n200\n207\n240\n269\n260\n263")), 5);
-    }
 }
