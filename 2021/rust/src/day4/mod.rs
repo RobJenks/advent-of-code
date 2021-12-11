@@ -2,6 +2,7 @@ use super::common;
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> u32 {
@@ -11,6 +12,12 @@ fn part1() -> u32 {
     result.0.unmarked_sum() * result.1
 }
 
+fn part2() -> u32 {
+    let mut state = parse_input(common::read_file("src/day4/problem-input.txt"));
+    let result = eval_to_last_winner(&mut state);
+
+    result.0.unmarked_sum() * result.1
+}
 
 fn parse_input(input: String) -> State {
     let seq = input.lines().next().expect("Missing data")
@@ -45,8 +52,31 @@ fn eval_to_winner(state: &mut State) -> (Board, u32) {
     loop {
         let v = seq.next().expect("No solution");
         state.boards.iter_mut().for_each(|b| b.record_number(*v));
+
         if let Some(board) = state.get_winner() {
             break (board.clone(), *v);
+        }
+    }
+}
+
+// Returns final winning board and last number called
+fn eval_to_last_winner(state: &mut State) -> (Board, u32) {
+    let n = state.boards.len();
+    let mut last: Option<usize> = None;
+
+    let mut seq = state.seq.iter();
+    loop {
+        let v = seq.next().expect("No solution");
+        state.boards.iter_mut().for_each(|b| b.record_number(*v));
+
+        let (win, lose): (Vec<(usize, &Board)>, _) =
+            state.boards.iter().enumerate().partition(|&x| x.1.is_winner());
+
+        if win.len() == (n - 1) {
+            last = Some(lose.iter().next().expect("No valid result").0);
+        }
+        else if lose.is_empty() {
+            break (state.boards[last.expect("No result")].clone(), *v);
         }
     }
 }
@@ -131,7 +161,7 @@ impl Value {
 #[cfg(test)]
 mod test {
     use super::common;
-    use crate::day4::{parse_input, eval_to_winner};
+    use crate::day4::{parse_input, eval_to_winner, eval_to_last_winner, part1, part2};
 
     #[test]
     fn test_evaluation() {
@@ -140,5 +170,24 @@ mod test {
 
         assert_eq!(result.0.unmarked_sum(), 188);
         assert_eq!(result.1, 24);
+    }
+
+    #[test]
+    fn test_evaluation_to_last() {
+        let mut state = parse_input(common::read_file("src/day4/test-input.txt"));
+        let result = eval_to_last_winner(&mut state);
+
+        assert_eq!(result.0.unmarked_sum(), 148);
+        assert_eq!(result.1, 13);
+    }
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(), 25410);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(), 2730);
     }
 }
