@@ -5,22 +5,33 @@ use itertools::Itertools;
 
 pub fn run() {
     println!("Part 1 result: {}", part1());
+    println!("Part 2 result: {}", part2());
 }
 
 fn part1() -> usize {
-    let lines = parse_input(common::read_file("src/day5/problem-input.txt"));
-    let mut grid = Grid::<u32>::new(upper_bounds(&lines), &0);
+    process_grid(common::read_file("src/day5/problem-input.txt"), |line| line.is_perpendicular())
+}
 
-    record_perpendicular_lines(&mut grid, &lines);
+fn part2() -> usize {
+    process_grid(common::read_file("src/day5/problem-input.txt"), |_| true)
+}
+
+fn process_grid(input: String, criteria: fn(&Line) -> bool) -> usize {
+    let lines = parse_input(input).iter()
+        .filter(|&x| criteria(x))
+        .cloned()
+        .collect();
+
+    let mut grid = Grid::<u32>::new(upper_bounds(&lines), &0);
+    record_lines(&mut grid, &lines);
 
     grid.raw_data().iter()
         .filter(|&x| *x > 1u32)
         .count()
 }
 
-fn record_perpendicular_lines(grid: &mut Grid<u32>, lines: &Vec<Line>) {
+fn record_lines(grid: &mut Grid<u32>, lines: &Vec<Line>) {
     lines.iter()
-        .filter(|&x| x.is_perpendicular())
         .for_each(|line| line.calc_pixels().iter()
             .for_each(|px| grid.apply_at_coord(px, |x| x+1)))
 }
@@ -50,8 +61,10 @@ fn upper_bounds(lines: &Vec<Line>) -> Vec2<usize> {
         .fold(Vec2::new(0, 0), |max, line| Vec2::new(
             max.x.max(line.start.x.max(line.end.x)),
             max.y.max(line.start.y.max(line.end.y))))
+        + Vec2::new(1, 1)
 }
 
+#[derive(Clone, Eq, PartialEq)]
 struct Line {
     start: Vec2<usize>,
     end: Vec2<usize>,
@@ -61,9 +74,6 @@ impl Line {
     pub fn new(start: Vec2<usize>, end: Vec2<usize>) -> Self {
         Self { start, end }
     }
-
-    pub fn get_start(&self) -> Vec2<usize> { self.start.clone() }
-    pub fn get_end(&self) -> Vec2<usize> { self.end.clone() }
 
     pub fn is_horizontal(&self) -> bool { self.start.y == self.end.y }
     pub fn is_vertical(&self) -> bool { self.start.x == self.end.x }
@@ -89,10 +99,36 @@ impl Line {
             let (start, end) = self.ordered_yx();
             (start.y..=end.y).map(|y| Vec2::new(start.x, y)).collect()
         }
-        else {
-            panic!("Not supported");
+        else /* Is diagonal */ {
+            let mut result = vec![];
+            let delta = ( if self.end.x > self.start.x { 1 } else { -1 },
+                          if self.end.y > self.start.y { 1 } else { -1 });
+
+            let mut px = self.start.clone();
+            loop {
+                result.push(px);
+                if px == self.end { break; }
+
+                px = Vec2::new((px.x as isize + delta.0) as usize, (px.y as isize + delta.1) as usize);
+            }
+
+            result
         }
     }
+}
 
+#[cfg(test)]
+mod test {
+    use crate::day5::{part1, part2};
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(), 7644);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(), 18627);
+    }
 }
 
