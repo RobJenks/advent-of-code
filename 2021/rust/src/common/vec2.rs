@@ -1,7 +1,7 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 use crate::common::num::{Numeric, Zero};
 
-#[derive(Copy, Clone,Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Vec2<T>
     where T: Numeric + Copy {
 
