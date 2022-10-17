@@ -13,6 +13,21 @@ fn part2() -> usize {
     12
 }
 
+fn iterate(values: &mut Vec<u32>) {
+    let n = values.len();
+    for i in 0..n {
+        let val = values[i];
+        if val == 0 {
+            values.push(8);
+            values[i] = 6;
+        }
+        else {
+            values[i] = val - 1;
+        }
+    }
+}
+
+
 fn parse_input(input: String) -> Vec<u32> {
     input.split(",")
         .map(|x| x.parse::<u32>())
@@ -23,7 +38,21 @@ fn parse_input(input: String) -> Vec<u32> {
 
 #[cfg(test)]
 mod test {
-    use crate::day6::{part1, part2};
+    use crate::day6::{part1, part2, iterate};
+
+    #[test]
+    fn test_iteration() {
+        let mut values = vec![3,4,3,1,2];
+
+        iterate(&mut values);
+        assert_eq!(values, vec![2,3,2,0,1]);
+        iterate(&mut values);
+        assert_eq!(values, vec![1,2,1,6,0,8]);
+        iterate(&mut values);
+        assert_eq!(values, vec![0,1,0,5,6,7,8]);
+        iterate(&mut values);
+        assert_eq!(values, vec![6,0,6,4,5,6,7,8,8]);
+    }
 
     #[test]
     fn test_part1() {
