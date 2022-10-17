@@ -6,7 +6,10 @@ pub fn run() {
 }
 
 fn part1() -> usize {
-    12
+    let mut values = parse_input(common::read_file("src/day6/problem-input.txt"));
+    iterate_n(&mut values, 80);
+
+    values.len()
 }
 
 fn part2() -> usize {
@@ -75,7 +78,7 @@ mod test {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 12);
+        assert_eq!(part1(), 377263);
     }
 
     #[test]
