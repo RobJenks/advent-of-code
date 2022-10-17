@@ -13,6 +13,14 @@ fn part2() -> usize {
     12
 }
 
+fn parse_input(input: String) -> Vec<u32> {
+    input.split(",")
+        .map(|x| x.parse::<u32>())
+        .map(|x| x.expect("Failed to parse input"))
+        .collect()
+}
+
+
 #[cfg(test)]
 mod test {
     use crate::day6::{part1, part2};
