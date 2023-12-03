@@ -47,15 +47,15 @@ fn line_value_extended(line: &String) -> usize {
         .map(|m| m.as_str())
         .map(|x| DIGITS.get(x).cloned().unwrap_or_else(|| x.parse::<usize>().unwrap()))
         .unwrap_or_else(|| panic!("No first value for '{}'", line)) * 10
-
-    + RE_REV.find(line.chars().rev().collect::<String>().as_str()).iter().next()
+    +
+    RE_REV.find(line.chars().rev().collect::<String>().as_str()).iter().next()
         .map(|m| m.as_str())
         .map(|x| REV_DIGITS.get(x).cloned().unwrap_or_else(|| x.parse::<usize>().unwrap()))
         .unwrap_or_else(|| panic!("No last value for '{}'", line))
 }
 
-fn parse_input(str: &str) -> Vec<String> {
-    common::read_file(str)
+fn parse_input(file: &str) -> Vec<String> {
+    common::read_file(file)
         .lines()
         .map(|x| x.to_string())
         .collect()
@@ -63,7 +63,7 @@ fn parse_input(str: &str) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use crate::day1::{part1, part2, parse_input, sum_lines, line_value, line_value_extended};
+    use super::{ parse_input, sum_lines, line_value, line_value_extended };
 
     #[test]
     fn test_part1() {
