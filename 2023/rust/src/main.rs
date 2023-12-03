@@ -10,7 +10,7 @@ fn main() {
         day1::run, day2::run
     ];
 
-    solutions.iter().skip(1).enumerate()
+    solutions.iter().enumerate()
         .for_each(|(i, solution)| {
             println!("\nDay {}:\n", i + 1);
             solution();
