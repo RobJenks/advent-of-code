@@ -76,4 +76,123 @@ impl <T> Grid<T>
         self.size.x * self.size.y
     }
 
+    pub fn is_on_left_edge(&self, ix: usize) -> bool {
+        ix % self.size.x == 0
+    }
+
+    pub fn is_on_right_edge(&self, ix: usize) -> bool {
+        self.is_on_left_edge(ix + 1)
+    }
+
+    pub fn is_on_top_edge(&self, ix: usize) -> bool {
+        ix < self.size.x
+    }
+
+    pub fn is_on_bottom_edge(&self, ix: usize) -> bool {
+        ix >= ((self.size.x * self.size.y) - self.size.x)
+    }
+
+    pub fn is_on_edge(&self, ix: usize) -> bool {
+        self.is_on_left_edge(ix) || self.is_on_right_edge(ix) || self.is_on_top_edge(ix) || self.is_on_bottom_edge(ix)
+    }
+
+    pub fn get_left(&self, ix: usize) -> Option<usize> {
+        if self.is_on_left_edge(ix) { None } else { Some(ix - 1) }
+    }
+
+    pub fn get_right(&self, ix: usize) -> Option<usize> {
+        if self.is_on_right_edge(ix) { None } else { Some(ix + 1) }
+    }
+
+    pub fn get_up(&self, ix: usize) -> Option<usize> {
+        if self.is_on_top_edge(ix) { None } else { Some(ix - self.size.x) }
+    }
+
+    pub fn get_down(&self, ix: usize) -> Option<usize> {
+        if self.is_on_bottom_edge(ix) { None } else { Some(ix + self.size.x) }
+    }
+
+    pub fn get_up_left(&self, ix: usize) -> Option<usize> {
+        self.get_up(ix).iter().flat_map(|&x| self.get_left(x)).next()
+    }
+
+    pub fn get_up_right(&self, ix: usize) -> Option<usize> {
+        self.get_up(ix).iter().flat_map(|&x| self.get_right(x)).next()
+    }
+
+    pub fn get_down_left(&self, ix: usize) -> Option<usize> {
+        self.get_down(ix).iter().flat_map(|&x| self.get_left(x)).next()
+    }
+
+    pub fn get_down_right(&self, ix: usize) -> Option<usize> {
+        self.get_down(ix).iter().flat_map(|&x| self.get_right(x)).next()
+    }
+
+    pub fn get_left_value(&self, ix: usize) -> Option<T> { self.get_left(ix).map(|adj| self.get(adj)) }
+    pub fn get_right_value(&self, ix: usize) -> Option<T> { self.get_right(ix).map(|adj| self.get(adj)) }
+    pub fn get_up_value(&self, ix: usize) -> Option<T> { self.get_up(ix).map(|adj| self.get(adj)) }
+    pub fn get_down_value(&self, ix: usize) -> Option<T> { self.get_down(ix).map(|adj| self.get(adj)) }
+
+    pub fn is_coord_on_left_edge(&self, coord: &Vec2<usize>) -> bool {
+        coord.x == 0
+    }
+
+    pub fn is_coord_on_right_edge(&self, coord: &Vec2<usize>) -> bool {
+        coord.x == (self.size.x - 1)
+    }
+
+    pub fn is_coord_on_top_edge(&self, coord: &Vec2<usize>) -> bool {
+        coord.y == 0
+    }
+
+    pub fn is_coord_on_bottom_edge(&self, coord: &Vec2<usize>) -> bool {
+        coord.y == (self.size.y - 1)
+    }
+
+    pub fn get_coord_left_value(&self, coord: &Vec2<usize>) -> Option<T> {
+        self.get_left_value(self.coord_to_ix(coord))
+    }
+    pub fn get_coord_right_value(&self, coord: &Vec2<usize>) -> Option<T> {
+        self.get_right_value(self.coord_to_ix(coord))
+    }
+    pub fn get_coord_up_value(&self, coord: &Vec2<usize>) -> Option<T> {
+        self.get_up_value(self.coord_to_ix(coord))
+    }
+    pub fn get_coord_down_value(&self, coord: &Vec2<usize>) -> Option<T> {
+        self.get_down_value(self.coord_to_ix(coord))
+    }
+
+    pub fn get_adjacent_to_region(&self, region_start: &Vec2<usize>, region_end: &Vec2<usize>, allow_diagonals: bool) -> Vec<usize> {
+        let (min, max) = (
+            Vec2::new(region_start.x.min(region_end.x), region_start.y.min(region_end.y)),
+            Vec2::new(region_start.x.max(region_end.x), region_start.y.max(region_end.y)));
+
+        let mut result = Vec::new();
+
+        (min.x..=max.x).map(|x| self.coords_to_ix(x, min.y))    // Top
+            .filter_map(|ix| self.get_up(ix))
+            .for_each(|ix| result.push(ix));
+
+        (min.x..=max.x).map(|x| self.coords_to_ix(x, max.y))    // Bottom
+            .filter_map(|ix| self.get_down(ix))
+            .for_each(|ix| result.push(ix));
+
+        (min.y..=max.y).map(|y| self.coords_to_ix(min.x, y))    // Left
+            .filter_map(|ix| self.get_left(ix))
+            .for_each(|ix| result.push(ix));
+
+        (min.y..=max.y).map(|y| self.coords_to_ix(max.x, y))    // Right
+            .filter_map(|ix| self.get_right(ix))
+            .for_each(|ix| result.push(ix));
+
+        if allow_diagonals {
+            self.get_up_left(self.coords_to_ix(min.x, min.y)).iter().for_each(|&ix| result.push(ix));      // Up-left
+            self.get_up_right(self.coords_to_ix(max.x, min.y)).iter().for_each(|&ix| result.push(ix));     // Down-left
+            self.get_down_left(self.coords_to_ix(min.x, max.y)).iter().for_each(|&ix| result.push(ix));    // Up-right
+            self.get_down_right(self.coords_to_ix(max.x, max.y)).iter().for_each(|&ix| result.push(ix));   // Down-right
+        }
+
+        result
+    }
+
 }
