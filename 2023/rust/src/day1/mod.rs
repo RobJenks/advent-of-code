@@ -63,15 +63,25 @@ fn parse_input(file: &str) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{ parse_input, sum_lines, line_value, line_value_extended };
+    use super::{ part1, part2, parse_input, sum_lines, line_value, line_value_extended };
 
     #[test]
-    fn test_part1() {
+    fn test_sum() {
         assert_eq!(sum_lines(parse_input("src/day1/test-input-1.txt"), line_value), 142);
     }
 
     #[test]
-    fn test_part2() {
+    fn test_extended_sum() {
         assert_eq!(sum_lines(parse_input("src/day1/test-input-2.txt"), line_value_extended), 281);
+    }
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(), 53974);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(), 52840);
     }
 }

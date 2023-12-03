@@ -11,7 +11,7 @@ fn main() {
         day1::run, day2::run, day3::run
     ];
 
-    solutions.iter().enumerate()
+    solutions.iter().skip(2).enumerate()
         .for_each(|(i, solution)| {
             println!("\nDay {}:\n", i + 1);
             solution();

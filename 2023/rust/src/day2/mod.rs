@@ -61,7 +61,7 @@ fn parse_round(str: &str) -> Round {
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_input, get_matching_games, get_available_cubes, get_power_sum};
+    use super::{part1, part2, parse_input, get_matching_games, get_available_cubes, get_power_sum};
 
     #[test]
     fn test_matching_games() {
@@ -71,8 +71,18 @@ mod tests {
     }
 
     #[test]
-    fn test_part2() {
+    fn test_power_sum() {
         assert_eq!(get_power_sum(
             &parse_input("src/day2/test-input-1.txt")), 2286);
+    }
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(), 2683);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(), 49710);
     }
 }

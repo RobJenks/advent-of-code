@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::iter::Iterator;
 use crate::common::grid::Grid;
 use crate::common::vec2::Vec2;
@@ -14,11 +15,61 @@ fn part1() -> usize {
 }
 
 fn part2() -> usize {
-    12
+    sum_gear_ratios(
+        &parse_input("src/day3/problem-input.txt"))
+}
+
+#[derive(Eq, PartialEq, Hash, Clone)]
+struct PartNumber {
+    pub value : usize,
+    pub row : usize,
+    pub col_start : usize,
+    pub col_end : usize
+}
+
+impl PartNumber {
+    pub fn new(value: usize, row: usize, col_start: usize, col_end: usize) -> Self {
+        Self { value, row, col_start, col_end }
+    }
+    pub fn get_value(&self) -> usize { self.value }
 }
 
 fn sum_part_numbers(grid: &Grid<char>) -> usize {
-    let mut sum = 0usize;
+    find_part_numbers(grid).iter()
+        .map(PartNumber::get_value)
+        .sum()
+}
+
+fn sum_gear_ratios(grid: &Grid<char>) -> usize {
+    let parts = find_part_numbers(grid);
+
+    grid.raw_data().iter().enumerate()
+        .filter(|&(_, &c)| c == '*')
+        .map(|(ix, _)| get_parts_adjacent_to(ix, grid, &parts))
+        .filter(|adj| adj.len()  == 2)
+        .map(|adj| adj.iter().map(PartNumber::get_value).product::<usize>())
+        .sum()
+}
+
+fn get_parts_adjacent_to(ix: usize, grid: &Grid<char>, parts: &Vec<PartNumber>) -> HashSet<PartNumber> {
+    let coord = grid.ix_to_coord(ix);
+    let adj = grid.get_adjacent_to_region(&coord, &coord, true)
+        .iter().map(|&i| grid.ix_to_coord(i)).collect::<Vec<_>>();
+
+    adj.iter()
+        .flat_map(|coord| get_parts_overlapping_coord(parts, coord).clone())
+        .collect::<HashSet<PartNumber>>()
+}
+
+fn get_parts_overlapping_coord(parts: &Vec<PartNumber>, coord: &Vec2<usize>) -> Vec<PartNumber> {
+    parts.iter()
+        .filter(|&part| (coord.y == part.row) && (coord.x >= part.col_start && coord.x <= part.col_end))
+        .cloned()
+        .collect()
+}
+
+fn find_part_numbers(grid: &Grid<char>) -> Vec<PartNumber> {
+    let mut result = Vec::new();
     let size = grid.get_size();
 
     for y in 0..size.y {
@@ -36,7 +87,7 @@ fn sum_part_numbers(grid: &Grid<char>) -> usize {
                     if adj.iter().map(|&ix| grid.get(ix))
                         .any(|a| !a.is_ascii_digit() && a != '.') {    // If any surrounding char is a symbol (not a digit, or '.') this is a part number
 
-                        sum += get_value(grid, y, start, end);
+                        result.push(PartNumber::new(get_value(grid, y, start, end), y, start, end));
                     }
                     in_number = false;
                 }
@@ -50,7 +101,7 @@ fn sum_part_numbers(grid: &Grid<char>) -> usize {
 
         }
     }
-    sum
+    result
 }
 
 fn get_value(grid: &Grid<char>, row: usize, col_start: usize, col_end: usize) -> usize {
@@ -83,10 +134,25 @@ fn parse_input(file: &str) -> Grid<char> {
 
 #[cfg(test)]
 mod tests {
-    use super::{ parse_input, sum_part_numbers };
+    use super::{part1, part2, parse_input, sum_part_numbers, sum_gear_ratios};
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(), 553825);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(), 12);
+    }
 
     #[test]
     fn test_part_adjacency() {
         assert_eq!(sum_part_numbers(&parse_input("src/day3/test-input-1.txt")), 4361);
+    }
+
+    #[test]
+    fn test_gear_ratios() {
+        assert_eq!(sum_gear_ratios(&parse_input("src/day3/test-input-1.txt")), 467835);
     }
 }

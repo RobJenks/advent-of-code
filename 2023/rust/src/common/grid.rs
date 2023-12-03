@@ -18,15 +18,15 @@ impl <T> Grid<T>
         }
     }
 
-    fn coord_to_ix(&self, coord: &Vec2<usize>) -> usize {
+    pub fn coord_to_ix(&self, coord: &Vec2<usize>) -> usize {
         coord.x + (coord.y * self.size.x)
     }
 
-    fn coords_to_ix(&self, x: usize, y: usize) -> usize {
+    pub fn coords_to_ix(&self, x: usize, y: usize) -> usize {
         x + (y * self.size.x)
     }
 
-    fn ix_to_coord(&self, ix: usize) -> Vec2<usize> {
+    pub fn ix_to_coord(&self, ix: usize) -> Vec2<usize> {
         Vec2::new(
             ix % self.size.x,
             ix / self.size.x
