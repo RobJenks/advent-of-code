@@ -64,7 +64,7 @@ fn parse_card(str: &str) -> Card {
 }
 
 struct Card {
-    #[allow(dead_code)]
+    #[allow(unused)]
     pub id: usize,
     pub winning: Vec<u32>,
     pub numbers: Vec<u32>
