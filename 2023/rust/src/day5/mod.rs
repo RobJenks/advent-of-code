@@ -99,7 +99,7 @@ fn parse_input(file: &str) -> Data {
 
 #[cfg(test)]
 mod tests {
-    use super::{part1, part2, parse_input, map_seed_to_location, find_minimum_seed_location, expand_seed_data, find_lowest_location_in_expanded_sets};
+    use super::{part1, part2, parse_input, map_seed_to_location, find_lowest_location_in_expanded_sets};
 
     #[test]
     fn test_location_mapping() {
@@ -119,12 +119,12 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 12);
+        assert_eq!(part1(), 261668924);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 12);
+        assert_eq!(part2(), 24261545);
     }
 
 }
