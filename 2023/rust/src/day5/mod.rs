@@ -17,8 +17,7 @@ fn part1() -> usize {
 
 fn part2() -> usize {
     let data = parse_input("src/day5/problem-input.txt");
-    let expanded_seeds = expand_seed_data(&data.seeds);
-    find_minimum_seed_location(&expanded_seeds, &data)
+    find_lowest_location_in_expanded_sets(&data)
 }
 
 fn find_minimum_seed_location(seeds: &Vec<usize>, data: &Data) -> usize {
@@ -40,10 +39,31 @@ fn map_seed_to_location(seed: usize, data: &Data) -> usize {
         .unwrap_or_else(|| panic!("Failed to map value"))
 }
 
-fn expand_seed_data(seeds: &Vec<usize>) -> Vec<usize> {
+fn expand_seed_data(seeds: &Vec<usize>) -> Vec<(usize, usize)> {
     seeds.chunks(2)
-        .flat_map(|s| s[0]..(s[0] + s[1] - 1))
+        .map(|chunk| (chunk[0], chunk[0] + chunk[1]))
         .collect_vec()
+}
+
+fn find_lowest_location_in_expanded_sets(data: &Data) -> usize {
+    let seeds = expand_seed_data(&data.seeds);
+    (0usize..)
+        .map(|loc| (loc, reverse_map_to_seed(loc, data)))
+        .filter(|(_, seed)| seeds.iter().find(|&s| seed >= &s.0 && seed <= &s.1).is_some())
+        .next()
+        .unwrap_or_else(|| panic!("No solutions")).0
+}
+
+fn reverse_map_to_seed(location: usize, data: &Data) -> usize {
+    Some(location)
+        .map(|x| data.humid_to_location.reverse_map(x))
+        .map(|x| data.temp_to_humid.reverse_map(x))
+        .map(|x| data.light_to_temp.reverse_map(x))
+        .map(|x| data.water_to_light.reverse_map(x))
+        .map(|x| data.fert_to_water.reverse_map(x))
+        .map(|x| data.soil_to_fert.reverse_map(x))
+        .map(|x| data.seed_to_soil.reverse_map(x))
+        .unwrap_or_else(|| panic!("Failed to map value"))
 }
 
 fn parse_input(file: &str) -> Data {
@@ -79,7 +99,7 @@ fn parse_input(file: &str) -> Data {
 
 #[cfg(test)]
 mod tests {
-    use super::{part1, part2, parse_input, map_seed_to_location, find_minimum_seed_location, expand_seed_data};
+    use super::{part1, part2, parse_input, map_seed_to_location, find_minimum_seed_location, expand_seed_data, find_lowest_location_in_expanded_sets};
 
     #[test]
     fn test_location_mapping() {
@@ -94,9 +114,7 @@ mod tests {
     #[test]
     fn test_expanded_seed_mapping() {
         let data = parse_input("src/day5/test-input-1.txt");
-        let seeds = expand_seed_data(&data.seeds);
-
-        assert_eq!(find_minimum_seed_location(&seeds, &data), 46);
+        assert_eq!(find_lowest_location_in_expanded_sets(&data), 46);
     }
 
     #[test]

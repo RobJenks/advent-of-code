@@ -1,5 +1,4 @@
 use std::iter::Iterator;
-use std::ops::Range;
 use itertools::Itertools;
 use super::common;
 

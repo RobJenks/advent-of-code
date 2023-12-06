@@ -16,14 +16,14 @@ pub struct DataMap {
     pub data: Vec<Mapping>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(unused)]
 pub struct Mapping {
-    source_start: usize,
-    source_end: usize,
-    dest_start: usize,
-    dest_end: usize,
-    size: usize
+    pub source_start: usize,
+    pub source_end: usize,
+    pub dest_start: usize,
+    pub dest_end: usize,
+    pub size: usize
 }
 
 impl Data {
@@ -69,6 +69,15 @@ impl DataMap {
             .next()
 
             .map(|map| map.dest_start + (value - map.source_start))
+            .unwrap_or(value)
+    }
+
+    pub fn reverse_map(&self, value: usize) -> usize {
+        self.data.iter()
+            .filter(|&map| value >= map.dest_start && value <= map.dest_end)
+            .next()
+
+            .map(|map| map.source_start + (value - map.dest_start))
             .unwrap_or(value)
     }
 }
