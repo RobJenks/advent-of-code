@@ -12,14 +12,20 @@ pub fn run() {
 
 fn part1() -> usize {
     let data = parse_input("src/day5/problem-input.txt");
-    data.seeds.iter()
-        .map(|&x| map_seed_to_location(x, &data))
-        .min()
-        .unwrap_or_else(|| panic!("Could not find minimum location"))
+    find_minimum_seed_location(&data.seeds, &data)
 }
 
 fn part2() -> usize {
-    12
+    let data = parse_input("src/day5/problem-input.txt");
+    let expanded_seeds = expand_seed_data(&data.seeds);
+    find_minimum_seed_location(&expanded_seeds, &data)
+}
+
+fn find_minimum_seed_location(seeds: &Vec<usize>, data: &Data) -> usize {
+    seeds.iter()
+        .map(|&x| map_seed_to_location(x, &data))
+        .min()
+        .unwrap_or_else(|| panic!("Could not find minimum location"))
 }
 
 fn map_seed_to_location(seed: usize, data: &Data) -> usize {
@@ -32,6 +38,12 @@ fn map_seed_to_location(seed: usize, data: &Data) -> usize {
         .map(|x| data.temp_to_humid.map(x))
         .map(|x| data.humid_to_location.map(x))
         .unwrap_or_else(|| panic!("Failed to map value"))
+}
+
+fn expand_seed_data(seeds: &Vec<usize>) -> Vec<usize> {
+    seeds.chunks(2)
+        .flat_map(|s| s[0]..(s[0] + s[1] - 1))
+        .collect_vec()
 }
 
 fn parse_input(file: &str) -> Data {
@@ -67,7 +79,7 @@ fn parse_input(file: &str) -> Data {
 
 #[cfg(test)]
 mod tests {
-    use super::{part1, part2, parse_input, map_seed_to_location};
+    use super::{part1, part2, parse_input, map_seed_to_location, find_minimum_seed_location, expand_seed_data};
 
     #[test]
     fn test_location_mapping() {
@@ -77,6 +89,14 @@ mod tests {
         assert_eq!(map_seed_to_location(14, &data), 43);
         assert_eq!(map_seed_to_location(55, &data), 86);
         assert_eq!(map_seed_to_location(13, &data), 35);
+    }
+
+    #[test]
+    fn test_expanded_seed_mapping() {
+        let data = parse_input("src/day5/test-input-1.txt");
+        let seeds = expand_seed_data(&data.seeds);
+
+        assert_eq!(find_minimum_seed_location(&seeds, &data), 46);
     }
 
     #[test]
