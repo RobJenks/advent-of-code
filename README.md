@@ -6,4 +6,5 @@ Solutions to the annual Advent of Code challenge
 * 2018: C++ | https://adventofcode.com/2018
 * 2019: Haskell | https://adventofcode.com/2019
 * 2020: Rust | https://adventofcode.com/2020
-* 2021: Rust (2021) | https://adventofcode.com/2021
+* 2021: Rust (2021 Ed.) | https://adventofcode.com/2021
+* 2023: Rust (2021 Ed.) | https://adventofcode.com/2023
