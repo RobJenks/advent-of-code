@@ -1,8 +1,9 @@
 mod cards;
 
+use std::any::Any;
 use std::iter::Iterator;
 use itertools::Itertools;
-use crate::day7::cards::{Hand, Round};
+use crate::day7::cards::{Card, Hand, Round};
 use super::common;
 
 pub fn run() {
@@ -11,11 +12,11 @@ pub fn run() {
 }
 
 fn part1() -> usize {
-    get_total_winnings(&parse_input("src/day7/problem-input.txt"))
+    get_total_winnings(parse_input("src/day7/problem-input.txt"), false)
 }
 
 fn part2() -> usize {
-    12
+    get_total_winnings(parse_input("src/day7/problem-input.txt"), true)
 }
 
 fn parse_input(file: &str) -> Vec<Round> {
@@ -27,26 +28,76 @@ fn parse_input(file: &str) -> Vec<Round> {
 }
 
 fn parse_hand(str: &str) -> Hand {
-    let mut hand = Hand::new(str.chars().collect_vec());
-    hand.hand_type = Hand::get_hand_type(&hand);
-    hand
+    Hand::calculate(str.chars().collect_vec())
 }
 
 fn sort_by_rank(rounds: &Vec<Round>) -> Vec<&Round> {
     rounds.iter().sorted_by(|&r0, &r1| r0.hand.cmp(&r1.hand)).collect_vec()
 }
 
-fn get_total_winnings(rounds: &Vec<Round>) -> usize {
-    sort_by_rank(rounds)
+fn get_total_winnings(all_rounds: Vec<Round>, allow_optimization: bool) -> usize {
+    let rounds = if allow_optimization { optimize_rounds(&all_rounds) } else { all_rounds };
+    sort_by_rank(&rounds)
         .iter().enumerate()
         .map(|(rank, &round)| (rank + 1) * round.bid)
         .sum()
 }
 
+fn optimize_rounds(rounds: &Vec<Round>) -> Vec<Round> {
+    let joker_alts = joker_alternatives();
+    rounds.iter().map(|r| Round::new(optimize_hand(&r.hand, &joker_alts), r.bid)).collect_vec()
+}
+
+fn optimize_hand(current_hand: &Hand, joker_alts: &Vec<Card>) -> Hand {
+    let mut hand = Hand::new_from_cards(&current_hand.cards.iter()
+        .map(|c| if c.name == 'J' { Card::new('J', 0) } else { c.clone() })
+        .collect_vec());
+
+    let singles = hand.cards.iter().map(|c| vec![c.clone()]).collect_vec();
+    let options = hand.cards.iter().enumerate()
+        .map(|(i, c)| if c.name == 'J' { &joker_alts } else { &singles[i] })
+        .collect_vec();
+
+    let mut best_type = hand.hand_type;
+    for c0 in options[0] {
+        for c1 in options[1] {
+            for c2 in options[2] {
+                for c3 in options[3] {
+                    for c4 in options[4] {
+                        let new_hand = Hand::calculate(vec![c0.name, c1.name, c2.name, c3.name, c4.name]);
+                        if new_hand.hand_type > best_type {
+                            best_type = new_hand.hand_type;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Hand { cards: hand.cards, hand_type: best_type }
+}
+
+fn joker_alternatives() -> Vec<Card> {
+    vec![
+        Card { name: '2', value: 0 },
+        Card { name: '3', value: 0 },
+        Card { name: '4', value: 0 },
+        Card { name: '5', value: 0 },
+        Card { name: '6', value: 0 },
+        Card { name: '7', value: 0 },
+        Card { name: '8', value: 0 },
+        Card { name: '9', value: 0 },
+        Card { name: 'T', value: 0 },
+        Card { name: 'Q', value: 0 },
+        Card { name: 'K', value: 0 },
+        Card { name: 'A', value: 0 }
+    ]
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::day7::{get_total_winnings, parse_hand, parse_input, part1, part2 };
-    use crate::day7::cards::{Hand, HAND_ONE_PAIR, HAND_THREE_OF_A_KIND, HAND_TWO_PAIR };
+    use crate::day7::{get_total_winnings, joker_alternatives, optimize_hand, parse_hand, parse_input, part1, part2};
+    use crate::day7::cards::*;
 
     #[test]
     fn test_hand_type() {
@@ -59,7 +110,21 @@ mod tests {
 
     #[test]
     fn test_hand_rank() {
-        assert_eq!(get_total_winnings(&parse_input("src/day7/test-input-1.txt")), 6440);
+        assert_eq!(get_total_winnings(parse_input("src/day7/test-input-1.txt"), false), 6440);
+    }
+
+    #[test]
+    fn test_optimize_hand() {
+        assert_eq!(Hand::get_hand_type(&parse_hand("T55J5")), HAND_THREE_OF_A_KIND);
+        assert_eq!(Hand::get_hand_type(&optimize_hand(&parse_hand("T55J5"), &joker_alternatives())), HAND_FOUR_OF_A_KIND);
+
+        assert_eq!(Hand::get_hand_type(&parse_hand("KTJJT")), HAND_TWO_PAIR);
+        assert_eq!(Hand::get_hand_type(&optimize_hand(&parse_hand("KTJJT"), &joker_alternatives())), HAND_FOUR_OF_A_KIND);
+    }
+
+    #[test]
+    fn test_optimized_hand_rank() {
+        assert_eq!(get_total_winnings(parse_input("src/day7/test-input-1.txt"), true), 5905);
     }
 
     #[test]

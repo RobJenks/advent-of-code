@@ -29,8 +29,8 @@ pub const HAND_UNKNOWN: HandType = HandType { name: Unknown, power: 0 };
 
 #[derive(Clone, Copy, Debug)]
 pub struct Card {
-    name: char,
-    value: u32
+    pub name: char,
+    pub value: u32
 }
 
 #[derive(Debug, Clone)]
@@ -65,6 +65,10 @@ pub struct Round {
 }
 
 impl Card {
+    pub fn new(name: char, value: u32) -> Self {
+        Self { name, value }
+    }
+
     pub fn get_name(&self) -> char { self.name }
 }
 
@@ -74,6 +78,7 @@ impl PartialEq for Card {
     }
 }
 impl Eq for Card { /* Is equivalence relation */ }
+
 
 impl PartialOrd for HandType {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -108,12 +113,23 @@ impl Hand {
         }
     }
 
+    pub fn new_from_cards(cards: &Vec<Card>) -> Self {
+        assert_eq!(cards.len(), 5);
+        Self { cards: [cards[0], cards[1], cards[2], cards[3], cards[4]], hand_type: HAND_UNKNOWN}
+    }
+
+    pub fn calculate(card_names: Vec<char>) -> Self {
+        let mut hand = Hand::new(card_names);
+        hand.hand_type = Hand::get_hand_type(&hand);
+        hand
+    }
+
     pub fn get_card_wise_rank(&self, other: &Hand) -> Ordering {
         self.cards.iter().zip(other.cards)
             .map(|(this, cmp)| this.value.cmp(&cmp.value))
             .filter(|&cmp| cmp != Ordering::Equal)
             .next()
-            .unwrap_or_else(|| panic!("Could not compare card-wise hand rank"))
+            .unwrap_or_else(|| panic!("Could not compare card-wise hand rank of '{}' and '{}'", self.card_string(), other.card_string()))
     }
 
     pub fn get_hand_type(hand: &Hand) -> HandType {
@@ -140,6 +156,10 @@ impl Hand {
 
         assert_eq!(counts.len(), 5);
         HAND_HIGH_CARD
+    }
+
+    pub fn card_string(&self) -> String {
+        self.cards.iter().map(|c| c.name).join("")
     }
 }
 
