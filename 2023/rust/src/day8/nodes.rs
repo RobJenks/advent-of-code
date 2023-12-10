@@ -36,14 +36,6 @@ impl Node {
     pub fn new(id: NodeId, left: NodeId, right: NodeId) -> Self {
         Self { id, connected: [left, right] }
     }
-
-    pub fn get_connected(&self, direction: Direction) -> &NodeId {
-        &self.connected[direction as usize]
-    }
-
-    pub fn get_connected_index(&self, direction: Direction) -> usize {
-        self.connected[direction as usize].index
-    }
 }
 
 impl Data {

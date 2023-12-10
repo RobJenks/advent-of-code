@@ -1,6 +1,5 @@
 mod cards;
 
-use std::any::Any;
 use std::iter::Iterator;
 use itertools::Itertools;
 use crate::day7::cards::{Card, Hand, Round};
@@ -49,7 +48,7 @@ fn optimize_rounds(rounds: &Vec<Round>) -> Vec<Round> {
 }
 
 fn optimize_hand(current_hand: &Hand, joker_alts: &Vec<Card>) -> Hand {
-    let mut hand = Hand::new_from_cards(&current_hand.cards.iter()
+    let hand = Hand::new_from_cards(&current_hand.cards.iter()
         .map(|c| if c.name == 'J' { Card::new('J', 0) } else { c.clone() })
         .collect_vec());
 
