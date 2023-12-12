@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use crate::common::vec2::Vec2;
 
 pub struct Grid<T>
@@ -16,6 +17,19 @@ impl <T> Grid<T>
             size,
             data: vec![initializer.clone(); size.x * size.y]
         }
+    }
+
+    pub fn new_with_data(size: Vec2<usize>, data: &Vec<T>) -> Self {
+        if !data.len() == (size.x * size.y) { panic!("Invalid data size"); }
+        Self {
+            size,
+            data: data.clone()
+        }
+    }
+
+    pub fn new_with_owned_data(size: Vec2<usize>, data: Vec<T>) -> Self {
+        if !data.len() == (size.x * size.y) { panic!("Invalid data size"); }
+        Self { size, data }
     }
 
     pub fn coord_to_ix(&self, coord: &Vec2<usize>) -> usize {
@@ -160,6 +174,21 @@ impl <T> Grid<T>
     }
     pub fn get_coord_down_value(&self, coord: &Vec2<usize>) -> Option<T> {
         self.get_down_value(self.coord_to_ix(coord))
+    }
+
+    pub fn get_surrounding(&self, ix: usize) -> Vec<usize> {
+        [self.get_up(ix), self.get_right(ix), self.get_down(ix), self.get_left(ix)]
+            .iter()
+            .flat_map(|s| *s)
+            .collect_vec()
+    }
+
+    pub fn get_surrounding_incl_diagonals(&self, ix: usize) -> Vec<usize> {
+        [self.get_up(ix), self.get_up_right(ix), self.get_right(ix), self.get_down_right(ix),
+         self.get_down(ix), self.get_down_left(ix), self.get_left(ix), self.get_up_left(ix)]
+            .iter()
+            .flat_map(|s| *s)
+            .collect_vec()
     }
 
     pub fn get_adjacent_to_region(&self, region_start: &Vec2<usize>, region_end: &Vec2<usize>, allow_diagonals: bool) -> Vec<usize> {
