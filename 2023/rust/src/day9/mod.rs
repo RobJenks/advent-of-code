@@ -13,8 +13,10 @@ fn part1() -> isize {
         .sum()
 }
 
-fn part2() -> usize {
-    12
+fn part2() -> isize {
+    parse_input("src/day9/problem-input.txt").iter()
+        .map(|hist| calculate_first_value(&generate_history(hist)))
+        .sum()
 }
 
 fn parse_input(file: &str) -> Vec<Vec<isize>> {
@@ -48,10 +50,17 @@ fn calculate_next_value(history: &Vec<Vec<isize>>) -> isize {
         .fold(0, |acc, x| x.last().unwrap() + acc)
 }
 
+fn calculate_first_value(history: &Vec<Vec<isize>>) -> isize {
+    history.iter()
+        .rev()
+        .skip(1)
+        .fold(0, |acc, x| x.first().unwrap() - acc)
+}
+
 #[cfg(test)]
 mod tests {
     use itertools::Itertools;
-    use crate::day9::{calculate_next_value, generate_history, parse_input, part1, part2};
+    use crate::day9::{calculate_first_value, calculate_next_value, generate_history, parse_input, part1, part2};
 
     #[test]
     fn test_history_generation() {
@@ -60,6 +69,15 @@ mod tests {
             .collect_vec(),
 
             vec![18, 28, 68]);
+    }
+
+    #[test]
+    fn test_previous_value_generation() {
+        assert_eq!(parse_input("src/day9/test-input-1.txt").iter()
+            .map(|hist| calculate_first_value(&generate_history(hist)))
+            .collect_vec(),
+
+            vec![-3, 0, 5]);
     }
 
     #[test]
