@@ -177,6 +177,18 @@ impl <T> Grid<T>
         self.get_down_value(self.coord_to_ix(coord))
     }
 
+    pub fn get_row(&self, row: usize) -> Option<Vec<T>> {
+        Some(row)
+            .filter(|&r| r < self.size.y)
+            .map(|r| self.data[r*self.size.x..(r+1)*self.size.x].iter().cloned().collect_vec())
+    }
+
+    pub fn get_col(&self, col: usize) -> Option<Vec<T>> {
+        Some(col)
+            .filter(|&c| c < self.size.x)
+            .map(|c| (0..self.size.y).map(|r| self.get(c + (r * self.size.x))).collect_vec())
+    }
+
     pub fn get_surrounding(&self, ix: usize) -> Vec<usize> {
         [self.get_up(ix), self.get_right(ix), self.get_down(ix), self.get_left(ix)]
             .iter()
