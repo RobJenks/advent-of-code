@@ -1,3 +1,4 @@
+use std::collections::BinaryHeap;
 use itertools::Itertools;
 use crate::common::grid::Grid;
 use crate::common::vec2::Vec2;
@@ -68,5 +69,29 @@ impl Maze {
             assert_eq!(connected[1], prev_cell);
             connected[0]
         }
+    }
+
+    pub fn flood_fill_from(&self, cell: usize) -> Vec<usize> {
+        let mut head = vec![cell];
+        let mut tested = BinaryHeap::<usize>::new();
+        let mut cells = BinaryHeap::<usize>::new();
+
+        let is_passable = |c: char| c == '.' || c == ' ';
+
+        while let Some(next) = head.pop() {
+            let value = self.grid.get(next);
+
+            tested.push(next);
+            if value == '.' {
+                cells.push(next);
+            }
+
+            self.grid.get_surrounding(next).iter()
+                .filter(|&adj| is_passable(self.grid.get(*adj)))
+                .filter(|&adj| !tested.iter().contains(adj))
+                .for_each(|adj| if !head.contains(adj) { head.push(*adj) });
+        }
+
+        cells.into_vec()
     }
 }

@@ -1,8 +1,9 @@
+use std::fmt::Display;
 use itertools::Itertools;
 use crate::common::vec2::Vec2;
 
 pub struct Grid<T>
-    where T: Clone {
+    where T: Clone + Display {
 
     size: Vec2<usize>,
     data: Vec<T>
@@ -10,7 +11,7 @@ pub struct Grid<T>
 
 #[allow(dead_code)]
 impl <T> Grid<T>
-    where T: Clone {
+    where T: Clone + Display {
 
     pub fn new(size: Vec2<usize>, initializer: &T) -> Self {
         Self {
@@ -224,4 +225,10 @@ impl <T> Grid<T>
         result
     }
 
+    pub fn to_string(&self) -> String {
+        self.data.iter()
+            .chunks(self.size.x).into_iter().map(|chunk| chunk
+                .map(|x| x.to_string()).join(""))
+            .join("\n")
+    }
 }
