@@ -189,6 +189,14 @@ impl <T> Grid<T>
             .map(|c| (0..self.size.y).map(|r| self.get(c + (r * self.size.x))).collect_vec())
     }
 
+    pub fn get_row_index(&self, ix: usize) -> usize {
+        ix / self.size.x
+    }
+
+    pub fn get_col_index(&self, ix: usize) -> usize {
+        ix % self.size.x
+    }
+
     pub fn get_surrounding(&self, ix: usize) -> Vec<usize> {
         [self.get_up(ix), self.get_right(ix), self.get_down(ix), self.get_left(ix)]
             .iter()
