@@ -244,3 +244,11 @@ impl <T> Grid<T>
             .join("\n")
     }
 }
+
+impl <T> Clone for Grid<T>
+    where T: Clone + Display {
+
+    fn clone(&self) -> Self {
+        Self { size: self.size, data: self.data.clone() }
+    }
+}
