@@ -17,11 +17,11 @@ fn part2() -> usize {
 }
 
 fn simulate_energized_cells(grid: &Grid<char>) -> usize {
-    let mut energized : Vec::<[usize; 4]> = vec![[usize::MAX; 4]; grid.get_element_count()];
+    let mut energized : Vec::<[bool; 4]> = vec![[false; 4]; grid.get_element_count()];
     let mut spawned = Vec::<Beam>::new();
 
     let mut beams = vec![Beam::new_off_grid(0, GridDirection::Right)];
-    energized[0][0] = usize::MAX-1;
+    energized[0][GridDirection::Left as usize] = false;
 
     while !beams.is_empty() || !spawned.is_empty() {
         for beam in &mut beams {
@@ -29,17 +29,12 @@ fn simulate_energized_cells(grid: &Grid<char>) -> usize {
             beam.off_grid = false;
 
             if let Some(new_cell) = next_ix {
-                if energized[new_cell].contains(&beam.pos) {
+                if energized[new_cell][beam.dir as usize] {
                     beam.pos = usize::MAX; // Kill since we are following the exact path of a previous beam
                 }
                 else {
                     if !beam.off_grid {
-                        for i in 0.. {
-                            if energized[new_cell][i] == usize::MAX {
-                                energized[new_cell][i] = beam.pos;
-                                break;
-                            }
-                        }
+                        energized[new_cell][beam.dir as usize] = true;
                     }
                     beam.pos = new_cell;
 
@@ -73,7 +68,7 @@ fn simulate_energized_cells(grid: &Grid<char>) -> usize {
         spawned.clear();
     }
 
-    energized.iter().filter(|&en| en.iter().any(|x| *x != usize::MAX)).count()
+    energized.iter().filter(|&en| en.iter().any(|x| *x)).count()
 }
 
 const FWD_REFLECT : [GridDirection; 4] = [  // '/'
