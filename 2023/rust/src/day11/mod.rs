@@ -112,7 +112,6 @@ mod tests {
     fn test_universe_expansion() {
         assert_eq!(expand_universe(&parse_input("src/day11/test-input-1.txt")).to_string(),
                    parse_input("src/day11/test-output-1.txt").to_string());
-
     }
 
     #[test]

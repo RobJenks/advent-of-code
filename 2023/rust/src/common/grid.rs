@@ -150,10 +150,23 @@ impl <T> Grid<T>
         self.get_down(ix).iter().flat_map(|&x| self.get_right(x)).next()
     }
 
+    pub fn get_in_direction(&self, ix: usize, dir: GridDirection) -> Option<usize> {
+        match dir {
+            GridDirection::Left => self.get_left(ix),
+            GridDirection::Up => self.get_up(ix),
+            GridDirection::Right => self.get_right(ix),
+            GridDirection::Down => self.get_down(ix)
+        }
+    }
+
     pub fn get_left_value(&self, ix: usize) -> Option<T> { self.get_left(ix).map(|adj| self.get(adj)) }
     pub fn get_right_value(&self, ix: usize) -> Option<T> { self.get_right(ix).map(|adj| self.get(adj)) }
     pub fn get_up_value(&self, ix: usize) -> Option<T> { self.get_up(ix).map(|adj| self.get(adj)) }
     pub fn get_down_value(&self, ix: usize) -> Option<T> { self.get_down(ix).map(|adj| self.get(adj)) }
+
+    pub fn get_value_in_direction(&self, ix: usize, dir: GridDirection) -> Option<T> {
+        self.get_in_direction(ix, dir).map(|adj| self.get(adj))
+    }
 
     pub fn is_coord_on_left_edge(&self, coord: &Vec2<usize>) -> bool {
         coord.x == 0
@@ -266,4 +279,13 @@ impl <T> Clone for Grid<T>
     fn clone(&self) -> Self {
         Self { size: self.size, data: self.data.clone() }
     }
+}
+
+#[repr(u32)]
+#[derive(Eq, PartialEq, Copy, Clone, Debug)]
+pub enum GridDirection {
+    Left = 0,
+    Up = 1,
+    Right = 2,
+    Down = 3
 }
