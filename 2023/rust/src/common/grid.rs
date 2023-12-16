@@ -33,6 +33,13 @@ impl <T> Grid<T>
         Self { size, data }
     }
 
+    pub fn new_from_2d_data(data: &Vec<Vec<T>>) -> Self {
+        Self {
+            size: Vec2::new(data.iter().next().unwrap_or_else(|| panic!("No grid data")).len(), data.len()),
+            data: data.iter().flat_map(|v| v.iter().cloned()).collect_vec()
+        }
+    }
+
     pub fn coord_to_ix(&self, coord: &Vec2<usize>) -> usize {
         coord.x + (coord.y * self.size.x)
     }
