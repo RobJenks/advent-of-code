@@ -49,6 +49,7 @@ fn flood_fill(maze: &Maze) -> Maze {
     let expand_coord = |v: Vec2<usize>| (v * Vec2::<usize>::new(2, 2)) - Vec2::<usize>::new(1, 1);
     let exp_size = expand_coord(maze.size);
 
+    #[allow(unstable_name_collisions)]  // Intersperse
     let data = (0..maze.size.y)
         .map(|_| vec!['.'; maze.size.x].iter().intersperse(&' ').cloned().collect_vec())
         .intersperse(vec![' '; exp_size.x])

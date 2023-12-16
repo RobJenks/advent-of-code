@@ -1,5 +1,4 @@
 use std::fmt::Display;
-use std::ops::Rem;
 use itertools::Itertools;
 use crate::common::vec2::Vec2;
 
