@@ -14,11 +14,29 @@ fn part1() -> usize {
 }
 
 fn part2() -> usize {
-    12
+    sum_shortest_paths_in_scaled_universe(&parse_input("src/day11/problem-input.txt"), 1000000)
 }
 
 fn sum_shortest_paths(grid: &Grid<char>) -> usize {
-    let galaxies = get_galaxy_positions(grid);
+    sum_shortest_paths_between_galaxies(&get_galaxy_positions(&grid))
+}
+
+fn sum_shortest_paths_in_scaled_universe(grid: &Grid<char>, scale: usize) -> usize {
+    let positions = get_galaxy_positions(grid);
+    let (exp_y, exp_x) = get_expansion_zones(grid);
+
+    let num_before: fn(v: &Vec<usize>, val: usize) -> usize = |vec, v| vec.iter().take_while(|&el| *el < v).count();
+
+    let expanded_positions = positions.iter()
+        .map(|pos| Vec2::new(
+            pos.x + ((scale-1) * num_before(&exp_x, pos.x)),
+            pos.y + ((scale-1) * num_before(&exp_y, pos.y))))
+        .collect_vec();
+
+    sum_shortest_paths_between_galaxies(&expanded_positions)
+}
+
+fn sum_shortest_paths_between_galaxies(galaxies: &Vec<Vec2<usize>>) -> usize {
     galaxies.iter().enumerate()
         .skip(1)
         .map(|(g, pos)| galaxies.iter()
@@ -36,21 +54,10 @@ fn get_galaxy_positions(grid: &Grid<char>) -> Vec<Vec2<usize>> {
 }
 
 fn calculate_distance(p0: &Vec2<usize>, p1: &Vec2<usize>) -> usize {
-    let mut dist = 0usize;
-    let mut pos = Vec2::new(p0.x as isize, p0.y as isize);
-    let target = Vec2::new(p1.x as isize, p1.y as isize);
-
-    while pos != target {
-        let (dx, dy) = (target.x - pos.x, target.y - pos.y);
-        if dx.abs() >= dy.abs() { pos.x += dx.signum() }
-        else { pos.y += dy.signum() }
-        dist += 1
-    }
-
-    dist
+    ((p0.x as isize - p1.x as isize).abs() + (p0.y as isize - p1.y as isize).abs()) as usize
 }
 
-fn expand_universe(grid: &Grid<char>) -> Grid<char> {
+fn get_expansion_zones(grid: &Grid<char>) -> (Vec<usize>, Vec<usize>) {
     let exp_rows = (0..grid.get_size().y)
         .map(|r| (r, grid.get_row(r).unwrap()))
         .filter(|(_, row)| !row.contains(&'#'))
@@ -63,7 +70,13 @@ fn expand_universe(grid: &Grid<char>) -> Grid<char> {
         .map(|(c, _)| c)
         .collect_vec();
 
+    (exp_rows, exp_cols)
+}
+
+fn expand_universe(grid: &Grid<char>) -> Grid<char> {
+    let (exp_rows, exp_cols) = get_expansion_zones(grid);
     let mut new_data: Vec<Vec<char>> = Vec::new();
+
     for r in 0..grid.get_size().y {
         let mut row = Vec::new();
         for c in 0..grid.get_size().x {
@@ -93,7 +106,7 @@ fn parse_input(file: &str) -> Grid<char> {
 
 #[cfg(test)]
 mod tests {
-    use crate::day11::{expand_universe, parse_input, part1, part2, sum_shortest_paths};
+    use crate::day11::{expand_universe, parse_input, part1, part2, sum_shortest_paths, sum_shortest_paths_in_scaled_universe};
 
     #[test]
     fn test_universe_expansion() {
@@ -108,13 +121,32 @@ mod tests {
     }
 
     #[test]
+    fn test_scaled_universe_regression() {
+        assert_eq!(
+            sum_shortest_paths_in_scaled_universe(&parse_input("src/day11/test-input-1.txt"), 2),
+            sum_shortest_paths(&expand_universe(&parse_input("src/day11/test-input-1.txt"))));
+    }
+
+    #[test]
+    fn test_scaled_full_universe_regression() {
+        assert_eq!(
+            sum_shortest_paths_in_scaled_universe(&parse_input("src/day11/problem-input.txt"), 2),
+            sum_shortest_paths(&expand_universe(&parse_input("src/day11/problem-input.txt"))));
+    }
+
+    #[test]
+    fn test_scaled_universe_paths() {
+        assert_eq!(sum_shortest_paths_in_scaled_universe(&parse_input("src/day11/test-input-1.txt"), 10), 1030);
+        assert_eq!(sum_shortest_paths_in_scaled_universe(&parse_input("src/day11/test-input-1.txt"), 100), 8410);
+    }
+
+    #[test]
     fn test_part1() {
-        assert_eq!(part1(), 12);
+        assert_eq!(part1(), 9445168);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 12);
+        assert_eq!(part2(), 742305960572);
     }
-
 }
