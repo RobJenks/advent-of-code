@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::ops::Rem;
 use itertools::Itertools;
 use crate::common::vec2::Vec2;
 
@@ -288,4 +289,17 @@ pub enum GridDirection {
     Up = 1,
     Right = 2,
     Down = 3
+}
+
+const OPPOSITE_GRID_DIRECTIONS : [GridDirection; 4] = [
+    GridDirection::Right,    // Opposite of Left (= 0)
+    GridDirection::Down,     // Opposite of Up (= 1)
+    GridDirection::Left,     // Opposite of Right (= 2)
+    GridDirection::Up,       // Opposite of Down (= 3)
+];
+
+impl GridDirection {
+    pub fn opposite(&self) -> GridDirection {
+        OPPOSITE_GRID_DIRECTIONS[*self as usize]
+    }
 }

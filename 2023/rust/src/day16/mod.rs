@@ -9,19 +9,33 @@ pub fn run() {
 }
 
 fn part1() -> usize {
-    simulate_energized_cells(&parse_input("src/day16/problem-input.txt"))
+    simulate_energized_cells(&parse_input("src/day16/problem-input.txt"), 0, GridDirection::Right)
 }
 
 fn part2() -> usize {
-    12
+    find_optimal_energized_state(&parse_input("src/day16/problem-input.txt"))
 }
 
-fn simulate_energized_cells(grid: &Grid<char>) -> usize {
+fn find_optimal_energized_state(grid: &Grid<char>) -> usize {
+    (0..grid.get_element_count())
+        .flat_map(|ix| match ix {
+            _ if grid.is_on_left_edge(ix) => Some((ix, GridDirection::Right)),
+            _ if grid.is_on_top_edge(ix) => Some((ix, GridDirection::Down)),
+            _ if grid.is_on_right_edge(ix) => Some((ix, GridDirection::Left)),
+            _ if grid.is_on_bottom_edge(ix) => Some((ix, GridDirection::Up)),
+            _ => None
+        })
+        .map(|(entry_cell, entry_dir)| simulate_energized_cells(grid, entry_cell, entry_dir))
+        .max()
+        .unwrap_or_else(|| panic!("No solution"))
+}
+
+fn simulate_energized_cells(grid: &Grid<char>, entry_cell: usize, entry_dir: GridDirection) -> usize {
     let mut energized : Vec::<[bool; 4]> = vec![[false; 4]; grid.get_element_count()];
     let mut spawned = Vec::<Beam>::new();
 
-    let mut beams = vec![Beam::new_off_grid(0, GridDirection::Right)];
-    energized[0][GridDirection::Left as usize] = false;
+    let mut beams = vec![Beam::new_off_grid(entry_cell, entry_dir)];
+    energized[0][entry_dir.opposite() as usize] = false;
 
     while !beams.is_empty() || !spawned.is_empty() {
         for beam in &mut beams {
@@ -125,11 +139,17 @@ impl Beam {
 
 #[cfg(test)]
 mod tests {
-    use crate::day16::{parse_input, part1, part2, simulate_energized_cells};
+    use crate::common::grid::GridDirection;
+    use crate::day16::{find_optimal_energized_state, parse_input, part1, part2, simulate_energized_cells};
 
     #[test]
     fn test_beam_traversal() {
-        assert_eq!(simulate_energized_cells(&parse_input("src/day16/test-input-1.txt")), 46);
+        assert_eq!(simulate_energized_cells(&parse_input("src/day16/test-input-1.txt"), 0, GridDirection::Right), 46);
+    }
+
+    #[test]
+    fn test_optimal_state() {
+        assert_eq!(find_optimal_energized_state(&parse_input("src/day16/test-input-1.txt")), 51);
     }
 
     #[test]
@@ -139,7 +159,7 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 12);
+        assert_eq!(part2(), 7831);
     }
 
 }
