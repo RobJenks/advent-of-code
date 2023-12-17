@@ -14,7 +14,9 @@ fn part1() -> usize {
 }
 
 fn part2() -> usize {
-    12
+    count_all_valid_permutations(&parse_input("src/day12/problem-input.txt").iter()
+        .map(expand_problem)
+        .collect_vec())
 }
 
 fn count_all_valid_permutations(data: &Vec<Springs>) -> usize {
@@ -90,6 +92,13 @@ fn count_string_permutations(str: String, groups: &[u32], cache: &mut HashMap<St
     permutations
 }
 
+fn expand_problem(data: &Springs) -> Springs {
+    Springs::new(
+        (0..5).map(|_| &data.data).join("?"),
+        (0..5).flat_map(|_| data.groups.iter()).cloned().collect_vec()
+    )
+}
+
 fn parse_input(file: &str) -> Vec<Springs> {
         common::read_file(file)
             .lines()
@@ -132,7 +141,8 @@ impl State {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-    use crate::day12::{count_all_valid_permutations, count_valid_permutations, parse_input, parse_springs, part1, part2};
+    use itertools::Itertools;
+    use crate::day12::{count_all_valid_permutations, count_valid_permutations, expand_problem, parse_input, parse_springs, part1, part2};
 
     #[test]
     fn test_count_permutations() {
@@ -152,13 +162,20 @@ mod tests {
     }
 
     #[test]
+    fn test_expanded_problem() {
+        assert_eq!(count_all_valid_permutations(&parse_input("src/day12/test-input-1.txt").iter()
+            .map(expand_problem)
+            .collect_vec()), 525152);
+    }
+
+    #[test]
     fn test_part1() {
         assert_eq!(part1(), 7716);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 12);
+        assert_eq!(part2(), 18716325559999);
     }
 
 }
