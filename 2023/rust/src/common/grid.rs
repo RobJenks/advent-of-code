@@ -265,6 +265,61 @@ impl <T> Grid<T>
         result
     }
 
+    pub fn manhattan_dist(&self, from_cell: usize, to_cell: usize) -> usize {
+        let from_pos = self.ix_to_coord(from_cell);
+        let to_pos = self.ix_to_coord(to_cell);
+        ((to_pos.x as isize - from_pos.x as isize).abs() + (to_pos.y as isize - from_pos.y as isize).abs()) as usize
+    }
+
+    // Returns the grid direction from->to, IF there is a straight line between the two elements, AND they are not the same
+    pub fn straight_direction_from(&self, from: usize, to: usize) -> Option<GridDirection> {
+        if from == to { return None }
+
+        let from_pos = self.ix_to_coord(from);
+        let to_pos = self.ix_to_coord(to);
+        if from_pos.x == to_pos.x {             // In the same column
+            if from_pos.y < to_pos.y {
+                Some(GridDirection::Down)
+            }
+            else {
+                Some(GridDirection::Up)
+            }
+        }
+        else if from_pos.y == to_pos.y {        // In the same row
+            if from_pos.x < to_pos.x {
+                Some(GridDirection::Right)
+            }
+            else {
+                Some(GridDirection::Left)
+            }
+        }
+        else {
+            None
+        }
+    }
+
+    pub fn get_cells_in_direction_until(&self, from: usize, dir: GridDirection,
+                                        stop_fn: impl Fn(/* current_cell:*/usize, /*num_taken:*/usize) -> bool) -> Vec<usize> {
+        let mut cells = Vec::new();
+        let mut current = from;
+
+        for num_taken in 1usize.. {
+            if let Some(next_cell) = self.get_in_direction(current, dir) {
+                if stop_fn(next_cell, num_taken) { break}
+
+                cells.push(next_cell);
+                current = next_cell;
+            }
+            else { break }
+        }
+
+        cells
+    }
+
+    pub fn get_n_cells_in_direction(&self, from: usize, dir: GridDirection, num_cells: usize) -> Vec<usize> {
+        self.get_cells_in_direction_until(from, dir, |_, num_taken| num_taken > num_cells)
+    }
+
     pub fn to_string(&self) -> String {
         self.data.iter()
             .chunks(self.size.x).into_iter().map(|chunk| chunk
@@ -282,7 +337,7 @@ impl <T> Clone for Grid<T>
 }
 
 #[repr(u32)]
-#[derive(Eq, PartialEq, Copy, Clone, Debug)]
+#[derive(Eq, PartialEq, Copy, Clone, Debug, Hash)]
 pub enum GridDirection {
     Left = 0,
     Up = 1,

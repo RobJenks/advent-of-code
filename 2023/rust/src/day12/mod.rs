@@ -100,10 +100,10 @@ fn expand_problem(data: &Springs) -> Springs {
 }
 
 fn parse_input(file: &str) -> Vec<Springs> {
-        common::read_file(file)
-            .lines()
-            .map(parse_springs)
-            .collect_vec()
+    common::read_file(file)
+        .lines()
+        .map(parse_springs)
+        .collect_vec()
 }
 
 fn parse_springs(str: &str) -> Springs {
