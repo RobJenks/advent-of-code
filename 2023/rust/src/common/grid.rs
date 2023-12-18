@@ -1,5 +1,4 @@
-use std::collections::BinaryHeap;
-use std::fmt::{Display, Formatter};
+use std::fmt::Display;
 use itertools::Itertools;
 use crate::common::vec2::Vec2;
 
@@ -327,8 +326,11 @@ impl <T> Grid<T>
 
     pub fn flood_fill(&mut self, start: usize, fill_action: fn(&mut T), can_flood: fn(&Grid<T>, usize, usize, &T) -> bool) {
         let element_count = self.get_element_count();
-        let mut head = vec![(start, start)];    // Vec of (cell which flooded into head cell, head cell)
         let mut tested = vec![false; element_count];
+        let mut is_head = vec![false; element_count];   // Indexed version of `head` list for lookup efficiency
+
+        let mut head = vec![(start, start)];    // Vec of (cell which flooded into head cell, head cell)
+        is_head[start] = true;
 
         while let Some((prev, next)) = head.pop() {
             tested[next] = true;
@@ -340,9 +342,12 @@ impl <T> Grid<T>
 
             fill_action(&mut self.data[next]);
 
-            self.get_surrounding(next).iter()
-                .filter(|&adj| !tested[*adj])
-                .for_each(|adj| if !head.iter().any(|(_, hd)| hd == adj) { head.push((next, *adj)) });
+            self.get_surrounding(next).into_iter()
+                .filter(|adj| !tested[*adj])
+                .for_each(|adj| if !is_head[adj] {
+                    is_head[adj] = true;
+                    head.push((next, adj))
+                });
         }
     }
 
