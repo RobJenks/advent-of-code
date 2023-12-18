@@ -1,4 +1,5 @@
-use std::fmt::Display;
+use std::collections::BinaryHeap;
+use std::fmt::{Display, Formatter};
 use itertools::Itertools;
 use crate::common::vec2::Vec2;
 
@@ -57,6 +58,10 @@ impl <T> Grid<T>
 
     pub fn get(&self, ix: usize) -> T {
         self.data[ix].clone()
+    }
+
+    pub fn get_ref(&self, ix: usize) -> &T {
+        &self.data[ix]
     }
 
     pub fn get_at_coord(&self, coord: &Vec2<usize>) -> T {
@@ -320,6 +325,27 @@ impl <T> Grid<T>
         self.get_cells_in_direction_until(from, dir, |_, num_taken| num_taken > num_cells)
     }
 
+    pub fn flood_fill(&mut self, start: usize, fill_action: fn(&mut T), can_flood: fn(&Grid<T>, usize, usize, &T) -> bool) {
+        let element_count = self.get_element_count();
+        let mut head = vec![(start, start)];    // Vec of (cell which flooded into head cell, head cell)
+        let mut tested = vec![false; element_count];
+
+        while let Some((prev, next)) = head.pop() {
+            tested[next] = true;
+            let value = self.get_ref(next);
+
+            if !can_flood(self, prev, next, value) {
+                continue;
+            }
+
+            fill_action(&mut self.data[next]);
+
+            self.get_surrounding(next).iter()
+                .filter(|&adj| !tested[*adj])
+                .for_each(|adj| if !head.iter().any(|(_, hd)| hd == adj) { head.push((next, *adj)) });
+        }
+    }
+
     pub fn to_string(&self) -> String {
         self.data.iter()
             .chunks(self.size.x).into_iter().map(|chunk| chunk
@@ -352,7 +378,18 @@ const OPPOSITE_GRID_DIRECTIONS : [GridDirection; 4] = [
     GridDirection::Up,       // Opposite of Down (= 3)
 ];
 
+const DIRECTION_UNIT_MOVEMENTS : [Vec2<isize>; 4] = [
+    Vec2 { x: -1, y: 0 },    // Left (= 0)
+    Vec2 { x: 0, y: -1 },    // Up (= 1)
+    Vec2 { x: 1, y: 0 },     // Right (= 2)
+    Vec2 { x: 0, y: 1 }      // Down (= 3)
+];
+
 impl GridDirection {
+    pub fn unit_movement(&self) -> Vec2<isize> {
+        DIRECTION_UNIT_MOVEMENTS[*self as usize]
+    }
+
     pub fn opposite(&self) -> GridDirection {
         OPPOSITE_GRID_DIRECTIONS[*self as usize]
     }

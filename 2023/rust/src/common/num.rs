@@ -14,6 +14,8 @@ pub trait Numeric
     + SubAssign
     + MulAssign
     + DivAssign
+    + Ord + PartialOrd
+    + Eq + PartialEq
     + Zero<Output = Self>
     where Self: Sized {
 
