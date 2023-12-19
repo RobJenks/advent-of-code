@@ -102,6 +102,10 @@ impl <T> Grid<T>
         self.size.x * self.size.y
     }
 
+    pub fn is_valid_coord(&self, coord: &Vec2<usize>) -> bool {
+        coord.x < self.size.x && coord.y < self.size.y
+    }
+
     pub fn is_on_left_edge(&self, ix: usize) -> bool {
         ix % self.size.x == 0
     }
@@ -322,6 +326,51 @@ impl <T> Grid<T>
 
     pub fn get_n_cells_in_direction(&self, from: usize, dir: GridDirection, num_cells: usize) -> Vec<usize> {
         self.get_cells_in_direction_until(from, dir, |_, num_taken| num_taken > num_cells)
+    }
+
+    pub fn get_nth_cell_left_from_coord(&self, coord: &Vec2<usize>, n: usize) -> Option<Vec2<usize>> {
+        if coord.x < n {
+            None
+        }
+        else {
+            Some(Vec2::new(coord.x - n, coord.y))
+        }
+    }
+
+    pub fn get_nth_cell_up_from_coord(&self, coord: &Vec2<usize>, n: usize) -> Option<Vec2<usize>> {
+        if coord.y < n {
+            None
+        }
+        else {
+            Some(Vec2::new(coord.x, coord.y - n))
+        }
+    }
+
+    pub fn get_nth_cell_right_from_coord(&self, coord: &Vec2<usize>, n: usize) -> Option<Vec2<usize>> {
+        if n >= (self.size.x - coord.x) {
+            None
+        }
+        else {
+            Some(Vec2::new(coord.x + n, coord.y))
+        }
+    }
+
+    pub fn get_nth_cell_down_from_coord(&self, coord: &Vec2<usize>, n: usize) -> Option<Vec2<usize>> {
+        if n > (self.size.y - coord.y) {
+            None
+        }
+        else {
+            Some(Vec2::new(coord.x, coord.y + n))
+        }
+    }
+
+    pub fn get_nth_cell_in_direction_from_coord(&self, coord: &Vec2<usize>, dir: GridDirection, n: usize) -> Option<Vec2<usize>> {
+        match dir {
+            GridDirection::Left => self.get_nth_cell_left_from_coord(coord, n),
+            GridDirection::Up => self.get_nth_cell_up_from_coord(coord, n),
+            GridDirection::Right => self.get_nth_cell_right_from_coord(coord, n),
+            GridDirection::Down => self.get_nth_cell_down_from_coord(coord, n)
+        }
     }
 
     pub fn flood_fill(&mut self, start: usize, fill_action: fn(&mut T), can_flood: fn(&Grid<T>, usize, usize, &T) -> bool) {

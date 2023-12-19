@@ -1,7 +1,6 @@
-use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
-use std::hash::{Hash, Hasher};
+use std::hash::Hash;
 use std::iter::Iterator;
 use itertools::Itertools;
 use crate::common::grid::{Grid, GridDirection};
@@ -14,17 +13,15 @@ pub fn run() {
 }
 
 fn part1() -> usize {
-    let result = find_path(&parse_input("src/day17/problem-input.txt"));
-    println!("{:?}", result.nodes);
-    result.total_cost
+    find_path(&parse_input("src/day17/problem-input.txt"), 1, 3).total_cost
 }
 
 fn part2() -> usize {
-    12
+    find_path(&parse_input("src/day17/problem-input.txt"), 4, 10).total_cost
 }
 
-fn find_path(grid: &Grid<u32>) -> PathResult {
-    let nodes = build_node_graph(grid);
+fn find_path(grid: &Grid<u32>, min_travel_dist: usize, max_travel_dist: usize) -> PathResult {
+    let nodes = build_node_graph(grid, min_travel_dist, max_travel_dist);
 
     let start = NodeRef::new(0, GridDirection::Up);
     let end = vec![
@@ -44,19 +41,19 @@ fn find_path(grid: &Grid<u32>) -> PathResult {
     PathResult::new(path.iter().map(|n| n.pos).collect_vec(), path_cost(&nodes, &path))
 }
 
-fn build_node_graph(grid: &Grid<u32>) -> HashMap<NodeRef, NodeData> {
+fn build_node_graph(grid: &Grid<u32>, min_conn_dist: usize, max_conn_dist: usize) -> HashMap<NodeRef, NodeData> {
     let el_count = grid.get_element_count();
     let dirs = GridDirection::directions();
 
     let mut nodes = (0..el_count).cartesian_product(dirs.iter())
-            .map(|(el, dir)| (NodeRef::new(el, *dir), NodeData::new(grid.get(el) as isize)))
+            .map(|(el, dir)| (NodeRef::new(el, *dir), NodeData::new()))
             .collect::<HashMap<NodeRef, NodeData>>();
 
     (0..el_count).cartesian_product(dirs.iter()).for_each(|(el, dir)| {
         let node = NodeRef::new(el, dir.clone());
         let allowable_outbound_dirs = &OUTBOUND_DIRS[*dir as usize];
-        add_nodes_in_dir(grid, &mut nodes, &node, allowable_outbound_dirs[0], 3);
-        add_nodes_in_dir(grid, &mut nodes, &node, allowable_outbound_dirs[1], 3);
+        add_nodes_in_dir(grid, &mut nodes, &node, allowable_outbound_dirs[0], min_conn_dist, max_conn_dist);
+        add_nodes_in_dir(grid, &mut nodes, &node, allowable_outbound_dirs[1], min_conn_dist, max_conn_dist);
     });
 
     nodes
@@ -78,11 +75,20 @@ const OUTBOUND_DIRS: [[GridDirection; 2]; 4] = [
 ];
 
 
-fn add_nodes_in_dir(grid: &Grid<u32>, nodes: &mut HashMap<NodeRef, NodeData>, from_node: &NodeRef, get_nodes_in_dir: GridDirection, num: usize) {
+fn add_nodes_in_dir(grid: &Grid<u32>, nodes: &mut HashMap<NodeRef, NodeData>, from_node: &NodeRef, get_nodes_in_dir: GridDirection,
+                    min_dist: usize, max_dist: usize) {
     let current_node = nodes.get_mut(from_node).unwrap_or_else(|| panic!("Missing node"));
+    let current_coord = grid.ix_to_coord(from_node.pos);
 
-    let adj_cells = grid.get_n_cells_in_direction(from_node.pos, get_nodes_in_dir, num);
-    let mut total_cost = 0isize;
+    let cells_before_start = grid.get_n_cells_in_direction(from_node.pos, get_nodes_in_dir, min_dist - 1);
+    let mut total_cost = cells_before_start.iter().map(|c| grid.get(*c) as isize).sum();
+
+    let start_cell = grid.get_nth_cell_in_direction_from_coord(&current_coord, get_nodes_in_dir, min_dist - 1);
+    if start_cell.is_none() { return }
+    let start_ix = grid.coord_to_ix(&start_cell.unwrap());
+    let num_to_fetch = max_dist - min_dist + 1;
+
+    let adj_cells = grid.get_n_cells_in_direction(start_ix, get_nodes_in_dir, num_to_fetch);
 
     for adj in adj_cells {
         total_cost += grid.get(adj) as isize;
@@ -134,7 +140,7 @@ struct NodeData {
     pub connections: Vec<NodeConnection>
 }
 impl NodeData {
-    pub fn new(cost: isize) -> Self {
+    pub fn new() -> Self {
         Self { connections: Vec::new() }
     }
     pub fn find_connection(&self, target: &NodeRef) -> Option<&NodeConnection> {
@@ -156,6 +162,7 @@ impl NodeConnection {
 // PathResult
 
 struct PathResult {
+    #[allow(unused)]
     nodes: Vec<usize>,
     total_cost: usize
 }
@@ -164,53 +171,6 @@ impl PathResult {
         Self { nodes, total_cost }
     }
 }
-
-
-//
-// fn determine_possible_moves_from(grid: &Grid<u32>, cell: usize, prev_cell: usize) -> Vec<CellRef> {
-//     if prev_cell == pathfinding::astar::NO_NODE {
-//         // Special case since below logic won't work when prev_cell == NO_NODE
-//         // However we can assume only Right+Down are valid IFF we always start at top-left
-//         return get_moves_in_dir(grid, cell, [GridDirection::Right, GridDirection::Down])
-//     }
-//
-//     let current_travel_dir = grid.straight_direction_from(prev_cell, cell)
-//         .unwrap_or_else(|| panic!("Last move {} to {} was not valid", prev_cell, cell));
-//
-//     match current_travel_dir {
-//         GridDirection::Left | GridDirection::Right => get_moves_in_dir(grid, cell, [GridDirection::Up, GridDirection::Down]),
-//         GridDirection::Up | GridDirection::Down => get_moves_in_dir(grid, cell, [GridDirection::Left, GridDirection::Right])
-//     }
-// }
-//
-// fn get_moves_in_dir(grid: &Grid<u32>, cell: usize, directions: [GridDirection; 2]) -> Vec<CellRef> {
-//     let mut moves = grid.get_n_cells_in_direction(cell, directions[0], 3)
-//         .iter().map(|cell| CellRef::new(*cell, directions[0])).collect_vec();
-//
-//     moves.extend(grid.get_n_cells_in_direction(cell, directions[1], 3).iter()
-//                      .map(|cell| CellRef::new(*cell, directions[1])));
-//     moves
-// }
-//
-// fn path_cost(grid: &Grid<u32>, path: &Vec<usize>) -> usize {
-//     path.windows(2)
-//         .map(|el| cost_from(grid, el[0], el[1]))
-//         .sum()
-// }
-//
-// fn cost_from(grid: &Grid<u32>, from: usize, to: usize) -> usize {
-//     let dir = grid.straight_direction_from(from, to)
-//         .unwrap_or_else(|| panic!("Result path includes non-straight path segment from {} to {}", from, to));
-//
-//     let intermediate_cells = grid.get_cells_in_direction_until(from, dir, |next_cell, _| next_cell == to);
-//
-//     //println!("Cost {}->{} = ({} + {} + {})", grid.get(from), grid.get(to))
-//     let a = (0 // (grid.get(from)
-//         + intermediate_cells.iter().map(|ix| grid.get(*ix)).sum::<u32>()
-//         + grid.get(to)) as usize;
-// //    println!("Adding cost from {} to {} = {}", from, to, a);
-//     a
-// }
 
 fn parse_input(file: &str) -> Grid<u32> {
     Grid::new_from_2d_data(
@@ -229,24 +189,30 @@ mod tests {
 
     #[test]
     fn test_basic_pathfinding() {
-        let result = find_path(&parse_input("src/day17/test-input-1.txt"));
+        let result = find_path(&parse_input("src/day17/test-input-1.txt"), 1, 3);
         assert_eq!((result.nodes, result.total_cost), (vec![0, 2, 8, 11], 7));
     }
 
     #[test]
     fn test_constrained_cost_pathfinding() {
-        let result = find_path(&parse_input("src/day17/test-input-2.txt"));
+        let result = find_path(&parse_input("src/day17/test-input-2.txt"), 1, 3);
         assert_eq!(result.total_cost, 102);
     }
 
     #[test]
+    fn test_complex_connection_pathfinding() {
+        let result = find_path(&parse_input("src/day17/test-input-3.txt"), 4, 10);
+        assert_eq!(result.total_cost, 71);
+    }
+
+    #[test]
     fn test_part1() {
-        assert_eq!(part1(), 12);
+        assert_eq!(part1(), 1081);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 12);
+        assert_eq!(part2(), 1224);
     }
 
 }

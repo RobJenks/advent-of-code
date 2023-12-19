@@ -2,8 +2,6 @@ use std::collections::HashMap;
 use mut_binary_heap::{BinaryHeap, MinComparator};
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
-use itertools::Itertools;
-use crate::common::grid::Grid;
 
 
 pub fn find_path<TNodeId: NodeId>
@@ -16,8 +14,8 @@ pub fn find_path<TNodeId: NodeId>
     nodes.insert(start.clone(), Node::new(start.clone()));
     open_list.push(start.clone(), 0);
 
-    while let Some((id, cost)) = open_list.pop_with_key() {
-        let mut node = nodes.get_mut(&id).unwrap_or_else(|| panic!("No record of node {}", id));
+    while let Some((id, _)) = open_list.pop_with_key() {
+        let node = nodes.get_mut(&id).unwrap_or_else(|| panic!("No record of node {}", id));
         let current_node_g = node.g;
         node.is_closed = true;
 
@@ -26,23 +24,19 @@ pub fn find_path<TNodeId: NodeId>
         }
 
         for connected in get_connected(&id) {
-            //println!("Potential connection {}->{}", id, connected);
             if !nodes.contains_key(&connected) {
                 nodes.insert(connected.clone(), Node::new(connected.clone()));
             }
-            let mut connected_node = nodes.get_mut(&connected).unwrap();
+            let connected_node = nodes.get_mut(&connected).unwrap();
             if connected_node.is_closed { continue; }
 
 
             let new_child_g = current_node_g + get_cost(&id, &connected);
-            //let new_child_h = 0; // heuristic(grid, child_ref.get_position(), end); // TODO
             let new_child_f = new_child_g + connected_node.h;
-            //println!("Potential connection {}->{} has cumulative cost {}", id, connected, new_child_g);
 
             // Add a new item to the open list if (A) this child is not yet on it, or (B) this route to the
             // child is better (in which case we are adding a replacement entry to the open list with lower
             // cost, so it will be produced first by the binary heap ahead of the worse route)
-            //println!("Testing {} -> {}; new_g = {}, new_h = {}, new_f = {}, child = {}", current_ref.pos, child_ref.get_position(), new_child_g, new_child_h, new_child_f, child);
             if open_list.contains_key(&connected) {
                 let mut current_cost = open_list.get_mut(&connected).unwrap();
                 if new_child_g < connected_node.g {
@@ -50,18 +44,13 @@ pub fn find_path<TNodeId: NodeId>
                     connected_node.f = new_child_f;
                     connected_node.g = new_child_g;
                     connected_node.parent = id.clone();
-                    //println!("* New best route to {} is {}->{} with cost {}", child_ref.get_position(), current_ref.key.get_position(), child_ref.get_position(), new_child_g);
-                } else {
-                    //println!("* Ignoring route to {} from {}->{} with cost {} since better cost of {} for {}->{}",
-                    //         child_ref.get_position(), current_ref.key.get_position(), child_ref.get_position(), new_child_g, child.g, child.parent.get_position(), child_ref.get_position());
                 }
             } else {
                 open_list.push(connected.clone(), new_child_f);
                 connected_node.f = new_child_f;
                 connected_node.g = new_child_g;
-                connected_node.h = 0; // heuristic(...);    // TODO
+                connected_node.h = 0; // Fall back to ~Dijkstra for now; calculating heuristic for d17 nodes would cost more than it saves
                 connected_node.parent = id.clone();
-                //println!("* Route from {}->{} with cost {}", current_ref.key.get_position(), child_ref.get_position(), new_child_g);
             }
         }
     }
@@ -74,7 +63,6 @@ pub fn find_path<TNodeId: NodeId>
         let mut path = Vec::new();
         let mut current_trace_node = end_node;
         loop {
-            //println!("Node = {}", &current_trace_node);
             path.push(current_trace_node.id.clone());
 
             if current_trace_node.parent.is_none() { break }
@@ -87,14 +75,6 @@ pub fn find_path<TNodeId: NodeId>
     else {
         None
     }
-}
-
-#[allow(unused)]
-fn heuristic<T: Eq + Hash + Copy + Display>(grid: &Grid<T>, from_cell: usize, to_cell: usize) -> isize {
-    // let from_pos = grid.ix_to_coord(from_cell);
-    // let to_pos = grid.ix_to_coord(to_cell);
-    // (to_pos.x as isize - from_pos.x as isize).abs() + (to_pos.y as isize - from_pos.y as isize).abs()
-    0isize // grid.manhattan_dist(from_cell, to_cell) as isize
 }
 
 // NodeId
@@ -139,7 +119,7 @@ mod tests {
     use crate::common;
     use crate::common::grid::Grid;
 
-    fn load_test_grid(file: &str) -> Grid<u32> {
+    fn _load_test_grid(file: &str) -> Grid<u32> {
         Grid::new_from_2d_data(
             &common::read_file(file)
                 .lines()
