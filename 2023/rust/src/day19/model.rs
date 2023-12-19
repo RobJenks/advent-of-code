@@ -185,10 +185,10 @@ impl Display for Workflow {
 
 #[derive(Clone)]
 pub struct Model {
-    workflows: HashMap<String, Workflow>,
-    parts: Vec<Part>,
-    accepted: Vec<usize>,
-    rejected: Vec<usize>
+    pub workflows: HashMap<String, Workflow>,
+    pub parts: Vec<Part>,
+    pub accepted: Vec<usize>,
+    pub rejected: Vec<usize>
 }
 
 impl Model {
@@ -221,5 +221,140 @@ impl Model {
     pub fn get_accepted_parts(&self) -> impl Iterator<Item = &Part> {
         self.accepted.iter()
             .map(|ix| &self.parts[*ix])
+    }
+
+    pub fn determine_accepted_domain(&self, base_domain: Domain) -> usize {
+        self.subdivide_domain(base_domain, "in")
+    }
+
+    fn subdivide_domain(&self, domain: Domain, workflow: &str) -> usize {
+        if workflow == "R" ||  domain.get_domain_size() == 0 { return 0 }
+        if workflow == "A" { return domain.get_domain_size() }
+
+        let wf= self.workflows.get(workflow)
+            .unwrap_or_else(|| panic!("Could not locate next workflow '{}' in domain calculation", workflow));
+
+        let mut total = 0usize;
+        let mut working_domain = domain.clone();
+
+        for rule in &wf.rules {
+            let (a, b) = working_domain.split(&rule.criteria);
+            match &rule.action {
+                Action::Accept => total += self.subdivide_domain(a.clone(), "A"),
+                Action::Reject => total += self.subdivide_domain(a.clone(), "R"),
+                Action::PassTo(next) => total += self.subdivide_domain(a.clone(), next)
+            }
+
+             working_domain = b;    // Process remaining rules on remaining subdomain
+        }
+        total
+    }
+}
+
+// --- Domain/Range ---
+
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct Domain {
+    pub ranges: [Range; 4]
+}
+
+impl Domain {
+    pub fn new(start: usize, end: usize) -> Self {
+        Self { ranges: [Range::new(start, end); 4] }
+    }
+
+    pub fn zero() -> Self {
+        Self::new(0, 0)
+    }
+
+    pub fn clone_with(&self, field: Field, range: Range) -> Self {
+        let mut cloned = self.clone();
+        cloned.ranges[field as usize] = range;
+        cloned
+    }
+
+    pub fn get_domain_size(&self) -> usize {
+        self.ranges.iter().map(Range::get_size).product()
+    }
+
+    pub fn split(&self, criteria: &Comparison) -> (Domain, Domain) {
+        match *criteria {
+            Comparison::LessThan(field, value) => self.split_lt(field, value),
+            Comparison::GreaterThan(field, value) => self.split_gt(field, value),
+            Comparison::None => (self.clone(), Domain::zero()) // i.e. [all][none]
+        }
+    }
+
+    fn split_lt(&self, field: Field, value: usize) -> (Domain, Domain) {
+        let current = &self.ranges[field as usize];
+
+        if current.start >= value {
+            (self.clone_with(field, Range::empty()), self.clone())    // Entire range is > value, so return [][all]
+        }
+        else if current.end <= value {
+            (self.clone(), self.clone_with(field, Range::empty()))    // Entire range is < value, so return [all][]
+        }
+        else {
+            (
+                self.clone_with(field, Range::new(current.start, value)),
+                self.clone_with(field, Range::new(value, current.end))
+            )
+        }
+    }
+
+    fn split_gt(&self, field: Field, value: usize) -> (Domain, Domain) {
+        let current = &self.ranges[field as usize];
+        if (current.end - 1) <= (value + 1) {
+            (self.clone_with(field, Range::empty()), self.clone())    // Entire range is < value, so return [][all]
+        }
+        else if current.start > value {
+            (self.clone(), self.clone_with(field, Range::empty()))    // Entire range is > value, so return [all][]
+        }
+        else {
+            (
+                self.clone_with(field, Range::new(value + 1, current.end)),
+                self.clone_with(field, Range::new(current.start, value + 1))
+            )
+        }
+    }
+
+    #[cfg(test)]
+    pub fn to_tuples(&self) -> [(usize, usize); 4] {
+        [self.ranges[0].to_tuple(), self.ranges[1].to_tuple(), self.ranges[2].to_tuple(), self.ranges[3].to_tuple()]
+    }
+}
+impl Display for Domain {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "x:[{}), m:[{}), a:[{}), s:[{})", self.ranges[0], self.ranges[1], self.ranges[2], self.ranges[3])
+    }
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub struct Range {
+    pub start: usize,   // inclusive
+    pub end: usize      // exclusive
+}
+
+impl Range {
+    pub fn new(start: usize, end: usize) -> Self {
+        Self { start, end }
+    }
+
+    pub fn empty() -> Self {
+        Self { start: 0, end: 0 }
+    }
+
+    pub fn get_size(&self) -> usize {
+        if self.start > self.end { 0 } else { self.end - self.start }
+    }
+
+    #[cfg(test)]
+    pub fn to_tuple(&self) -> (usize, usize) {
+        (self.start, self.end)
+    }
+}
+impl Display for Range {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}-{}", self.start, self.end)
     }
 }

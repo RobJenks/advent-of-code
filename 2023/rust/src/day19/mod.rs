@@ -2,7 +2,7 @@ mod model;
 
 use std::iter::Iterator;
 use itertools::Itertools;
-use crate::day19::model::{Action, Comparison, Model, Part, Rule, Workflow};
+use crate::day19::model::{Action, Comparison, Domain, Model, Part, Rule, Workflow};
 use super::common;
 
 pub fn run() {
@@ -16,7 +16,8 @@ fn part1() -> usize {
 }
 
 fn part2() -> usize {
-    12
+    parse_input("src/day19/problem-input.txt")
+        .determine_accepted_domain(Domain::new(1, 4001))
 }
 
 fn parse_input(file: &str) -> Model {
@@ -66,7 +67,7 @@ fn parse_and_evaluate_model(file: &str) -> Model {
 #[cfg(test)]
 mod tests {
     use crate::day19::{parse_and_evaluate_model, parse_input, part1, part2};
-    use crate::day19::model::Part;
+    use crate::day19::model::{Comparison, Domain, Field, Part};
 
     #[test]
     fn test_model_evaluation() {
@@ -76,13 +77,45 @@ mod tests {
     }
 
     #[test]
+    fn test_domain_split() {
+        let (a1, b1) = Domain::new(1, 4001).split(&Comparison::LessThan(Field::A, 2000));
+        assert_eq!(a1.to_tuples(), [(1, 4001), (1, 4001), (1, 2000), (1, 4001)]);
+        assert_eq!(b1.to_tuples(), [(1, 4001), (1, 4001), (2000, 4001), (1, 4001)]);
+
+        let (a1a, a1b) = a1.split(&Comparison::GreaterThan(Field::X, 500));
+        assert_eq!(a1a.to_tuples(), [(501, 4001), (1, 4001), (1, 2000), (1, 4001)]);
+        assert_eq!(a1b.to_tuples(), [(1, 501), (1, 4001), (1, 2000), (1, 4001)]);
+
+        let (a1a_all, a1a_none) = a1a.split(&Comparison::None);
+        assert_eq!(a1a_all.to_tuples(), a1a.to_tuples());
+        assert_eq!(a1a_none.to_tuples(), [(0, 0), (0, 0), (0, 0), (0, 0)]);
+    }
+
+    #[test]
+    fn test_out_of_range_domain_split() {
+        let domain = Domain::new(1, 100);
+        [Comparison::GreaterThan(Field::X, 100), Comparison::LessThan(Field::S, 0), Comparison::GreaterThan(Field::A, 1000000000)].iter()
+            .map(|criteria| domain.split(criteria))
+            .for_each(|(d0, d1)| {
+                assert_eq!(d0.get_domain_size(), 0);
+                assert_eq!(d1.to_tuples(), domain.to_tuples());
+            });
+    }
+
+    #[test]
+    fn test_domain_calculation() {
+        assert_eq!(parse_input("src/day19/test-input-1.txt").determine_accepted_domain(
+            Domain::new(1, 4001)), 167409079868000);
+    }
+
+    #[test]
     fn test_part1() {
-        assert_eq!(part1(), 12);
+        assert_eq!(part1(), 333263);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 12);
+        assert_eq!(part2(), 130745440937650);
     }
 
 }
