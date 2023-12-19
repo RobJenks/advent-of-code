@@ -50,7 +50,15 @@ impl Comparison {
                                     value.parse::<usize>().unwrap_or_else(|_| panic!("Invalid inequality value")))
         }
         else {
-            panic!("Invalid inequality")
+            panic!("Invalid inequality '{}'", str)
+        }
+    }
+
+    pub fn matches(&self, part: &Part) -> bool {
+        match self {
+            Comparison::LessThan(field, val) => part.data[*field as usize] < *val,
+            Comparison::GreaterThan(field, val) => part.data[*field as usize] > *val,
+            Comparison::None => true
         }
     }
 }
@@ -59,8 +67,8 @@ impl Display for Comparison {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Comparison::None => write!(f, ""),
-            Comparison::LessThan(field, value) => write!(f, "<{}", value),
-            Comparison::GreaterThan(field, value) => write!(f, ">{}", value)
+            Comparison::LessThan(field, value) => write!(f, "{}<{}", field, value),
+            Comparison::GreaterThan(field, value) => write!(f, "{}>{}", field, value)
         }
     }
 }
@@ -109,6 +117,10 @@ impl Part {
     pub fn m(&self) -> usize { self.data[1] }
     pub fn a(&self) -> usize { self.data[2] }
     pub fn s(&self) -> usize { self.data[3] }
+
+    pub fn sum_components(&self) -> usize {
+        self.data.iter().sum()
+    }
 }
 
 impl Display for Part {
@@ -152,6 +164,13 @@ impl Workflow {
     pub fn new(name: String, rules: Vec<Rule>) -> Self {
         Self { name, rules }
     }
+
+    pub fn evaluate(&self, part: &Part) -> &Action {
+        self.rules.iter()
+            .find(|rule| rule.criteria.matches(part))
+            .map(|rule| &rule.action)
+            .unwrap_or_else(|| panic!("Failed to match rule conditions"))
+    }
 }
 
 impl Display for Workflow {
@@ -181,15 +200,26 @@ impl Model {
     pub fn evaluate(&mut self) {
         let input_wf = self.workflows.get("in").unwrap_or_else(|| panic!("No input workflow"));
 
-        self.parts.iter().enumerate()
-            .map(|(ix, part)| (ix, self.evaluate_part(part, input_wf)))
-            .for_each(|(ix, is_accepted)| match is_accepted {
+        for (ix, part) in self.parts.iter().enumerate() {
+            match self.evaluate_part(part, input_wf) {
                 true => self.accepted.push(ix),
                 false => self.rejected.push(ix),
-            });
+            }
+        }
     }
 
     fn evaluate_part(&self, part: &Part, input_wf: &Workflow) -> bool {
-        
+        let mut wf = input_wf;
+        loop {
+            match wf.evaluate(part) {
+                Action::Accept => break true,
+                Action::Reject => break false,
+                Action::PassTo(next) => wf = self.workflows.get(next).unwrap_or_else(|| panic!("Missing workflow '{}' in chain", next))
+            }
+        }
+    }
+    pub fn get_accepted_parts(&self) -> impl Iterator<Item = &Part> {
+        self.accepted.iter()
+            .map(|ix| &self.parts[*ix])
     }
 }
