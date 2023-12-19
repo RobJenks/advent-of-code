@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 use itertools::Itertools;
 use crate::common::vec2::Vec2;
 
@@ -397,5 +397,15 @@ impl GridDirection {
 
     pub fn opposite(&self) -> GridDirection {
         OPPOSITE_GRID_DIRECTIONS[*self as usize]
+    }
+
+    pub fn directions() -> [GridDirection; 4] {
+        [GridDirection::Left, GridDirection::Up, GridDirection::Down, GridDirection::Right]
+    }
+}
+
+impl Display for GridDirection {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
