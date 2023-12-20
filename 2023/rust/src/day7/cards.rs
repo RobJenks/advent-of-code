@@ -39,7 +39,7 @@ pub struct Hand {
     pub hand_type: HandType
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum HandTypeName {
     FiveOfAKind,
     FourOfAKind,
@@ -53,9 +53,8 @@ pub enum HandTypeName {
 
 #[derive(Debug, Clone)]
 pub struct HandType {
-    #[allow(unused)]
-    name: HandTypeName,
-    power: u32,
+    pub name: HandTypeName,
+    pub power: u32,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

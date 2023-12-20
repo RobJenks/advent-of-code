@@ -114,11 +114,11 @@ mod tests {
 
     #[test]
     fn test_optimize_hand() {
-        assert_eq!(Hand::get_hand_type(&parse_hand("T55J5")), HAND_THREE_OF_A_KIND);
-        assert_eq!(Hand::get_hand_type(&optimize_hand(&parse_hand("T55J5"), &joker_alternatives())), HAND_FOUR_OF_A_KIND);
+        assert_eq!(parse_hand("T55J5").hand_type.name, HAND_THREE_OF_A_KIND.name);
+        assert_eq!(optimize_hand(&parse_hand("T55J5"), &joker_alternatives()).hand_type.name, HAND_FOUR_OF_A_KIND.name);
 
-        assert_eq!(Hand::get_hand_type(&parse_hand("KTJJT")), HAND_TWO_PAIR);
-        assert_eq!(Hand::get_hand_type(&optimize_hand(&parse_hand("KTJJT"), &joker_alternatives())), HAND_FOUR_OF_A_KIND);
+        assert_eq!(parse_hand("KTJJT").hand_type.name, HAND_TWO_PAIR.name);
+        assert_eq!(optimize_hand(&parse_hand("KTJJT"), &joker_alternatives()).hand_type.name, HAND_FOUR_OF_A_KIND.name);
     }
 
     #[test]

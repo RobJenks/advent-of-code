@@ -2,12 +2,13 @@ use std::collections::HashMap;
 use mut_binary_heap::{BinaryHeap, MinComparator};
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
+use itertools::Itertools;
 
 
 pub fn find_path<TNodeId: NodeId>
                 (start: TNodeId, end: &[TNodeId],
                  get_connected: impl Fn(&TNodeId) -> Vec<TNodeId>,
-                 get_cost: impl Fn(&TNodeId, &TNodeId) -> isize) -> Option<Vec<TNodeId>> {
+                 get_cost: impl Fn(&TNodeId, &TNodeId) -> isize) -> Option<(Vec<TNodeId>, isize)> {
     let mut open_list = BinaryHeap::<TNodeId, isize, MinComparator>::new();
     let mut nodes = HashMap::<TNodeId, Node<TNodeId>>::new();
 
@@ -19,8 +20,9 @@ pub fn find_path<TNodeId: NodeId>
         let current_node_g = node.g;
         node.is_closed = true;
 
-        if end.contains(&id) {
-            break;  // Reached the target
+        if end.contains(&id) &&
+           end.iter().all(|e| !nodes.get(e).map(|n| n.parent.is_none()).unwrap_or_else(|| false)) {
+            break;  // Reached all instances of the target
         }
 
         for connected in get_connected(&id) {
@@ -56,28 +58,33 @@ pub fn find_path<TNodeId: NodeId>
     }
 
     // We have found a path if the end node has a parent pointer, and we can follow that all the way back
-    if let Some(end_node) = end.iter()
+    let paths = end.iter()
         .filter_map(|end_id| nodes.get(end_id))
-        .find(|&end_node| !end_node.parent.is_none()) {
+        .filter(|&end_node| !end_node.parent.is_none())
+        .map(|end_node| {
+            let mut path = Vec::new();
+            let mut current_trace_node = end_node;
+            loop {
+                path.push(current_trace_node.id.clone());
 
-        let mut path = Vec::new();
-        let mut current_trace_node = end_node;
-        loop {
-            path.push(current_trace_node.id.clone());
+                if current_trace_node.parent.is_none() { break }
+                current_trace_node = &nodes.get(&current_trace_node.parent).unwrap_or_else(|| panic!("Missing parent node"));
+            }
 
-            if current_trace_node.parent.is_none() { break }
-            current_trace_node = &nodes.get(&current_trace_node.parent).unwrap_or_else(|| panic!("Missing parent node"));
-        }
+            path.reverse();
+            path
+    }).collect_vec();
 
-        path.reverse();
-        Some(path)
-    }
-    else {
-        None
-    }
+    // Return the best path by cost
+    paths.iter().map(|path| (path.clone(),
+            path.windows(2)
+            .map(|segment| get_cost(&segment[0], &segment[1]))
+            .sum::<isize>()))
+        .min_by(|(_, cost0), (_, cost1)| cost0.cmp(cost1))
 }
 
 // NodeId
+
 pub trait NodeId : PartialEq + Eq + Hash + Clone + Display {
     fn none() -> Self;
     fn is_none(&self) -> bool;

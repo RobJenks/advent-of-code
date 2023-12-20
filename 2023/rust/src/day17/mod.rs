@@ -28,7 +28,7 @@ fn find_path(grid: &Grid<u32>, min_travel_dist: usize, max_travel_dist: usize) -
         NodeRef::new(grid.get_element_count() - 1, GridDirection::Right),
         NodeRef::new(grid.get_element_count() - 1, GridDirection::Down)];
 
-    let path = pathfinding::astar::find_path(start, &end,
+    let (path, cost) = pathfinding::astar::find_path(start, &end,
                  // get_connected:
                  |id| nodes.get(id).unwrap().connections.iter().map(|conn| conn.target.clone()).collect_vec(),
 
@@ -38,7 +38,8 @@ fn find_path(grid: &Grid<u32>, min_travel_dist: usize, max_travel_dist: usize) -
 
         .unwrap_or_else(|| panic!("No solution"));
 
-    PathResult::new(path.iter().map(|n| n.pos).collect_vec(), path_cost(&nodes, &path))
+    //PathResult::new(path.iter().map(|n| n.pos).collect_vec(), path_cost(&nodes, &path))
+    PathResult::new(path.iter().map(|n| n.pos).collect_vec(), cost as usize)
 }
 
 fn build_node_graph(grid: &Grid<u32>, min_conn_dist: usize, max_conn_dist: usize) -> HashMap<NodeRef, NodeData> {
@@ -58,14 +59,6 @@ fn build_node_graph(grid: &Grid<u32>, min_conn_dist: usize, max_conn_dist: usize
 
     nodes
 }
-
-fn path_cost(nodes: &HashMap<NodeRef, NodeData>, path: &Vec<NodeRef>) -> usize {
-    path.windows(2)
-        .map(|segment| nodes.get(&segment[0]).unwrap().find_connection(&segment[1]).unwrap())
-        .map(|conn| conn.cost as usize)
-        .sum()
-}
-
 
 const OUTBOUND_DIRS: [[GridDirection; 2]; 4] = [
     [GridDirection::Up, GridDirection::Down],        // Currently going Left(==0), so can now go Up or Down
@@ -207,12 +200,12 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 1081);
+        assert_eq!(part1(), 1076);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 1224);
+        assert_eq!(part2(), 1219);
     }
 
 }
