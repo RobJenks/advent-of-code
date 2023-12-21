@@ -3,7 +3,8 @@ mod model;
 use std::collections::HashMap;
 use std::iter::Iterator;
 use itertools::Itertools;
-use crate::day20::model::{build_logic, Module, ModuleType, System};
+use crate::common::math::lcm;
+use crate::day20::model::{build_logic, Module, ModuleType, Pulse, System};
 use super::common;
 
 pub fn run() {
@@ -13,13 +14,30 @@ pub fn run() {
 
 fn part1() -> usize {
     parse_input("src/day20/problem-input.txt")
-        .push_button_n_times(1000)
+        .eval_n(1000)
         .product()
 }
 
 fn part2() -> usize {
-    12
+    get_cycles_to_low_terminate(&parse_input("src/day20/problem-input.txt"), "rx")
 }
+
+fn get_cycles_to_low_terminate(system: &System, terminator: &str) -> usize {
+    let terminator_module = *system.indexed_modules.get(terminator).unwrap_or_else(|| panic!("Invalid terminator module"));
+
+    assert_eq!(system.modules[terminator_module].inputs.len(), 1);
+    let parent_conj = *system.modules[terminator_module].inputs.get(0).unwrap();
+    let req_high = system.modules[parent_conj].inputs.clone();
+
+    req_high.iter()
+        .map(|req_mod| {
+            let mut sys = system.clone();
+            sys.cycle_to_stop_condition(&Some(
+                |stop_mod, stop_output| stop_mod == *req_mod && stop_output == Pulse::High))
+        })
+        .fold(1, |acc, res| lcm(&[acc, res.cycles]))
+}
+
 
 fn parse_input(file: &str) -> System {
     let defined_module_details = common::read_file(file).lines()
@@ -29,7 +47,7 @@ fn parse_input(file: &str) -> System {
     let inferred_module_details = defined_module_details.iter()
         .flat_map(|details| details.outputs.iter()
             .filter(|&out| defined_module_details.iter().find(|&d| &d.id == out).is_none()))
-        .map(|inferred| ModuleDetails::new(inferred.clone(), ModuleType::NoOp, Vec::new()))
+        .map(|inferred| ModuleDetails::new(inferred.clone(), ModuleType::Terminator, Vec::new()))
         .collect_vec();
 
     let module_details = defined_module_details.iter().chain(inferred_module_details.iter()).collect_vec();
@@ -96,32 +114,31 @@ mod tests {
 
     #[test]
     fn test_basic_evaluation() {
-        assert_eq!(parse_input("src/day20/test-input-1.txt").push_button(),
-            ExecutionResult::new(8, 4));
+        assert_eq!(parse_input("src/day20/test-input-1.txt").eval(),
+                   ExecutionResult::new(1, 8, 4, false));
     }
 
     #[test]
     fn test_repeated_evaluation() {
-        assert_eq!(parse_input("src/day20/test-input-1.txt").push_button_n_times(1000),
-            ExecutionResult::new(8000, 4000));
+        assert_eq!(parse_input("src/day20/test-input-1.txt").eval_n(1000),
+                   ExecutionResult::new(1000, 8000, 4000, false));
     }
 
     #[test]
     fn test_stateful_evaluation() {
         assert_eq!(parse_input("src/day20/test-input-2.txt")
-                       .push_button_n_times(1000),
-                   ExecutionResult::new(4250, 2750));
-
+                       .eval_n(1000),
+                   ExecutionResult::new(1000, 4250, 2750, false));
     }
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(), 12);
+        assert_eq!(part1(), 886347020);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 12);
+        assert_eq!(part2(), 233283622908263);
     }
 
 }

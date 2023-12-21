@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fmt::{Display, Formatter};
 use std::iter::Sum;
 use std::ops::Add;
@@ -7,8 +7,8 @@ use itertools::Itertools;
 // --- System ---
 #[derive(Clone)]
 pub struct System {
-    modules: Vec<Module>,
-    indexed_modules: HashMap<String, usize>
+    pub modules: Vec<Module>,
+    pub indexed_modules: HashMap<String, usize>
 }
 
 impl System {
@@ -19,28 +19,60 @@ impl System {
         }
     }
 
-    pub fn push_button(&mut self) -> ExecutionResult {
+    pub fn eval(&mut self) -> ExecutionResult {
+        self.eval_with_stop_condition(&None::<fn(usize, Pulse) -> bool>)
+    }
+
+    pub fn eval_with_stop_condition(&mut self, stop_condition: &Option<impl Fn(usize, Pulse) -> bool>) -> ExecutionResult {
         let broadcast = *self.indexed_modules.get("broadcaster").unwrap();
         let mut total_sent : [usize; 2] = [1, 0];
+        let mut hit_stop_condition = false;
 
-        let mut exec_queue = vec![(usize::MAX, broadcast, Pulse::Low)];
-        while let Some((from, to, signal)) = exec_queue.pop() {
+        let mut exec_queue = VecDeque::new();
+        exec_queue.push_back((usize::MAX, broadcast, Pulse::Low));
+
+        while let Some((from, to, signal)) = exec_queue.pop_front() {
             if let Some(output) = self.modules[to].evaluate(signal, from) {
                 let next_outputs = &self.modules[to].outputs;
                 next_outputs.iter().for_each(|next| {
-                    exec_queue.push((to, *next, output));
+                    exec_queue.push_back((to, *next, output));
                 });
                 total_sent[output as usize] += next_outputs.len();
+
+                if stop_condition.as_ref().map(|f| f(to, output)).unwrap_or_else(|| false) {
+                    hit_stop_condition = true;
+                    break;
+                }
             }
         }
-        ExecutionResult::new(total_sent[0], total_sent[1])
+        ExecutionResult::new(1, total_sent[0], total_sent[1], hit_stop_condition)
     }
 
-    pub fn push_button_n_times(&mut self, n: usize) -> ExecutionResult {
-        (0..n).map(|_| self.push_button())
+    pub fn eval_n(&mut self, n: usize) -> ExecutionResult {
+        (0..n).map(|_| self.eval())
+            .sum()
+    }
+
+    pub fn _cycles_until_receiver_triggered(&mut self, receiver: &str) -> usize {
+        let receiver_ix = *self.indexed_modules.get(receiver).unwrap_or_else(|| panic!("Receiver does not exist"));
+        let mut cycles = 0usize;
+
+        loop {
+            cycles += 1;
+            self.eval();
+
+            if self.modules[receiver_ix].logic.is_complete() { break cycles }
+        }
+    }
+
+    pub fn cycle_to_stop_condition(&mut self, stop_condition: &Option<impl Fn(usize, Pulse) -> bool>) -> ExecutionResult {
+        (0usize..)
+            .map(|_| self.eval_with_stop_condition(stop_condition))
+            .take_while_inclusive(|result| !result.terminated_at_stop_condition)
             .sum()
     }
 }
+
 impl Display for System {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.modules.iter().join("\n"))
@@ -49,29 +81,36 @@ impl Display for System {
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ExecutionResult {
+    pub cycles: usize,
     pub low_pulse_count: usize,
-    pub high_pulse_count: usize
+    pub high_pulse_count: usize,
+    pub terminated_at_stop_condition: bool
 }
+
 impl ExecutionResult {
-    pub fn new(low_pulse_count: usize, high_pulse_count: usize) -> Self {
-        Self { low_pulse_count, high_pulse_count }
+    pub fn new(cycles: usize, low_pulse_count: usize, high_pulse_count: usize, terminated_at_stop_condition: bool) -> Self {
+        Self { cycles, low_pulse_count, high_pulse_count, terminated_at_stop_condition }
     }
     pub fn product(&self) -> usize {
         self.low_pulse_count * self.high_pulse_count
     }
 }
+
 impl Sum for ExecutionResult {
     fn sum<I: Iterator<Item=Self>>(iter: I) -> Self {
         iter.reduce(|acc, x| acc + x)
-            .unwrap_or_else(|| ExecutionResult::new(0, 0))
+            .unwrap_or_else(|| ExecutionResult::new(0, 0, 0, false))
     }
 }
+
 impl Add for ExecutionResult {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         ExecutionResult::new(
+            self.cycles + rhs.cycles,
             self.low_pulse_count + rhs.low_pulse_count,
-            self.high_pulse_count + rhs.high_pulse_count)
+            self.high_pulse_count + rhs.high_pulse_count,
+            self.terminated_at_stop_condition || rhs.terminated_at_stop_condition)
     }
 }
 
@@ -82,6 +121,7 @@ pub enum Pulse {
     Low = 0,
     High = 1
 }
+
 impl Display for Pulse {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", if *self == Pulse::Low { "low" } else { "high "})
@@ -92,17 +132,17 @@ impl Display for Pulse {
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub enum ModuleType {
-    NoOp, // Possible for undefined modules like 'output' which only act as a receiver
     Broadcast,
     FlipFlop,
-    Conjunction
+    Conjunction,
+    Terminator, // Undefined modules like 'output' or 'rx' which only act as a receiver
 }
+
 impl Display for ModuleType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
 }
-
 
 pub struct Module {
     pub ix: usize,
@@ -140,6 +180,7 @@ impl Clone for Module {
 pub trait ModuleLogic : Display {
     fn get_type(&self) -> ModuleType;
     fn evaluate(&mut self, signal: Pulse, input_ix: usize) -> Option<Pulse>;
+    fn is_complete(&self) -> bool;
 }
 
 pub fn build_logic(module_type: ModuleType, inputs: &Vec<usize>, _outputs: &Vec<usize>) -> Box<dyn ModuleLogic> {
@@ -147,7 +188,7 @@ pub fn build_logic(module_type: ModuleType, inputs: &Vec<usize>, _outputs: &Vec<
         ModuleType::Broadcast => Box::new(Broadcast::new()),
         ModuleType::FlipFlop => Box::new(FlipFlop::new()),
         ModuleType::Conjunction => Box::new(Conjunction::new(&inputs)),
-        ModuleType::NoOp => Box::new(NoOp::new())
+        ModuleType::Terminator => Box::new(Terminator::new())
     }
 }
 
@@ -174,6 +215,7 @@ impl ModuleLogic for FlipFlop {
             Pulse::High => None
         }
     }
+    fn is_complete(&self) -> bool { false }
 }
 impl Display for FlipFlop {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -204,6 +246,7 @@ impl ModuleLogic for Conjunction {
             Some(Pulse::High)
         }
     }
+    fn is_complete(&self) -> bool { false }
 }
 impl Display for Conjunction {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -227,6 +270,7 @@ impl ModuleLogic for Broadcast {
     fn evaluate(&mut self, signal: Pulse, _: usize) -> Option<Pulse> {
         Some(signal)
     }
+    fn is_complete(&self) -> bool { false }
 }
 impl Display for Broadcast {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -234,20 +278,28 @@ impl Display for Broadcast {
     }
 }
 
-// --- Module implementation: no-op ---
+// --- Module implementation: receive-only terminator module, terminates on low signal ---
 
-pub struct NoOp { }
-
-impl NoOp {
-    pub fn new() -> Self { Self { } }
+pub struct Terminator {
+    terminate: bool
 }
 
-impl ModuleLogic for NoOp {
-    fn get_type(&self) -> ModuleType { ModuleType::NoOp }
-    fn evaluate(&mut self, _: Pulse, _: usize) -> Option<Pulse> { None }
+impl Terminator {
+    pub fn new() -> Self {
+        Self { terminate: false }
+    }
 }
-impl Display for NoOp {
+
+impl ModuleLogic for Terminator {
+    fn get_type(&self) -> ModuleType { ModuleType::Terminator }
+    fn evaluate(&mut self, signal: Pulse, _: usize) -> Option<Pulse> {
+        if signal == Pulse::Low { self.terminate = true }
+        None
+    }
+    fn is_complete(&self) -> bool { self.terminate }
+}
+impl Display for Terminator {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "NoOp")
+        write!(f, "Terminator(End:{})", if self.terminate { "Y" } else { "N" })
     }
 }
