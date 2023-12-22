@@ -1,7 +1,8 @@
 use std::collections::HashSet;
 use std::iter::Iterator;
 use itertools::Itertools;
-use crate::common::grid::Grid;
+use crate::common::grid::{Grid, GridDirection};
+use crate::common::vec::Vec2;
 use super::common;
 
 pub fn run() {
@@ -16,7 +17,9 @@ fn part1() -> usize {
 }
 
 fn part2() -> usize {
-    12
+    Some(parse_input("src/day21/problem-input.txt"))
+        .map(|(grid, start)| calculate_for_inf_grid(&grid, start, 26501365))
+        .unwrap()
 }
 
 
@@ -40,6 +43,74 @@ fn get_cells_reached(grid: &Grid<char>, start: usize, steps: usize) -> HashSet<u
     active
 }
 
+fn calculate_for_inf_grid(grid: &Grid<char>, start: usize, steps: usize) -> usize {
+    // xmax/ymax=  grid.size
+    // active = frontier
+    // x1/y1 = p_mod
+
+
+    let mut visited = HashSet::<Vec2<isize>>::new();
+    let mut active = HashSet::<Vec2<isize>>::new();
+    active.insert(Some(grid.ix_to_coord(start)).map(|v| Vec2::new(v.x() as isize, v.y() as isize)).unwrap());
+
+    let mut count = [0usize, 0, 0];
+    let mut frontiers = vec![0isize; grid.get_size().x()];
+
+    let (mut d1, mut d2) = (vec![0isize; grid.get_size().x()], vec![0isize; grid.get_size().x()]);
+
+    let mut step = 0usize;
+    loop {
+        let mut new_front = HashSet::<Vec2<isize>>::new();
+        for p in &active {
+            for d in GridDirection::directions() {
+                let p_off = *p + d.unit_movement();
+                let p_m = Vec2::new(p_off.x() % grid.get_size().x() as isize, p_off.y() % grid.get_size().y() as isize);
+                let p_mod = Vec2::new(if p_m.x() >= 0 { p_m.x() } else { p_m.x() + grid.get_size().x() as isize },
+                                      if p_m.y() >= 0 { p_m.y() } else { p_m.y() + grid.get_size().y() as isize });
+
+                if grid.get_at_coords(p_mod.x() as usize, p_mod.y() as usize) == '#' {
+                    if visited.insert(p_off) {
+                        new_front.insert(p_off);
+                    }
+                }
+            }
+        }
+
+        let front_len = new_front.len();
+        count[2] = front_len + count[0];
+        count[0] = count[1];
+        count[1] = count[2];
+
+        let ix = step % grid.get_size().x();
+        if step >= grid.get_size().x() {
+            let dx = front_len as isize - frontiers[ix];
+            d2[ix] = dx - d1[dx as usize];
+            d1[ix] = dx;
+        }
+        frontiers[ix] = front_len as isize;
+
+        active = new_front;
+        step += 1;
+
+        if step >= (2 * grid.get_size().x()) {
+            if d2.iter().all(|x| *x == 0) { break }
+        }
+    }
+
+    for i in step..steps {
+        let ix = i % grid.get_size().x();
+        d1[ix] += d2[ix];
+        frontiers[ix] += d1[ix];
+
+        count[2] = count[0] + frontiers[ix] as usize;
+        count[0] = count[1];
+        count[1] = count[2];
+    }
+
+    println!("counts {:?}", count);
+    count[2]
+}
+
 
 
 fn parse_input(file: &str) -> (Grid<char>, usize) {
@@ -54,9 +125,10 @@ fn parse_input(file: &str) -> (Grid<char>, usize) {
         .unwrap_or_else(|| panic!("No start location"));
 
     grid.set(start, &'.');
-
+println!("Start = {}", grid.ix_to_coord(start));
     (grid, start)
 }
+
 
 #[cfg(test)]
 mod tests {

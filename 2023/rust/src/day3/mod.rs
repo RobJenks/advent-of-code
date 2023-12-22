@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::iter::Iterator;
 use crate::common::grid::Grid;
-use crate::common::vec2::Vec2;
+use crate::common::vec::Vec2;
 use super::common;
 
 pub fn run() {
@@ -63,7 +63,7 @@ fn get_parts_adjacent_to(ix: usize, grid: &Grid<char>, parts: &Vec<PartNumber>) 
 
 fn get_parts_overlapping_coord(parts: &Vec<PartNumber>, coord: &Vec2<usize>) -> Vec<PartNumber> {
     parts.iter()
-        .filter(|&part| (coord.y == part.row) && (coord.x >= part.col_start && coord.x <= part.col_end))
+        .filter(|&part| (coord.y() == part.row) && (coord.x() >= part.col_start && coord.x() <= part.col_end))
         .cloned()
         .collect()
 }
@@ -72,15 +72,15 @@ fn find_part_numbers(grid: &Grid<char>) -> Vec<PartNumber> {
     let mut result = Vec::new();
     let size = grid.get_size();
 
-    for y in 0..size.y {
+    for y in 0..size.y() {
         let mut in_number = false;
         let mut start = 0usize;
 
-        for x in 0..size.x {
+        for x in 0..size.x() {
             let c = grid.get_at_coords(x, y);
 
             if in_number {
-                if !c.is_ascii_digit() || x == (size.x - 1) {   // Just reached the end of a number
+                if !c.is_ascii_digit() || x == (size.x() - 1) {   // Just reached the end of a number
                     let end = if !c.is_ascii_digit() { x - 1 } else { x };
                     let adj = grid.get_adjacent_to_region(&Vec2::new(start, y), &Vec2::new(end, y), true);
 

@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 use std::iter::Iterator;
 use itertools::Itertools;
 use crate::common::grid::{Grid, GridDirection};
-use crate::common::vec2::Vec2;
+use crate::common::vec::Vec2;
 use super::common;
 
 pub fn run() {
@@ -31,10 +31,10 @@ fn dig_trench(instructions: &Vec<Instruction>) -> Grid<Cell> {
     let grid_max = (max_bound - min_bound) + Vec2::new_uniform(2);
     let pos_offset = (min_bound * -1) + Vec2::new_uniform(1);
 
-    let mut grid = Grid::new(Vec2::new(grid_max.x as usize + 1, grid_max.y as usize + 1), &Cell::new_empty());
+    let mut grid = Grid::new(Vec2::new(grid_max.x() as usize + 1, grid_max.y() as usize + 1), &Cell::new_empty());
     cells.iter().for_each(|cell| {
         let grid_pos = cell.pos + pos_offset;
-        grid.set_at_coord(&Vec2::new(grid_pos.x as usize, grid_pos.y as usize), &Cell::new_dug());
+        grid.set_at_coord(&Vec2::new(grid_pos.x() as usize, grid_pos.y() as usize), &Cell::new_dug());
     });
 
     grid

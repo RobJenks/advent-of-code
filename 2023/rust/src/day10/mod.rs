@@ -2,7 +2,7 @@ mod pipes;
 
 use std::iter::Iterator;
 use itertools::Itertools;
-use crate::common::vec2::Vec2;
+use crate::common::vec::Vec2;
 use crate::day10::pipes::Maze;
 use super::common;
 
@@ -50,9 +50,9 @@ fn flood_fill(maze: &Maze) -> Maze {
     let exp_size = expand_coord(maze.size);
 
     #[allow(unstable_name_collisions)]  // Intersperse
-    let data = (0..maze.size.y)
-        .map(|_| vec!['.'; maze.size.x].iter().intersperse(&' ').cloned().collect_vec())
-        .intersperse(vec![' '; exp_size.x])
+    let data = (0..maze.size.y())
+        .map(|_| vec!['.'; maze.size.x()].iter().intersperse(&' ').cloned().collect_vec())
+        .intersperse(vec![' '; exp_size.x()])
         .collect_vec();
 
     let mut expanded = Maze::new(exp_size, data.iter()
@@ -66,7 +66,7 @@ fn flood_fill(maze: &Maze) -> Maze {
         let new_ix = expanded.grid.coord_to_ix(&new_coord);
         expanded.grid.set(new_ix, &val);
 
-        let dy = expanded.size.x;
+        let dy = expanded.size.x();
         if val == '|' || val == 'F' || val == '7' {
             expanded.grid.set(new_ix + dy, &'|');
         }
@@ -95,8 +95,8 @@ fn flood_fill(maze: &Maze) -> Maze {
 }
 
 fn find_edge_fill_start(maze: &Maze) -> Option<usize> {
-    (0..maze.size.x).flat_map(|x| [Vec2::new(x, 0), Vec2::new(x, maze.size.y - 1)]).chain(
-    (0..maze.size.y).flat_map(|y| [Vec2::new(0, y), Vec2::new(maze.size.x - 1, y)]))
+    (0..maze.size.x()).flat_map(|x| [Vec2::new(x, 0), Vec2::new(x, maze.size.y() - 1)]).chain(
+    (0..maze.size.y()).flat_map(|y| [Vec2::new(0, y), Vec2::new(maze.size.x() - 1, y)]))
         .map(|coord| maze.grid.coord_to_ix(&coord))
         .filter(|&ix| maze.grid.get(ix) == '.')
         .filter(|&ix| maze.grid.is_on_edge(ix))

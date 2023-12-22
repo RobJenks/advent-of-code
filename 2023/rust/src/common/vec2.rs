@@ -1,17 +1,18 @@
 use std::fmt::{Display, Formatter};
+use std::hash::Hash;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 use crate::common::num::{Numeric, Zero};
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug, Hash)]
 pub struct Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
 
     pub x: T,
     pub y: T
 }
 
 impl <T> Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
 
     pub fn new(x: T, y: T) -> Self { Self { x, y } }
     pub fn new_uniform(xy: T) -> Self { Self { x: xy, y: xy } }
@@ -25,11 +26,11 @@ impl <T> Vec2<T>
 }
 
 impl <T> Numeric for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
 }
 
 impl <T> Add for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -41,7 +42,7 @@ impl <T> Add for Vec2<T>
 }
 
 impl <T> Sub for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -54,7 +55,7 @@ impl <T> Sub for Vec2<T>
 
 // Component-wise multiplication
 impl <T> Mul for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -67,7 +68,7 @@ impl <T> Mul for Vec2<T>
 
 // Component-wise division
 impl <T> Div for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
@@ -79,7 +80,7 @@ impl <T> Div for Vec2<T>
 }
 
 impl <T> AddAssign for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
 
     fn add_assign(&mut self, rhs: Self) {
         self.x += rhs.x;
@@ -88,7 +89,7 @@ impl <T> AddAssign for Vec2<T>
 }
 
 impl <T> SubAssign for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
 
     fn sub_assign(&mut self, rhs: Self) {
         self.x -= rhs.x;
@@ -98,7 +99,7 @@ impl <T> SubAssign for Vec2<T>
 
 // Component-wise multiplication
 impl <T> MulAssign for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
 
     fn mul_assign(&mut self, rhs: Self) {
         self.x *= rhs.x;
@@ -108,7 +109,7 @@ impl <T> MulAssign for Vec2<T>
 
 // Component-wise division
 impl <T> DivAssign for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
 
     fn div_assign(&mut self, rhs: Self) {
         self.x /= rhs.x;
@@ -118,7 +119,7 @@ impl <T> DivAssign for Vec2<T>
 
 // Scalar multiplication
 impl <T> Mul<T> for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
     type Output = Vec2<T>;
     fn mul(self, rhs: T) -> Self::Output {
         Self { x: self.x * rhs, y: self.y * rhs }
@@ -126,7 +127,7 @@ impl <T> Mul<T> for Vec2<T>
 }
 
 impl <T> Zero for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
     type Output = Self;
 
     fn zero() -> Self::Output {
@@ -138,7 +139,7 @@ impl <T> Zero for Vec2<T>
 }
 
 impl<T> Display for Vec2<T>
-    where T: Numeric + Copy + Display {
+    where T: Numeric + Copy + Display + Hash {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "({},{})", self.x, self.y)
     }

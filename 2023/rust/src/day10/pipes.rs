@@ -1,7 +1,7 @@
 use std::collections::BinaryHeap;
 use itertools::Itertools;
 use crate::common::grid::Grid;
-use crate::common::vec2::Vec2;
+use crate::common::vec::Vec2;
 
 pub struct Maze {
     pub grid : Grid<char>,

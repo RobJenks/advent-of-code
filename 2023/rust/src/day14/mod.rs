@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::iter::Iterator;
 use itertools::Itertools;
 use crate::common::grid::Grid;
-use crate::common::vec2::Vec2;
+use crate::common::vec::Vec2;
 use super::common;
 
 pub fn run() {
@@ -72,10 +72,10 @@ fn get_north_tilted_state(input: &Grid<char>) -> Grid<char> {
 fn tilt_north(grid: &mut Grid<char>) {
     let size = grid.get_size();
 
-    (0..size.x)
+    (0..size.x())
         .for_each(|col| {
             let mut block = -1isize;
-            for row in 0..size.y {
+            for row in 0..size.y() {
                 let ix = grid.coords_to_ix(col, row);
                 let val = grid.get(ix);
                 match val {
@@ -96,10 +96,10 @@ fn tilt_north(grid: &mut Grid<char>) {
 fn tilt_south(grid: &mut Grid<char>) {
     let size = grid.get_size();
 
-    (0..size.x)
+    (0..size.x())
         .for_each(|col| {
-            let mut block = size.y;
-            for row in (0..size.y).rev() {
+            let mut block = size.y();
+            for row in (0..size.y()).rev() {
                 let ix = grid.coords_to_ix(col, row);
                 let val = grid.get(ix);
                 match val {
@@ -120,10 +120,10 @@ fn tilt_south(grid: &mut Grid<char>) {
 fn tilt_west(grid: &mut Grid<char>) {
     let size = grid.get_size();
 
-    (0..size.y)
+    (0..size.y())
         .for_each(|row| {
             let mut block = -1isize;
-            for col in 0..size.x {
+            for col in 0..size.x() {
                 let ix = grid.coords_to_ix(col, row);
                 let val = grid.get(ix);
                 match val {
@@ -144,10 +144,10 @@ fn tilt_west(grid: &mut Grid<char>) {
 fn tilt_east(grid: &mut Grid<char>) {
     let size = grid.get_size();
 
-    (0..size.y)
+    (0..size.y())
         .for_each(|row| {
-            let mut block = size.x;
-            for col in (0..size.x).rev() {
+            let mut block = size.x();
+            for col in (0..size.x()).rev() {
                 let ix = grid.coords_to_ix(col, row);
                 let val = grid.get(ix);
                 match val {
@@ -166,7 +166,7 @@ fn tilt_east(grid: &mut Grid<char>) {
 }
 
 fn calculate_north_load(grid: &Grid<char>) -> usize {
-    let rows = grid.get_size().y;
+    let rows = grid.get_size().y();
     grid.raw_data().iter().enumerate()
         .filter(|&(_, c)| *c == 'O')
         .map(|(ix, _)| rows - grid.get_row_index(ix))

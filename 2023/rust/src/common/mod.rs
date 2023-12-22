@@ -1,7 +1,8 @@
 pub mod num;
-pub mod vec2;
+pub mod vec;
 pub mod grid;
 pub mod math;
+pub mod array;
 pub mod pathfinding;
 
 pub fn read_file(path : &str) -> String {

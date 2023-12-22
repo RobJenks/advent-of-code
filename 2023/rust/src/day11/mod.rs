@@ -1,7 +1,7 @@
 use std::iter::Iterator;
 use itertools::Itertools;
 use crate::common::grid::Grid;
-use crate::common::vec2::Vec2;
+use crate::common::vec::Vec2;
 use super::common;
 
 pub fn run() {
@@ -29,8 +29,8 @@ fn sum_shortest_paths_in_scaled_universe(grid: &Grid<char>, scale: usize) -> usi
 
     let expanded_positions = positions.iter()
         .map(|pos| Vec2::new(
-            pos.x + ((scale-1) * num_before(&exp_x, pos.x)),
-            pos.y + ((scale-1) * num_before(&exp_y, pos.y))))
+            pos.x() + ((scale-1) * num_before(&exp_x, pos.x())),
+            pos.y() + ((scale-1) * num_before(&exp_y, pos.y()))))
         .collect_vec();
 
     sum_shortest_paths_between_galaxies(&expanded_positions)
@@ -54,17 +54,17 @@ fn get_galaxy_positions(grid: &Grid<char>) -> Vec<Vec2<usize>> {
 }
 
 fn calculate_distance(p0: &Vec2<usize>, p1: &Vec2<usize>) -> usize {
-    ((p0.x as isize - p1.x as isize).abs() + (p0.y as isize - p1.y as isize).abs()) as usize
+    ((p0.x() as isize - p1.x() as isize).abs() + (p0.y() as isize - p1.y() as isize).abs()) as usize
 }
 
 fn get_expansion_zones(grid: &Grid<char>) -> (Vec<usize>, Vec<usize>) {
-    let exp_rows = (0..grid.get_size().y)
+    let exp_rows = (0..grid.get_size().y())
         .map(|r| (r, grid.get_row(r).unwrap()))
         .filter(|(_, row)| !row.contains(&'#'))
         .map(|(r, _)| r)
         .collect_vec();
 
-    let exp_cols = (0..grid.get_size().x)
+    let exp_cols = (0..grid.get_size().x())
         .map(|c| (c, grid.get_col(c).unwrap()))
         .filter(|(_, col)| !col.contains(&'#'))
         .map(|(c, _)| c)
@@ -77,9 +77,9 @@ fn expand_universe(grid: &Grid<char>) -> Grid<char> {
     let (exp_rows, exp_cols) = get_expansion_zones(grid);
     let mut new_data: Vec<Vec<char>> = Vec::new();
 
-    for r in 0..grid.get_size().y {
+    for r in 0..grid.get_size().y() {
         let mut row = Vec::new();
-        for c in 0..grid.get_size().x {
+        for c in 0..grid.get_size().x() {
             let chr = grid.get_at_coords(c, r);
             row.push(chr);
             if exp_cols.contains(&c) {

@@ -1,7 +1,7 @@
 use std::iter::Iterator;
 use itertools::Itertools;
 use crate::common::grid::Grid;
-use crate::common::vec2::Vec2;
+use crate::common::vec::Vec2;
 use super::common;
 
 pub fn run() {
@@ -31,13 +31,13 @@ fn parse_input(file: &str) -> Vec<Grid<char>> {
 
 fn find_reflection_line(grid: &Grid<char>) -> Reflection {
     // Test rows first as this is cheaper
-    if let Some(row_symmetry) = (0..grid.get_size().y - 1)
-        .find(|r| is_symmetric(grid, Grid::get_row, *r, grid.get_size().y)) {
+    if let Some(row_symmetry) = (0..grid.get_size().y() - 1)
+        .find(|r| is_symmetric(grid, Grid::get_row, *r, grid.get_size().y())) {
         return Reflection::new(Orientation::Horizontal, row_symmetry + 1);  // 1-based
     }
 
-    if let Some(col_symmetry) = (0..grid.get_size().x - 1)
-        .find(|c| is_symmetric(grid, Grid::get_col, *c, grid.get_size().x)) {
+    if let Some(col_symmetry) = (0..grid.get_size().x() - 1)
+        .find(|c| is_symmetric(grid, Grid::get_col, *c, grid.get_size().x())) {
         return Reflection::new(Orientation::Vertical, col_symmetry + 1);    // 1-based
     }
 
@@ -68,16 +68,16 @@ fn smudge(grid: &mut Grid<char>, ix: usize) {
 }
 
 fn find_alternate_reflection(grid: &Grid<char>, current: &Reflection) -> Option<Reflection> {
-    if let Some(row_symmetry) = (0..grid.get_size().y - 1)
+    if let Some(row_symmetry) = (0..grid.get_size().y() - 1)
         .filter(|&r| !(current.orient == Orientation::Horizontal && r == (current.first_index - 1)))
-        .filter(|&r| is_symmetric(grid, Grid::get_row, r, grid.get_size().y))
+        .filter(|&r| is_symmetric(grid, Grid::get_row, r, grid.get_size().y()))
         .next() {
         return Some(Reflection::new(Orientation::Horizontal, row_symmetry + 1));  // 1-based
     }
 
-    if let Some(col_symmetry) = (0..grid.get_size().x - 1)
+    if let Some(col_symmetry) = (0..grid.get_size().x() - 1)
         .filter(|&c| !(current.orient == Orientation::Vertical && c == (current.first_index - 1)))
-        .filter(|&c| is_symmetric(grid, Grid::get_col, c, grid.get_size().x))
+        .filter(|&c| is_symmetric(grid, Grid::get_col, c, grid.get_size().x()))
         .next() {
         return Some(Reflection::new(Orientation::Vertical, col_symmetry + 1));  // 1-based
     }
