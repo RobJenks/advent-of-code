@@ -40,6 +40,7 @@ impl<T> Vec3<T>
 impl <T, const N: usize> Vec<T, N>
     where T: Numeric + Copy + Display + Hash + Default {
 
+    #[allow(unused)]
     pub fn new_with_data(data: [T; N]) -> Self { Self { data } }
     pub fn new_uniform(v: T) -> Self { Self { data: [v; N] } }
 

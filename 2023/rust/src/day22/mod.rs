@@ -3,7 +3,7 @@ mod bricks;
 use std::collections::HashSet;
 use std::iter::Iterator;
 use itertools::Itertools;
-use crate::common::grid3d::{Grid3d, Grid3dDirection};
+use crate::common::grid3d::Grid3d;
 use crate::common::vec::{Vec2, Vec3};
 use crate::day22::bricks::{Brick, BrickRegionIter, BrickRelations, NO_BRICK};
 use super::common;
@@ -22,12 +22,14 @@ fn part1() -> usize {
 }
 
 fn part2() -> usize {
-    12
+    Some(parse_input("src/day22/problem-input.txt"))
+        .map(|bricks| get_total_displacement(&bricks))
+        .unwrap_or_else(|| panic!("No solution"))
 }
 
 fn get_removable_bricks(input_bricks: &Vec<Brick>) -> Vec<u32> {
     let initial_grid = build_grid(&input_bricks);
-    let (grid, bricks) = apply_gravity(&initial_grid, input_bricks);
+    let (grid, bricks) = apply_gravity(&initial_grid, input_bricks).unwrap_or_else(|| panic!("No movement"));
     let relations = get_brick_relations(&grid, &bricks);
     relations.supports.iter().enumerate()
         .filter(|&(_, supported_bricks)| supported_bricks.iter()
@@ -36,15 +38,39 @@ fn get_removable_bricks(input_bricks: &Vec<Brick>) -> Vec<u32> {
         .collect_vec()
 }
 
-fn apply_gravity(input: &Grid3d<u32>, input_bricks: &Vec<Brick>) -> (Grid3d<u32>, Vec<Brick>) {
+fn get_total_displacement(input_bricks: &Vec<Brick>) -> usize {
+    let initial_grid = build_grid(&input_bricks);
+    let (grid, bricks) = apply_gravity(&initial_grid, input_bricks).unwrap_or_else(|| panic!("No movement"));
+    bricks.iter()
+        .map(|b| get_bricks_displaced(&grid, &bricks, b.id))
+        .sum()
+}
+
+fn get_bricks_displaced(input_grid: &Grid3d<u32>, input_bricks: &Vec<Brick>, removed: u32) -> usize {
+    let (mut grid, mut bricks) = (input_grid.clone(), input_bricks.clone());
+
+    remove_brick(&mut grid, &bricks[removed as usize]);
+    bricks[removed as usize].start = Vec3::new(0, 0, 1);
+    bricks[removed as usize].end = Vec3::new(0, 0, 1);
+
+    while let Some((new_grid, new_bricks)) = apply_gravity(&grid, &bricks) {
+        grid = new_grid;
+        bricks = new_bricks;
+    }
+
+    bricks.iter().zip(input_bricks.iter())
+        .filter(|&(new, old)| new != old)
+        .count() - 1
+}
+
+fn apply_gravity(input: &Grid3d<u32>, input_bricks: &Vec<Brick>) -> Option<(Grid3d<u32>, Vec<Brick>)> {
     let mut grid = input.clone();
     let sorted = input_bricks.iter()
         .sorted_by(|b0, b1| b0.start.z().cmp(&b1.start.z()))
         .map(|b| b.id)
         .collect_vec();
 
-    //sorted.iter().map(|ix| &input_bricks[*ix as usize]).for_each(|b| println!("{} = {}-{}", b.id, b.start, b.end));
-
+    let mut change = false;
     let mut bricks = input_bricks.clone();
     for ix in sorted {
         let brick = bricks.get_mut(ix as usize).unwrap();
@@ -54,6 +80,7 @@ fn apply_gravity(input: &Grid3d<u32>, input_bricks: &Vec<Brick>) -> (Grid3d<u32>
         let fall_dist = min_z - new_base;
         if fall_dist == 0 { continue }
 
+        change = true;
         remove_brick(&mut grid, &brick);
 
         brick.start.data[2] -= fall_dist;
@@ -63,16 +90,7 @@ fn apply_gravity(input: &Grid3d<u32>, input_bricks: &Vec<Brick>) -> (Grid3d<u32>
     }
 
 
-    (grid, bricks)
-}
-
-fn bricks_overlapping_layer(grid: &Grid3d<u32>, z: usize) -> Vec<u32> {
-    let st = grid.get_layer_start_index(z);
-    (st..(st + grid.get_size().x() * grid.get_size().y()))
-        .map(|ix| grid.get(ix))
-        .filter(|v| *v != NO_BRICK)
-        .unique()
-        .collect_vec()
+    if change { Some((grid, bricks)) } else { None }
 }
 
 fn lowest_level_below_region(grid: &Grid3d<u32>, region_start: Vec2<usize>, region_end_incl: Vec2<usize>, region_z: usize) -> usize {
@@ -143,61 +161,37 @@ fn parse_input(file: &str) -> Vec<Brick> {
         .collect_vec()
 }
 
-fn grid_fmt(val: &u32, max_value_size: usize) -> String {
-    let s = match val {
-        &NO_BRICK => ".".to_string(),
-        _ => val.to_string()
-    };
-
-    let space = max_value_size + 2;
-    let value_len = s.len();
-    let pad_left = (space - value_len) / 2;
-    let pad_right = space - pad_left - 1;
-
-    format!("{}{}{}", String::from(' ').repeat(pad_left), s, String::from(' ').repeat(pad_right))
-}
-
-fn grid_to_string(grid: &Grid3d<u32>, bricks: &Vec<Brick>) -> String {
-    let max_size = bricks.len().to_string().len();
-    let fmt = |v: &u32| grid_fmt(v, max_size);
-
-    (0..grid.get_size().z())
-        .rev()
-        .map(|z| grid.layer_to_string_fmt(z, &fmt))
-        .join("\n\n")
-}
 
 #[cfg(test)]
 mod tests {
-    use crate::day22::{apply_gravity, build_grid, get_removable_bricks, grid_to_string, parse_input, part1, part2};
-
-    #[test]
-    fn test_fall_calculation() {
-        let bricks = parse_input("src/day22/test-input-1.txt");
-        let grid = build_grid(&bricks);
-        let applied = apply_gravity(&grid, &bricks);
-
-        println!("{}", grid_to_string(&grid, &bricks));
-        println!("\n---\n{}", grid_to_string(&applied.0, &applied.1));
-    }
+    use crate::day22::{ get_removable_bricks, get_total_displacement, parse_input, part1, part2};
 
     #[test]
     fn test_support_calculation() {
         assert_eq!(
             Some(parse_input("src/day22/test-input-1.txt"))
-                .map(|brick| get_removable_bricks(&brick))
+                .map(|bricks| get_removable_bricks(&bricks))
                 .unwrap_or_else(|| panic!("No solution"))
                 .len(), 5);
     }
 
     #[test]
+    fn test_displacement_calculation() {
+        assert_eq!(
+            Some(parse_input("src/day22/test-input-1.txt"))
+                .map(|bricks| get_total_displacement(&bricks))
+                .unwrap_or_else(|| panic!("No solution")),
+            7);
+    }
+
+    #[test]
     fn test_part1() {
-        assert_eq!(part1(), 12);
+        assert_eq!(part1(), 405);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 12);
+        assert_eq!(part2(), 61297);
     }
 
 }

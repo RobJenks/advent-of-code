@@ -1,4 +1,3 @@
-use std::iter::Filter;
 use itertools::Itertools;
 use crate::common::vec::Vec3;
 

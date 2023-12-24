@@ -9,6 +9,7 @@ pub struct Grid3d<T>
     data: Vec<T>
 }
 
+#[allow(unused)]
 impl<T> Grid3d<T>
     where T: Clone + Display {
 
@@ -215,6 +216,7 @@ impl <T> Clone for Grid3d<T>
     }
 }
 
+#[allow(unused)]
 #[repr(u32)]
 #[derive(Eq, PartialEq, Copy, Clone, Debug, Hash)]
 pub enum Grid3dDirection {
@@ -244,6 +246,7 @@ const DIRECTION_UNIT_MOVEMENTS : [Vec3<isize>; 6] = [
     Vec3 { data: [0, 0, -1] }     // Below (= 5)
 ];
 
+#[allow(unused)]
 impl Grid3dDirection {
     pub fn unit_movement(&self) -> Vec3<isize> {
         DIRECTION_UNIT_MOVEMENTS[*self as usize]
