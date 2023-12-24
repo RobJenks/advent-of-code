@@ -20,11 +20,12 @@ impl <T> Grid<T>
         }
     }
 
-    pub fn new_with_data(size: Vec2<usize>, data: &Vec<T>) -> Self {
-        if !data.len() == (size.product()) { panic!("Invalid data size"); }
+    pub fn new_with_data(size: Vec2<usize>, data: impl IntoIterator<Item = T>) -> Self {
+        let vec = data.into_iter().collect::<Vec<_>>();
+        if !vec.len() == (size.product()) { panic!("Invalid data size"); }
         Self {
             size,
-            data: data.clone()
+            data: vec
         }
     }
 
@@ -73,6 +74,10 @@ impl <T> Grid<T>
 
     pub fn set(&mut self, ix: usize, val: &T) {
         self.data[ix] = val.clone();
+    }
+
+    pub fn set_owned(&mut self, ix: usize, val: T) {
+        self.data[ix] = val;
     }
 
     pub fn set_at_coord(&mut self, coord: &Vec2<usize>, val: &T) {

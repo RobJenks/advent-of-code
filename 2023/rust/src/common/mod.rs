@@ -1,6 +1,7 @@
 pub mod num;
 pub mod vec;
 pub mod grid;
+pub mod grid3d;
 pub mod math;
 pub mod array;
 pub mod pathfinding;

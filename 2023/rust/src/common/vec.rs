@@ -54,6 +54,16 @@ impl <T, const N: usize> Vec<T, N>
     pub fn product(&self) -> T {
         self.data.iter().cloned().reduce(|prod, x| prod.mul(x)).unwrap()
     }
+
+    pub fn to_dimension<const M: usize>(&self) -> Vec<T, M> {
+        let mut data = [T::zero(); M];
+        let max = N.min(M);
+        for i in 0..max {
+            data[i] = self.data[i];
+        }
+
+        Vec::<T, M> { data }
+    }
 }
 
 impl <T, const N: usize> Numeric for Vec<T, N>
