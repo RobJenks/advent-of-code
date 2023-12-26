@@ -5,6 +5,7 @@ pub mod grid3d;
 pub mod math;
 pub mod array;
 pub mod pathfinding;
+pub mod graph;
 
 pub fn read_file(path : &str) -> String {
     match std::fs::read_to_string(path) {

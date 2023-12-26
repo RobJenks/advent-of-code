@@ -405,6 +405,10 @@ impl <T> Grid<T>
         }
     }
 
+    pub fn pos_offset_between(&self, from: usize, to: usize) -> Vec2<isize> {
+        self.ix_to_coord(to).as_type::<isize>() - self.ix_to_coord(from).as_type::<isize>()
+    }
+
     pub fn to_string(&self) -> String {
         self.data.iter()
             .chunks(self.size.x()).into_iter().map(|chunk| chunk
@@ -429,6 +433,13 @@ pub enum GridDirection {
     Right = 2,
     Down = 3
 }
+
+const GRID_DIRECTIONS : [GridDirection; 4] = [
+    GridDirection::Left,     // Left (= 0)
+    GridDirection::Up,       // Up (= 1)
+    GridDirection::Right,    // Right (= 2)
+    GridDirection::Down,     // Down (= 3)
+];
 
 const OPPOSITE_GRID_DIRECTIONS : [GridDirection; 4] = [
     GridDirection::Right,    // Opposite of Left (= 0)
@@ -455,6 +466,13 @@ impl GridDirection {
 
     pub fn directions() -> [GridDirection; 4] {
         [GridDirection::Left, GridDirection::Up, GridDirection::Down, GridDirection::Right]
+    }
+
+    pub fn from_unit_movement(unit_move: &Vec2<isize>) -> Option<GridDirection> {
+        (0..4usize)
+            .filter(|i| unit_move == &DIRECTION_UNIT_MOVEMENTS[*i])
+            .map(|i| GRID_DIRECTIONS[i])
+            .next()
     }
 }
 

@@ -57,3 +57,11 @@ impl Zero for usize {
     type Output = Self;
     fn zero() -> Self::Output { 0 }
 }
+
+
+pub trait ConvFrom<T> {
+    fn convert_from(value: T) -> Self;
+}
+
+impl ConvFrom<isize> for usize { fn convert_from(value: isize) -> usize { value as usize } }
+impl ConvFrom<usize> for isize { fn convert_from(value: usize) -> isize { value as isize } }

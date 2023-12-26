@@ -3,7 +3,7 @@ use std::hash::Hash;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 use itertools::Itertools;
 use crate::common::array::ZipArray;
-use crate::common::num::{Numeric, Zero};
+use crate::common::num::{ConvFrom, Numeric, Zero};
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug, Hash)]
 pub struct Vec<T, const N: usize>
@@ -64,6 +64,12 @@ impl <T, const N: usize> Vec<T, N>
         }
 
         Vec::<T, M> { data }
+    }
+
+    pub fn as_type<U>(&self) -> Vec<U, N>
+        where U: ConvFrom<T> + Numeric + Copy + Display + Hash + Default {
+
+        Vec::<U, N> { data: self.data.map(U::convert_from) }
     }
 }
 
