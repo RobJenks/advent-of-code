@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::num::ParseFloatError;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 use std::str::FromStr;
 use ordered_float::{FloatCore, OrderedFloat};
 use crate::common;
@@ -134,15 +134,36 @@ impl<T> Hash for StandardFloat<T>
     }
 }
 
+impl<T> Deref for StandardFloat<T>
+    where T: FloatCore + Display + Zero<Output=T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0.0
+    }
+}
+
 impl From<f32> for F32 {
     fn from(value: f32) -> Self {
         Self(OrderedFloat(value))
     }
 }
 
+impl From<F32> for f32 {
+    fn from(value: F32) -> Self {
+        value.0.0
+    }
+}
+
 impl From<f64> for F64 {
     fn from(value: f64) -> Self {
         Self(OrderedFloat(value))
+    }
+}
+
+impl From<F64> for f64 {
+    fn from(value: F64) -> Self {
+        value.0.0
     }
 }
 

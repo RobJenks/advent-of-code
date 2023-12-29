@@ -42,7 +42,14 @@ impl <T, const N: usize> Vec<T, N>
 
     #[allow(unused)]
     pub fn new_with_data(data: [T; N]) -> Self { Self { data } }
+
     pub fn new_uniform(v: T) -> Self { Self { data: [v; N] } }
+
+    pub fn new_from_slice(data: &[T]) -> Self {
+        let mut d = [T::zero(); N];
+        for i in 0..N { d[i] = data[i]; }
+        Self { data: d }
+    }
 
     pub fn component_min(&self, other: &Vec<T, N>) -> Self {
         Self { data: self.data.zip_array(&other.data, |a, b| *a.min(b)) }
@@ -50,6 +57,10 @@ impl <T, const N: usize> Vec<T, N>
 
     pub fn component_max(&self, other: &Vec<T, N>) -> Self {
         Self { data: self.data.zip_array(&other.data, |a, b| *a.max(b)) }
+    }
+
+    pub fn sum(&self) -> T {
+        self.data.iter().cloned().reduce(|prod, x| prod.add(x)).unwrap()
     }
 
     pub fn product(&self) -> T {
