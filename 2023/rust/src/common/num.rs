@@ -1,3 +1,4 @@
+use std::hash::Hash;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 pub trait Zero {
@@ -16,6 +17,7 @@ pub trait Numeric
     + DivAssign
     + Ord + PartialOrd
     + Eq + PartialEq
+    + Hash
     + Zero<Output = Self>
     where Self: Sized {
 
@@ -56,6 +58,16 @@ impl Zero for u64 {
 impl Zero for usize {
     type Output = Self;
     fn zero() -> Self::Output { 0 }
+}
+
+impl Zero for f32 {
+    type Output = Self;
+    fn zero() -> Self::Output { 0.0 }
+}
+
+impl Zero for f64 {
+    type Output = Self;
+    fn zero() -> Self::Output { 0.0 }
 }
 
 

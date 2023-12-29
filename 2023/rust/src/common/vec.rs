@@ -7,14 +7,14 @@ use crate::common::num::{ConvFrom, Numeric, Zero};
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug, Hash)]
 pub struct Vec<T, const N: usize>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
 
     pub data: [T; N],
 }
 
 pub type Vec2<T> = Vec<T, 2>;
 impl<T> Vec2<T>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
 
     pub fn x(&self) -> T { self.data[0] }
     pub fn y(&self) -> T { self.data[1] }
@@ -26,7 +26,7 @@ impl<T> Vec2<T>
 
 pub type Vec3<T> = Vec<T, 3>;
 impl<T> Vec3<T>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
 
     pub fn x(&self) -> T { self.data[0] }
     pub fn y(&self) -> T { self.data[1] }
@@ -38,7 +38,7 @@ impl<T> Vec3<T>
 }
 
 impl <T, const N: usize> Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
 
     #[allow(unused)]
     pub fn new_with_data(data: [T; N]) -> Self { Self { data } }
@@ -74,11 +74,11 @@ impl <T, const N: usize> Vec<T, N>
 }
 
 impl <T, const N: usize> Numeric for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
 }
 
 impl <T, const N: usize> Add for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -87,7 +87,7 @@ impl <T, const N: usize> Add for Vec<T, N>
 }
 
 impl <T, const N: usize> Sub for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -97,7 +97,7 @@ impl <T, const N: usize> Sub for Vec<T, N>
 
 // Component-wise multiplication
 impl <T, const N: usize> Mul for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -107,7 +107,7 @@ impl <T, const N: usize> Mul for Vec<T, N>
 
 // Component-wise division
 impl <T, const N: usize> Div for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
@@ -116,7 +116,7 @@ impl <T, const N: usize> Div for Vec<T, N>
 }
 
 impl <T, const N: usize> AddAssign for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
 
     fn add_assign(&mut self, rhs: Self) {
         for i in 0..N {
@@ -126,7 +126,7 @@ impl <T, const N: usize> AddAssign for Vec<T, N>
 }
 
 impl <T, const N: usize> SubAssign for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
 
     fn sub_assign(&mut self, rhs: Self) {
         for i in 0..N {
@@ -137,7 +137,7 @@ impl <T, const N: usize> SubAssign for Vec<T, N>
 
 // Component-wise multiplication
 impl <T, const N: usize> MulAssign for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
 
     fn mul_assign(&mut self, rhs: Self) {
         for i in 0..N {
@@ -148,7 +148,7 @@ impl <T, const N: usize> MulAssign for Vec<T, N>
 
 // Component-wise division
 impl <T, const N: usize> DivAssign for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
 
     fn div_assign(&mut self, rhs: Self) {
         for i in 0..N {
@@ -159,7 +159,7 @@ impl <T, const N: usize> DivAssign for Vec<T, N>
 
 // Scalar multiplication
 impl <T, const N: usize> Mul<T> for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
     type Output = Vec<T, N>;
     fn mul(self, rhs: T) -> Self::Output {
         Self { data: self.data.map(|v| v * rhs) }
@@ -167,7 +167,7 @@ impl <T, const N: usize> Mul<T> for Vec<T, N>
 }
 
 impl <T, const N: usize> Zero for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
     type Output = Self;
 
     fn zero() -> Self::Output {
@@ -176,7 +176,7 @@ impl <T, const N: usize> Zero for Vec<T, N>
 }
 
 impl<T, const N: usize> Display for Vec<T, N>
-    where T: Numeric + Copy + Display + Hash + Default {
+    where T: Numeric + Copy + Display + Default {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "({})", self.data.iter().join(","))
     }
