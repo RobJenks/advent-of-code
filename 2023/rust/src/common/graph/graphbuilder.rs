@@ -10,7 +10,7 @@ use crate::common::vec::Vec2;
 
 pub struct GraphBuilder<T, TCost, G>
     where T: Clone + Display,
-          TCost: Numeric + Clone,
+          TCost: Numeric + Clone + Display,
           G: Clone + Display {
 
     _t: PhantomData<T>,
@@ -39,7 +39,7 @@ pub enum GenerateNodeType {
 
 impl<T, TCost, G> GraphBuilder<T, TCost, G>
     where T: Clone + Display,
-          TCost: Numeric + Clone,
+          TCost: Numeric + Clone + Display,
           G: Clone + Display{
 
     pub fn build_from_grid(grid: &Grid<G>, start_cell: GridStartMode,
@@ -47,7 +47,7 @@ impl<T, TCost, G> GraphBuilder<T, TCost, G>
                               is_walkable: &impl Fn(&G, usize) -> bool,
                               get_cost: &impl Fn(&Grid<G>, usize, usize, &Vec<usize>) -> TCost,
                               generate_node_at: &GenerateNodesAt<G>,
-                              generate_node_type: &impl Fn(&Grid<G>, usize, usize, &Vec<usize>) -> GenerateNodeType) -> Graph<T, usize, TCost> {
+                              should_generate_edge: &impl Fn(&Grid<G>, usize, usize, &Vec<usize>) -> bool) -> Graph<T, usize, TCost> {
 
         let mut nodes = Vec::<NodeData<T, usize>>::new();
         let mut edges = Vec::<EdgeData<usize, TCost>>::new();
@@ -81,28 +81,26 @@ impl<T, TCost, G> GraphBuilder<T, TCost, G>
                 nodes.push(NodeData::<T, usize>::new(get_node_value(&val), current));
 
                 if let Some(prev_node) = prev_node_id {
-                    let prev_node_grid_ix = nodes[prev_node].pos;
-                    edges.extend(GraphBuilder::<T, TCost, G>::generate_edges(grid, prev_node_grid_ix, &grid.get(prev_node_grid_ix), prev_node,
-                                                              current, &val, new_node_id, &path, &generate_node_type, &get_cost));
+                    edges.extend(GraphBuilder::<T, TCost, G>::generate_edges(grid, nodes[prev_node].pos, current, &path, should_generate_edge, &get_cost));
                 }
 
                 prev_node_id = Some(new_node_id);
             }
 
             // If we reach an already-covered cell containing a node we should still connect to it
-            if let Some(prev_node) = prev_node_id {
-                if !path.is_empty() && path[path.len() - 1] != nodes[prev_node].pos {   // Don't connect back to immediate last cell
+            //if let Some(prev_node) = prev_node_id {
+//                if !path.is_empty() && path[path.len() - 1] != nodes[prev_node].pos {   // Don't connect back to immediate last cell
                     surrounding.iter()
                         .filter(|&adj| covered[*adj])
                         .flat_map(|adj| nodes_by_grid_ix.get(adj))
+                        .filter(|&adj_node| !path.contains(adj_node))
                         .for_each(|target_node_id| {
                             let target_node = nodes.get(*target_node_id).unwrap_or_else(|| panic!("Target node {} does not exist", target_node_id));
-                            let new_edges = GraphBuilder::<T, TCost, G>::generate_edges(grid, current, &val, prev_node, target_node.pos,
-                                                                                        &grid.get(*target_node_id), *target_node_id, &path, &generate_node_type, &get_cost);
+                            let new_edges = GraphBuilder::<T, TCost, G>::generate_edges(grid, current, target_node.pos, &path, should_generate_edge, &get_cost);
                             edges.extend(new_edges);
                         });
-                }
-            }
+//                }
+            //}
 
             let child_paths = exits.iter()
                 .map(|ix| {
@@ -137,21 +135,19 @@ impl<T, TCost, G> GraphBuilder<T, TCost, G>
         }
     }
 
-    fn generate_edges(grid: &Grid<G>,
-                      prev_ix: usize, prev_value: &G, prev_node_id: usize,
-                      next_ix: usize, next_value: &G, next_node_id: usize,
-                      path: &Vec<usize>,
-                      generate_node_type: &impl Fn(&Grid<G>, usize, usize, &Vec<usize>) -> GenerateNodeType,
+    fn generate_edges(grid: &Grid<G>, prev_ix: usize, next_ix: usize, path: &Vec<usize>,
+                      should_generate_edge: &impl Fn(&Grid<G>, usize, usize, &Vec<usize>) -> bool,
                       get_cost: &impl Fn(&Grid<G>, usize, usize, &Vec<usize>) -> TCost) -> Vec<EdgeData<usize, TCost>> {
 
         let mut edges = Vec::new();
+        let path_section = path[path.iter().position(|x| *x == prev_ix).unwrap()..].iter().cloned().collect_vec();
 
-        let edge_type = generate_node_type(grid, prev_ix, next_ix, path);
-        if edge_type == GenerateNodeType::OneWay || edge_type == GenerateNodeType::TwoWay {
-            edges.push(EdgeData::<usize, TCost>::new(prev_ix, next_ix, get_cost(grid, prev_ix, next_ix, path)));
-            if edge_type == GenerateNodeType::TwoWay {
-                edges.push(EdgeData::<usize, TCost>::new(next_ix, prev_ix, get_cost(&grid, next_ix, prev_ix, path)));
-            }
+        if should_generate_edge(grid, prev_ix, next_ix, path) {
+            edges.push(EdgeData::<usize, TCost>::new(prev_ix, next_ix, get_cost(grid, prev_ix, next_ix, &path_section)));
+        }
+
+        if should_generate_edge(grid, next_ix, prev_ix, path) {
+            edges.push(EdgeData::<usize, TCost>::new(next_ix, prev_ix, get_cost(&grid, next_ix, prev_ix, &path_section)));
         }
 
         edges

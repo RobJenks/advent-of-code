@@ -1,15 +1,15 @@
 #![allow(unused)]
 use std::collections::HashMap;
-use std::fmt::Display;
+use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use itertools::Itertools;
 use crate::common::grid::Grid;
 use crate::common::num::Numeric;
 
 pub struct Graph<T, TPos, TCost>
-    where T: Clone,
+    where T: Clone + Display,
           TPos: Clone + Display + Eq + PartialEq + Hash,
-          TCost: Numeric + Clone {
+          TCost: Numeric + Clone + Display {
 
     pub nodes: Vec<Node<T, TPos>>,
     pub edges: Vec<Edges<TCost>>,    // Indexed by source node
@@ -18,8 +18,8 @@ pub struct Graph<T, TPos, TCost>
 }
 
 pub struct Node<T, TPos>
-    where T: Clone,
-          TPos: Clone + Eq + PartialEq + Hash {
+    where T: Clone + Display,
+          TPos: Clone + Eq + PartialEq + Hash + Display {
 
     pub id: usize,
     pub value: T,
@@ -28,7 +28,7 @@ pub struct Node<T, TPos>
 }
 
 pub struct Edge<TCost>
-    where TCost: Numeric + Clone {
+    where TCost: Numeric + Clone + Display {
 
     pub target: usize,
     pub cost: TCost
@@ -39,8 +39,8 @@ pub type Edges<TCost> = Vec<Edge<TCost>>;
 // Caller-provided structs without derived internal data
 #[derive(Debug, Clone)]
 pub struct NodeData<T, TPos>
-    where T: Clone,
-          TPos: Clone + Eq + PartialEq + Hash {
+    where T: Clone + Display,
+          TPos: Clone + Eq + PartialEq + Hash + Display {
 
     pub value: T,
     pub pos: TPos
@@ -48,21 +48,22 @@ pub struct NodeData<T, TPos>
 
 #[derive(Debug, Clone)]
 pub struct EdgeData<TPos, TCost>
-    where TCost: Numeric + Clone,
-          TPos: Clone + Eq + PartialEq + Hash {
+    where TCost: Numeric + Clone + Display,
+          TPos: Clone + Eq + PartialEq + Hash + Display {
 
     pub from: TPos,
     pub to: TPos,
     pub cost: TCost
 }
 
+pub const NO_NODE: usize = usize::MAX;
 
 // Impl
 
 impl<T, TPos, TCost> Graph<T, TPos, TCost>
-    where T: Clone,
+    where T: Clone + Display,
           TPos: Clone + Display + Eq + PartialEq + Hash,
-          TCost: Numeric + Clone {
+          TCost: Numeric + Clone + Display {
 
     pub fn new() -> Self {
         Self::new_with(Vec::new(), Vec::new())
@@ -193,21 +194,28 @@ impl<T, TPos, TCost> Graph<T, TPos, TCost>
         Ok(())
     }
 
-
 }
 
 impl<T, TPos> Node<T, TPos>
-    where T: Clone,
-          TPos: Clone + Eq + PartialEq + Hash {
+    where T: Clone + Display,
+          TPos: Clone + Eq + PartialEq + Hash + Display {
 
     pub fn new(id: usize, value: T, pos: TPos) -> Self {
         Self { id, value, pos }
     }
 
 }
+impl<T, TPos> Display for Node<T, TPos>
+    where T: Clone + Display,
+          TPos: Clone + Eq + PartialEq + Hash + Display {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[Node: {}, Pos: {}, Value: {}]", self.id, self.pos, self.value)
+    }
+}
+
 
 impl<TCost> Edge<TCost>
-    where TCost: Numeric + Clone {
+    where TCost: Numeric + Clone + Display {
 
     pub fn new(target: usize, cost: TCost) -> Self {
         Self { target, cost }
@@ -215,8 +223,8 @@ impl<TCost> Edge<TCost>
 }
 
 impl<T, TPos> NodeData<T, TPos>
-    where T: Clone,
-          TPos: Clone + Eq + PartialEq + Hash {
+    where T: Clone + Display,
+          TPos: Clone + Eq + PartialEq + Hash + Display {
 
     pub fn new(value: T, pos: TPos) -> Self {
         Self { value, pos }
@@ -224,8 +232,8 @@ impl<T, TPos> NodeData<T, TPos>
 }
 
 impl<TPos, TCost> EdgeData<TPos, TCost>
-    where TCost: Numeric + Clone,
-          TPos: Clone + Eq + PartialEq + Hash {
+    where TCost: Numeric + Clone + Display,
+          TPos: Clone + Eq + PartialEq + Hash + Display {
 
     pub fn new(from: TPos, to: TPos, cost: TCost) -> Self {
         Self { from, to, cost }

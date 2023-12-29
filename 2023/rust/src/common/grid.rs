@@ -410,9 +410,13 @@ impl <T> Grid<T>
     }
 
     pub fn to_string(&self) -> String {
-        self.data.iter()
+        self.to_string_fmt(&|x, _| x.to_string())
+    }
+
+    pub fn to_string_fmt(&self, fmt: &impl Fn(&T, usize) -> String) -> String {
+        self.data.iter().enumerate()
             .chunks(self.size.x()).into_iter().map(|chunk| chunk
-                .map(|x| x.to_string()).join(""))
+                .map(|(i, x)| fmt(x, i)).join(""))
             .join("\n")
     }
 }

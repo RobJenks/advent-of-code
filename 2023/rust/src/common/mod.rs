@@ -6,6 +6,7 @@ pub mod math;
 pub mod array;
 pub mod pathfinding;
 pub mod graph;
+mod util;
 
 pub fn read_file(path : &str) -> String {
     match std::fs::read_to_string(path) {
