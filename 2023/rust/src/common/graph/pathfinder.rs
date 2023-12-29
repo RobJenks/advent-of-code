@@ -2,9 +2,9 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::fmt::Display;
 use std::hash::Hash;
+use itertools::Itertools;
 use crate::common::graph::graph::{Graph, NO_NODE};
 use crate::common::num::Numeric;
-use crate::common::util::get_opposite_ordering;
 
 pub struct PathFinder<'a, T, TPos, TCost>
     where T: Clone + Display,
@@ -18,6 +18,7 @@ pub enum PathfindingType {
     BFS
 }
 
+#[allow(unused)]
 pub enum PathEvalFn<T, TPos, TCost>
     where T: Clone + Display,
           TPos: Clone + Display + Eq + PartialEq + Hash,
@@ -56,7 +57,6 @@ impl<'a, T, TPos, TCost> PathFinder<'a, T, TPos, TCost>
         }
     }
 
-
     fn find_path_bfs(&self, start_node: usize, end_node: usize,
                          path_eval_fn: PathEvalFn<T, TPos, TCost>) -> PathResult<TCost> {
 
@@ -64,20 +64,21 @@ impl<'a, T, TPos, TCost> PathFinder<'a, T, TPos, TCost>
         let mut best_path : Option<PathWorkingData<TCost>> = None;
 
         while let Some(mut data) = active.pop() {
-            println!("Processing node {} (current path: {:?}", self.graph.nodes[data.node], data.path);
+            // Check if we have reached the target
             if data.node == end_node {
-                data.found_path = true;
+                data.mark_path_complete();
                 if best_path.as_ref().map(|best| self.eval_path(&path_eval_fn, &data, best)).unwrap_or_else(|| Ordering::Greater) == Ordering::Greater {
-                    println!("* Found new best path ({:?}), beats current best ({:?})", &data.path, best_path.as_ref().map(|b| b.path.clone()).unwrap_or_else(|| vec![]));
                     best_path = Some(data);
-                }
-                else {
-                    println!("* Found path, but not better than current best.  Path = {:?}, Best = {:?}", &data.path, best_path.as_ref().unwrap().path)
                 }
                 continue;
             }
 
-            if let Some(exits) = self.graph.get_connections_from(data.node) {
+            // Branch into any intersections
+            if let Some(potential_exits) = self.graph.get_connections_from(data.node) {
+                let exits = potential_exits.iter()
+                    .filter(|&edge| !data.visited.contains(&edge.target))
+                    .collect_vec();
+
                 if !exits.is_empty() {
                     for exit in &exits[0..(exits.len() - 1)] {
                         active.push(data.cloned_with(exit.target, exit.cost.clone()));
@@ -97,12 +98,6 @@ impl<'a, T, TPos, TCost> PathFinder<'a, T, TPos, TCost>
     fn eval_path(&self, path_eval_fn: &PathEvalFn<T, TPos, TCost>,
                  new_path: &PathWorkingData<TCost>, current_best_path: &PathWorkingData<TCost>) -> Ordering {
 
-        if current_best_path.path == vec![0, 1, 2, 34, 27, 26, 25, 24, 19, 22, 32, 8, 9, 10, 11, 12, 13] &&
-            new_path.path == vec![0, 1, 2, 34, 27, 26, 25, 24, 19, 18, 17, 16, 15, 14, 11, 12, 13] {
-
-            println!("Divergence point");
-        }
-
         match path_eval_fn {
             PathEvalFn::ShortestPath => current_best_path.path_length_if_complete().unwrap_or_else(|| usize::MAX)
                 .cmp(&new_path.path_length_if_complete().unwrap_or_else(|| usize::MAX)),
@@ -120,23 +115,20 @@ impl<'a, T, TPos, TCost> PathFinder<'a, T, TPos, TCost>
                     (None, None, _) => Ordering::Equal
                 }
 
-            PathEvalFn::HighestCost => get_opposite_ordering(
-                self.eval_path(path_eval_fn, new_path, current_best_path)),
-
             PathEvalFn::Custom(f) => f(self.graph, new_path, current_best_path)
         }
     }
 }
 
 #[derive(Clone, Debug)]
-struct PathWorkingData<TCost>
+pub struct PathWorkingData<TCost>
     where TCost: Numeric + Clone + Display {
 
-    node: usize,
-    cost: TCost,
-    found_path: bool,
-    path: Vec<usize>,
-    visited: HashSet<usize>
+    pub node: usize,
+    pub cost: TCost,
+    pub found_path: bool,
+    pub path: Vec<usize>,
+    pub visited: HashSet<usize>
 }
 
 impl<TCost> PathWorkingData<TCost>
@@ -150,6 +142,7 @@ impl<TCost> PathWorkingData<TCost>
         data.move_to(node, TCost::zero());
         data
     }
+    #[allow(unused)]
     pub fn new_with(node: usize, cost: TCost, found_path: bool, path: Vec<usize>, visited: HashSet<usize>) -> Self {
         Self { node, cost, found_path, path, visited }
     }
@@ -234,7 +227,7 @@ mod tests {
         assert_eq!(pathfinder.eval_path(&PathEvalFn::HighestCost, &path_low_dist_high_cost, &no_path), Ordering::Greater);
         assert_eq!(pathfinder.eval_path(&PathEvalFn::HighestCost, &no_path, &path_low_dist_high_cost), Ordering::Less);
 
-        let custom = PathEvalFn::<usize, usize, isize>::Custom(|graph, new, best| {
+        let custom = PathEvalFn::<usize, usize, isize>::Custom(|_, new, best| {
             (best.cost - 35).abs().cmp(&(new.cost - 35))    // Cost criteria = proximity to 35
         });
         assert_eq!(pathfinder.eval_path(&custom, &path_low_dist_high_cost, &path_high_dist_low_cost), Ordering::Less);
