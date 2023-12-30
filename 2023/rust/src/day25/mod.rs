@@ -4,17 +4,12 @@ use crate::common::graph::graph::{EdgeData, Graph, NodeData};
 use super::common;
 
 pub fn run() {
-    println!("Part 1 result: {}", part1());
-    println!("Part 2 result: {}", part2());
+    println!("Result: {}", part1());
 }
 
 fn part1() -> usize {
     let (part0, part1) = partition_network(&parse_input("src/day25/problem-input.txt"));
     part0.len() * part1.len()
-}
-
-fn part2() -> usize {
-    12
 }
 
 type Network = Graph<String, usize, u32>;
@@ -99,7 +94,7 @@ fn parse_input(file: &str) -> Network {
 
 #[cfg(test)]
 mod tests {
-    use crate::day25::{parse_input, part1, part2, partition_network};
+    use crate::day25::{parse_input, part1, partition_network};
 
     #[test]
     fn test_network_partition() {
@@ -113,10 +108,5 @@ mod tests {
     #[test]
     fn test_part1() {
         assert_eq!(part1(), 543564);
-    }
-
-    #[test]
-    fn test_part2() {
-        assert_eq!(part2(), 12);
     }
 }

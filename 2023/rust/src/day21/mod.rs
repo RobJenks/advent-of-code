@@ -1,8 +1,7 @@
 use std::collections::HashSet;
 use std::iter::Iterator;
 use itertools::Itertools;
-use crate::common::grid::{Grid, GridDirection};
-use crate::common::vec::Vec2;
+use crate::common::grid::Grid;
 use super::common;
 
 pub fn run() {
@@ -21,7 +20,6 @@ fn part2() -> usize {
         .map(|(grid, start)| calculate_for_inf_grid(&grid, start, 26501365))
         .unwrap()
 }
-
 
 fn get_cells_reached(grid: &Grid<char>, start: usize, steps: usize) -> HashSet<usize> {
     let mut active = HashSet::new();
@@ -43,76 +41,6 @@ fn get_cells_reached(grid: &Grid<char>, start: usize, steps: usize) -> HashSet<u
     active
 }
 
-fn calculate_for_inf_grid(grid: &Grid<char>, start: usize, steps: usize) -> usize {
-    // xmax/ymax=  grid.size
-    // active = frontier
-    // x1/y1 = p_mod
-
-
-    let mut visited = HashSet::<Vec2<isize>>::new();
-    let mut active = HashSet::<Vec2<isize>>::new();
-    active.insert(Some(grid.ix_to_coord(start)).map(|v| Vec2::new(v.x() as isize, v.y() as isize)).unwrap());
-
-    let mut count = [0usize, 0, 0];
-    let mut frontiers = vec![0isize; grid.get_size().x()];
-
-    let (mut d1, mut d2) = (vec![0isize; grid.get_size().x()], vec![0isize; grid.get_size().x()]);
-
-    let mut step = 0usize;
-    loop {
-        let mut new_front = HashSet::<Vec2<isize>>::new();
-        for p in &active {
-            for d in GridDirection::directions() {
-                let p_off = *p + d.unit_movement();
-                let p_m = Vec2::new(p_off.x() % grid.get_size().x() as isize, p_off.y() % grid.get_size().y() as isize);
-                let p_mod = Vec2::new(if p_m.x() >= 0 { p_m.x() } else { p_m.x() + grid.get_size().x() as isize },
-                                      if p_m.y() >= 0 { p_m.y() } else { p_m.y() + grid.get_size().y() as isize });
-
-                if grid.get_at_coords(p_mod.x() as usize, p_mod.y() as usize) == '#' {
-                    if visited.insert(p_off) {
-                        new_front.insert(p_off);
-                    }
-                }
-            }
-        }
-
-        let front_len = new_front.len();
-        count[2] = front_len + count[0];
-        count[0] = count[1];
-        count[1] = count[2];
-
-        let ix = step % grid.get_size().x();
-        if step >= grid.get_size().x() {
-            let dx = front_len as isize - frontiers[ix];
-            d2[ix] = dx - d1[dx as usize];
-            d1[ix] = dx;
-        }
-        frontiers[ix] = front_len as isize;
-
-        active = new_front;
-        step += 1;
-
-        if step >= (2 * grid.get_size().x()) {
-            if d2.iter().all(|x| *x == 0) { break }
-        }
-    }
-
-    for i in step..steps {
-        let ix = i % grid.get_size().x();
-        d1[ix] += d2[ix];
-        frontiers[ix] += d1[ix];
-
-        count[2] = count[0] + frontiers[ix] as usize;
-        count[0] = count[1];
-        count[1] = count[2];
-    }
-
-    println!("counts {:?}", count);
-    count[2]
-}
-
-
-
 fn parse_input(file: &str) -> (Grid<char>, usize) {
     let mut grid = Grid::new_from_2d_data(
         &common::read_file(file).lines()
@@ -125,14 +53,75 @@ fn parse_input(file: &str) -> (Grid<char>, usize) {
         .unwrap_or_else(|| panic!("No start location"));
 
     grid.set(start, &'.');
-println!("Start = {}", grid.ix_to_coord(start));
     (grid, start)
+}
+
+// Part 2 solution on infinite grid requires some obscure Lagrange polynomial math.  Implementation
+// for Day 21 Part 2 is mostly copied from examples
+fn calculate_for_inf_grid(grid: &Grid<char>, start: usize, steps: usize) -> usize {
+    let dx = grid.get_size().x();
+
+    let vx = [dx / 2, 3 * dx / 2, 5 * dx / 2];
+    let vy = walk_wrapped(&grid, start, &vx);
+    // Use Lagrange polynomial
+    let mut result = 0.0;
+    for i in 0..3 {
+        let mut term = vy[i] as f64;
+        for j in 0..3 {
+            if i != j {
+                let num = (steps - vx[j]) as f64;
+                let den = vx[i] as f64 - vx[j] as f64;
+                term *= num / den;
+            }
+        }
+        result += term;
+    }
+    result as usize
+}
+
+fn walk_wrapped<const N: usize>(g: &Grid<char>, start: usize, steps: &[usize; N]) -> [usize; N] {
+    let mut vw = [0; N];
+    let mut checked = HashSet::new();
+    let (mut set, mut set_next) = (Vec::new(), Vec::new());
+    let mut reach = HashSet::new();
+    let sp = [(start % g.get_size().x()) as isize, (start / g.get_size().x()) as isize];
+    checked.insert(sp);
+    set.push(sp);
+    let mut st = 0;
+    let odd_bit = steps[0] & 1;
+    let mut si = 0;
+    while si < steps.len() {
+        for &p in &set {
+            if st & 1 == odd_bit {
+                reach.insert(p);
+            }
+            for dir in [[0, -1], [1, 0], [0, 1], [-1, 0]] {
+                let np = [p[0] + dir[0], p[1] + dir[1]];
+                let x = (np[0].rem_euclid(g.get_size().x() as isize)) as usize;
+                let y = (np[1].rem_euclid(g.get_size().x() as isize)) as usize;
+                if g.raw_data()[y * g.get_size().x() + x] == '#' {
+                    continue;
+                }
+                if checked.insert(np) {
+                    set_next.push(np);
+                }
+            }
+        }
+        set.clear();
+        std::mem::swap(&mut set, &mut set_next);
+        st += 1;
+        if st == steps[si]+1 {
+            vw[si] = reach.len();
+            si += 1;
+        }
+    }
+    vw
 }
 
 
 #[cfg(test)]
 mod tests {
-    use crate::day21::{get_cells_reached, parse_input, part1, part2};
+    use crate::day21::{calculate_for_inf_grid, get_cells_reached, parse_input, part1, part2 };
 
     #[test]
     fn test_step_calculation() {
@@ -142,13 +131,20 @@ mod tests {
     }
 
     #[test]
+    fn test_infinite_grid_calculation() {
+        assert_eq!(Some(parse_input("src/day21/problem-input.txt"))
+            .map(|(grid, start)| calculate_for_inf_grid(&grid, start, 26_501_365)).unwrap(),
+                   635572596423432);
+    }
+
+    #[test]
     fn test_part1() {
         assert_eq!(part1(), 3649);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 12);
+        assert_eq!(part2(), 635572596423432);
     }
 
 }
