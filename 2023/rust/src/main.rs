@@ -26,6 +26,7 @@ mod day21;
 mod day22;
 mod day23;
 mod day24;
+mod day25;
 
 fn main() {
     let solutions = [
@@ -33,10 +34,10 @@ fn main() {
         day6::run, day7::run, day8::run, day9::run, day10::run,
         day11::run, day12::run, day13::run, day14::run, day15::run,
         day16::run, day17::run, day18::run, day19::run, day20::run,
-        day21::run, day22::run, day23::run, day24::run
+        day21::run, day22::run, day23::run, day24::run, day25::run
     ];
 
-    solutions.iter().enumerate().skip(23)
+    solutions.iter().enumerate()
         .for_each(|(i, solution)| {
             println!("\nDay {}:\n", i + 1);
             solution();

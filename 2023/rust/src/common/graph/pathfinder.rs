@@ -58,7 +58,7 @@ impl<'a, T, TPos, TCost> PathFinder<'a, T, TPos, TCost>
     }
 
     fn find_path_bfs(&self, start_node: usize, end_node: usize,
-                         path_eval_fn: PathEvalFn<T, TPos, TCost>) -> PathResult<TCost> {
+                     path_eval_fn: PathEvalFn<T, TPos, TCost>) -> PathResult<TCost> {
 
         let mut active = vec![ PathWorkingData::new_initial(start_node) ];
         let mut best_path : Option<PathWorkingData<TCost>> = None;
