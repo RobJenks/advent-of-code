@@ -1,0 +1,8 @@
+# IDE config
+/.idea/*
+*.iml
+
+# Exclude intermediate and build output
+/target/
+*/target/*
+*/target/**

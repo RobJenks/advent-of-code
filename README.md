@@ -8,3 +8,4 @@ Solutions to the annual Advent of Code challenge
 * 2020: Rust | https://adventofcode.com/2020
 * 2021: Rust (2021 Ed.) | https://adventofcode.com/2021
 * 2023: Rust (2021 Ed.) | https://adventofcode.com/2023
+
