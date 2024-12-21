@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fmt::Display;
-use std::hash::Hash;
 use std::marker::PhantomData;
 use itertools::Itertools;
 use crate::common::graph::graph::*;
@@ -16,25 +15,19 @@ pub struct GraphBuilder<T, TCost, G>
     _t: PhantomData<T>,
     _t_cost: PhantomData<TCost>,
     _g: PhantomData<G>,
-
 }
 
+#[allow(unused)]
 pub enum GridStartMode {
     FirstWalkableCell,
     AtSpecificIndex(usize),
     AtSpecificPosition(Vec2<usize>)
 }
 
+#[allow(unused)]
 pub enum GenerateNodesAt<G> {
     IntersectionsOnly,
     Custom(fn(&G, usize, &Vec<usize>) -> bool)
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum GenerateNodeType {
-    None,
-    OneWay,
-    TwoWay
 }
 
 impl<T, TCost, G> GraphBuilder<T, TCost, G>
@@ -54,16 +47,14 @@ impl<T, TCost, G> GraphBuilder<T, TCost, G>
 
         let start = GraphBuilder::<T, TCost, G>::find_start(&grid, &start_cell, is_walkable);
         let mut covered = vec![false; grid.get_element_count()];
-        let mut nodes_by_grid_ix = HashMap::<usize, usize>::new();
+        let nodes_by_grid_ix = HashMap::<usize, usize>::new();
 
         // Vec<start_pos, option<index of last node that the following steps should connect to>, path up to this point>
         let mut active: Vec<(usize, Option<usize>, Vec<usize>)> = vec![(start, None, Vec::new())];
 
-        while let Some((from_ix, last_node, mut path)) = active.pop() {
-            let mut current = from_ix;
+        while let Some((current, last_node, path)) = active.pop() {
             let mut prev_node_id = last_node;
 
-            //loop {
             covered[current] = true;
             let val = grid.get(current);
 
@@ -88,19 +79,15 @@ impl<T, TCost, G> GraphBuilder<T, TCost, G>
             }
 
             // If we reach an already-covered cell containing a node we should still connect to it
-            //if let Some(prev_node) = prev_node_id {
-//                if !path.is_empty() && path[path.len() - 1] != nodes[prev_node].pos {   // Don't connect back to immediate last cell
-                    surrounding.iter()
-                        .filter(|&adj| covered[*adj])
-                        .flat_map(|adj| nodes_by_grid_ix.get(adj))
-                        .filter(|&adj_node| !path.contains(adj_node))
-                        .for_each(|target_node_id| {
-                            let target_node = nodes.get(*target_node_id).unwrap_or_else(|| panic!("Target node {} does not exist", target_node_id));
-                            let new_edges = GraphBuilder::<T, TCost, G>::generate_edges(grid, current, target_node.pos, &path, should_generate_edge, &get_cost);
-                            edges.extend(new_edges);
-                        });
-//                }
-            //}
+            surrounding.iter()
+                .filter(|&adj| covered[*adj])
+                .flat_map(|adj| nodes_by_grid_ix.get(adj))
+                .filter(|&adj_node| !path.contains(adj_node))
+                .for_each(|target_node_id| {
+                    let target_node = nodes.get(*target_node_id).unwrap_or_else(|| panic!("Target node {} does not exist", target_node_id));
+                    let new_edges = GraphBuilder::<T, TCost, G>::generate_edges(grid, current, target_node.pos, &path, should_generate_edge, &get_cost);
+                    edges.extend(new_edges);
+                });
 
             let child_paths = exits.iter()
                 .map(|ix| {
@@ -140,7 +127,9 @@ impl<T, TCost, G> GraphBuilder<T, TCost, G>
                       get_cost: &impl Fn(&Grid<G>, usize, usize, &Vec<usize>) -> TCost) -> Vec<EdgeData<usize, TCost>> {
 
         let mut edges = Vec::new();
-        let path_section = path[path.iter().position(|x| *x == prev_ix).unwrap()..].iter().cloned().collect_vec();
+        let path_section = path[path.iter().position(|x| *x == prev_ix)
+            .unwrap_or_else(|| panic!("Path section start index {} does not exist in current path {:?}", prev_ix, path))..]
+            .iter().cloned().collect_vec();
 
         if should_generate_edge(grid, prev_ix, next_ix, path) {
             edges.push(EdgeData::<usize, TCost>::new(prev_ix, next_ix, get_cost(grid, prev_ix, next_ix, &path_section)));

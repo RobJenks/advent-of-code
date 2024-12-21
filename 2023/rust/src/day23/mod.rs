@@ -12,14 +12,14 @@ pub fn run() {
 }
 
 fn part1() -> usize {
-    find_longest_path(&parse_input("src/day23/problem-input.txt")).1
+    find_longest_path(&parse_input("src/day23/problem-input.txt", false)).1
 }
 
 fn part2() -> usize {
-12
+    find_longest_path(&parse_input("src/day23/problem-input.txt", true)).1
 }
 
-fn parse_input(file: &str) -> Data {
+fn parse_input(file: &str, can_traverse_slopes: bool) -> Data {
     let grid = Grid::new_from_2d_data(
         &common::read_file(file)
             .lines()
@@ -35,16 +35,13 @@ fn parse_input(file: &str) -> Data {
         .position(|c| *c == '.')
         .map(|col| grid.coords_to_ix(col, grid.get_size().y() - 1))
         .unwrap_or_else(|| panic!("No end"));
-println!("Path = from {} {} to {} {}", start_pos, grid.ix_to_coord(start_pos), end_pos, grid.ix_to_coord(end_pos));
+
     let graph = GraphBuilder::build_from_grid(&grid, GridStartMode::FirstWalkableCell,
         /* get_node_value */ &|c| *c,
         /* is_walkable */ &|c, _| *c != '#',
-        /* get_cost */ &|grid, from, to, path| {
-            println!("Cost of path from {} to {} (with steps {:?}) = {}", from, to, path, path.len());
-            path.len()
-        },// + if path.contains(&to) { 0 } else { 1 },
-        /* generate_node_at */ &GenerateNodesAt::Custom(|val, ix, adj| adj.len() != 2 || is_slope(*val)),
-        /* should_generate_edge */ &should_generate_edge);
+        /* get_cost */ &|_, _, _, path| path.len(),
+        /* generate_node_at */ &GenerateNodesAt::Custom(|val, _ix, adj| adj.len() != 2 || is_slope(*val)),
+        /* should_generate_edge */ &|grid, from, to, path| should_generate_edge(grid, from, to, path, can_traverse_slopes));
 
     Data::new(grid, graph, start_pos, end_pos)
 }
@@ -52,16 +49,11 @@ println!("Path = from {} {} to {} {}", start_pos, grid.ix_to_coord(start_pos), e
 fn find_longest_path(data: &Data) -> (Vec<usize>, usize) {
     let start_node = data.graph.get_node_at(&data.start_pos).unwrap_or_else(|| panic!("No start node")).id;
     let end_node = data.graph.get_node_at(&data.end_pos).unwrap_or_else(|| panic!("No end node")).id;
-println!("Path = node {} to {}", start_node, end_node);
+
     let pathfinder = PathFinder::new(&data.graph);
     let result = pathfinder.find_path(start_node, end_node, PathfindingType::BFS, PathEvalFn::HighestCost);
 
     if !result.found_path { panic!("No solution found"); }
-
-    result.path.windows(2)
-        .map(|n| (n, data.graph.edges[n[0]].iter().find(|tgt| tgt.target == n[1]).unwrap()))
-        .map(|(n, edge)| (n, edge, data.grid.ix_to_coord(data.graph.get_node(n[0]).unwrap().pos), data.grid.ix_to_coord(data.graph.get_node(n[1]).unwrap().pos)))
-        .for_each(|(n, edge, p0, p1)| println!("Edge from {} {}  to {} {} = cost {}", n[0], p0, n[1], p1, edge.cost));
 
     (result.path, result.total_cost)
 }
@@ -70,10 +62,10 @@ fn is_slope(c: char) -> bool {
     c == '<' || c == '>' || c == '^' || c == 'v'
 }
 
-fn should_generate_edge(grid: &Grid<char>, from: usize, to: usize, path: &Vec<usize>) -> bool {
+fn should_generate_edge(grid: &Grid<char>, from: usize, to: usize, path: &Vec<usize>, can_traverse_slopes: bool) -> bool {
     let from_val = grid.get(from);
     let to_val = grid.get(to);
-    if from_val == '.' && to_val == '.' { return true }
+    if (from_val == '.' && to_val == '.') || can_traverse_slopes { return true }
 
     assert!(path.len() >= 2);
     let is_fwd = path.contains(&from);
@@ -99,12 +91,6 @@ fn should_generate_edge(grid: &Grid<char>, from: usize, to: usize, path: &Vec<us
     let from_ok = if from_val == '.' { true } else { is_in_slope_direction(from_val, from_dir) };
     let to_ok = if to_val == '.' { true } else { is_in_slope_direction(to_val, to_dir) };
 
-    if (from == 118 && to == 95) || (from == 95 && to == 118) { // node 2
-        println!("From: {}, to: {}, fromval: {}, toval: {}, from_dir: {}, to_dir: {}, from_ok: {}, to_ok: {}, from_in_slope_dir: {}, to_in_slope_dir: {}, path: {:?}",
-            from, to, from_val, to_val, from_dir, to_dir, from_ok, to_ok, from_val == '.' || is_in_slope_direction(from_val, from_dir),
-                 to_val == '.' || is_in_slope_direction(to_val, to_dir), path);
-    }
-
     from_ok && to_ok
 }
 
@@ -122,7 +108,7 @@ fn is_in_slope_direction(slope: char, dir: GridDirection) -> bool {
     dir == get_slope_direction(slope)
 }
 
-fn grid_with_graph_to_string(data: &Data) -> String {
+fn _grid_with_graph_to_string(data: &Data) -> String {
     data.grid.to_string_fmt(&|c, i| {
         if *c == '#' {
             c.to_string()
@@ -139,7 +125,7 @@ fn grid_with_graph_to_string(data: &Data) -> String {
     })
 }
 
-
+#[allow(unused)]
 struct Data {
     grid: Grid<char>,
     graph: Graph<char, usize, usize>,
@@ -155,36 +141,30 @@ impl Data {
 
 #[cfg(test)]
 mod tests {
-    use itertools::Itertools;
-    use crate::day23::{find_longest_path, grid_with_graph_to_string, parse_input, part1, part2};
-
-    #[test]
-    fn test_graph_build() {
-        let data = parse_input("src/day23/test-input-1.txt");
-
-        data.graph.nodes.iter().for_each(|n| println!("Node {} at {} {} = {} (edges: {})",
-             n.id, n.pos, data.grid.ix_to_coord(n.pos), n.value, data.graph.edges[n.id].iter().map(|e| e.target.to_string()).join(", ")));
-        data.graph.edges.iter().enumerate().for_each(|(i, e)| e.iter()
-            .for_each(|edge| println!("Edge {}->{} = cost {}", i, edge.target, edge.cost)));
-
-        println!("\n\n{}\n\n{}", data.grid.to_string(), grid_with_graph_to_string(&data));
-    }
+    use crate::day23::{find_longest_path, parse_input, part1, part2};
 
     #[test]
     fn test_pathfinding() {
         assert_eq!(
-            find_longest_path(&parse_input("src/day23/test-input-1.txt")),
+            find_longest_path(&parse_input("src/day23/test-input-1.txt", false)),
             (vec![0, 1, 2, 34, 27, 26, 25, 24, 19, 18, 17, 16, 15, 14, 11, 12, 13], 94));
     }
 
     #[test]
+    fn test_unconstrained_pathfinding() {
+        assert_eq!(
+            find_longest_path(&parse_input("src/day23/test-input-1.txt", true)),
+            (vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 32, 22, 19, 24, 25, 26, 29, 31, 16, 15, 14, 11, 12, 13], 154));
+    }
+
+    #[test]
     fn test_part1() {
-        assert_eq!(part1(), 12);
+        assert_eq!(part1(), 2438);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(), 12);
+        assert_eq!(part2(), 6658);
     }
 
 }

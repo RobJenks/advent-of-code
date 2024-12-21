@@ -1,3 +1,4 @@
+#![allow(unused)]
 use std::cmp::Ordering;
 
 pub fn get_opposite_ordering(ordering: Ordering) -> Ordering {
