@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use itertools::Itertools;
 use super::common;
 
@@ -11,13 +12,26 @@ fn part1() -> isize {
 }
 
 fn part2() -> isize {
-    12
+    freq_sum(&parse_input("src/day1/problem-input.txt"))
 }
 
 fn sorted_diffs((v0, v1): &(Vec<isize>, Vec<isize>)) -> isize {
     v0.iter().sorted().zip(v1.iter().sorted())
         .map(|(a, b)| (a - b).abs())
         .sum()
+}
+
+fn freq_sum((v0, v1): &(Vec<isize>, Vec<isize>)) -> isize {
+    let freq = get_frequencies(&v1);
+    v0.iter()
+        .map(|x| x * freq.get(x).cloned().unwrap_or_else(|| 0) as isize)
+        .sum()
+}
+
+fn get_frequencies(v: &Vec<isize>) -> HashMap<isize, usize> {
+    v.iter()
+        .cloned()
+        .counts_by(|x| x)
 }
 
 fn parse_input(file: &str) -> (Vec<isize>, Vec<isize>) {
@@ -30,10 +44,15 @@ fn parse_input(file: &str) -> (Vec<isize>, Vec<isize>) {
 
 #[cfg(test)]
 mod tests {
-    use super::{part1, part2, parse_input, sorted_diffs};
+    use super::{part1, part2, parse_input, sorted_diffs, freq_sum};
 
     #[test]
     fn test_sorted_diffs() {
         assert_eq!(sorted_diffs(&parse_input("src/day1/test-input-1.txt")), 11);
+    }
+
+    #[test]
+    fn test_freq_sum() {
+        assert_eq!(freq_sum(&parse_input("src/day1/test-input-1.txt")), 31);
     }
 }
